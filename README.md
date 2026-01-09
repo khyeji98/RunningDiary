@@ -1,7 +1,7 @@
 ![iOS 18.0](https://img.shields.io/badge/iOS-18.0-lightgrey?style=flat&color=181717)
 [![Swift 6.2](https://img.shields.io/badge/Swift-6.2-F05138.svg?style=flat&color=F05138)](https://swift.org/download/)
 [![Xcode 26.0](https://img.shields.io/badge/Xcode-26.0-147EFB.svg?style=flat&color=147EFB)](https://apps.apple.com/kr/app/xcode/id497799835?mt=12)
-[![Build & Test](https://github.com/f-lab-edu/Running-Diary/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/f-lab-edu/Running-Diary/actions/workflows/build-and-test.yml)
+[![Build & Test](https://github.com/khyeji98/RunningDiary/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/khyeji98/RunningDiary/actions/workflows/build-and-test.yml)
 
 # Running Diary 🏃‍♀️
 
