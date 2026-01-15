@@ -8,6 +8,7 @@
 import ComposableArchitecture
 import Foundation
 import Models
+import PersistencesService
 
 @DependencyClient
 struct RunningRecordClient {
@@ -21,7 +22,7 @@ extension RunningRecordClient: DependencyKey {
     static let liveValue: RunningRecordClient = RunningRecordClient(
         fetchData: { from, to in
             @Dependency(\.healthKitClient) var healthKitClient
-            @Dependency(\.swiftDataClient) var swiftDataClient
+            @Dependency(\.persistencesClient) var persistencesClient
 
             try await healthKitClient.ensureAuthorizationIfNeeded()
 
@@ -30,7 +31,7 @@ extension RunningRecordClient: DependencyKey {
                 from.toDate(),
                 to.toDate()
             )
-            let savedRecords = try await swiftDataClient.fetchRecords(
+            let savedRecords = try await persistencesClient.fetchRecords(
                 from.toDate(),
                 to.toDate()
             )
@@ -39,7 +40,7 @@ extension RunningRecordClient: DependencyKey {
             await Self.migrateHealthKitMetricsIfNeeded(
                 savedRecords: savedRecords,
                 healthKitWorkouts: healthKitWorkouts,
-                swiftDataClient: swiftDataClient
+                persistencesClient: persistencesClient
             )
 
             // 3. Build (비즈니스 로직은 Client가 담당)
@@ -51,16 +52,16 @@ extension RunningRecordClient: DependencyKey {
             )
         },
         saveRecord: { record in
-            @Dependency(\.swiftDataClient) var swiftDataClient
-            try await swiftDataClient.save(record)
+            @Dependency(\.persistencesClient) var persistencesClient
+            try await persistencesClient.save(record)
         },
         updateRecord: { record in
-            @Dependency(\.swiftDataClient) var swiftDataClient
-            try await swiftDataClient.update(record)
+            @Dependency(\.persistencesClient) var persistencesClient
+            try await persistencesClient.update(record)
         },
         clearCache: {
-            @Dependency(\.swiftDataClient) var swiftDataClient
-            swiftDataClient.clearCache()
+            @Dependency(\.persistencesClient) var persistencesClient
+            persistencesClient.clearCache()
         }
     )
 
@@ -139,7 +140,7 @@ extension RunningRecordClient: DependencyKey {
     private static func migrateHealthKitMetricsIfNeeded(
         savedRecords: [RunningRecord],
         healthKitWorkouts: [HealthKitWorkout],
-        swiftDataClient: SwiftDataClient
+        persistencesClient: PersistencesClient
     ) async {
         for savedRecord in savedRecords {
             // 마이그레이션이 필요한지 확인 (새 필드 중 하나라도 nil이면)
@@ -157,7 +158,7 @@ extension RunningRecordClient: DependencyKey {
 
             // 마이그레이션 실행
             do {
-                try await swiftDataClient.migrateHealthKitMetrics(
+                try await persistencesClient.migrateHealthKitMetrics(
                     savedRecord.id,
                     matchingWorkout.activeEnergyBurned,
                     matchingWorkout.runningVerticalOscillation,

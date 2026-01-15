@@ -1,5 +1,5 @@
 //
-//  RunningRecordClientTests.swift
+//  PersistencesClientTests.swift
 //  RunDiaryTests
 //
 //  Created by Claude on 10/23/25.
@@ -11,8 +11,8 @@ import Testing
 
 @testable import RunDiary
 
-@Suite("SwiftDataClient")
-struct SwiftDataClientTests {
+@Suite("PersistencesClient")
+struct PersistencesClientTests {
 
   // MARK: - Test Helpers
 
@@ -52,7 +52,7 @@ struct SwiftDataClientTests {
       endTime: endTime
     )
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { date in
         #expect(Calendar.current.isDate(date, inSameDayAs: testDate.toDate()))
         return expectedRecord
@@ -84,7 +84,7 @@ struct SwiftDataClientTests {
   func fetchReturnsNilWhenNoRecord() async throws {
     let testDate = makeYearMonthDay()
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { date in
         #expect(Calendar.current.isDate(date, inSameDayAs: testDate.toDate()))
         return nil
@@ -109,7 +109,7 @@ struct SwiftDataClientTests {
       case fetchFailed
     }
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { _ in
         throw TestError.fetchFailed
       },
@@ -170,7 +170,7 @@ struct SwiftDataClientTests {
       ),
     ]
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { _ in nil },
       fetchRecords: { start, end in
         #expect(Calendar.current.isDate(start, inSameDayAs: startDate))
@@ -200,7 +200,7 @@ struct SwiftDataClientTests {
     let startDate = makeDate()
     let endDate = Calendar.current.date(byAdding: .day, value: 7, to: startDate)!
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -268,7 +268,7 @@ struct SwiftDataClientTests {
       ),
     ]
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { _ in nil },
       fetchRecords: { start, end in
         #expect(start <= end, "시작 날짜는 종료 날짜보다 이전이어야 합니다")
@@ -297,7 +297,7 @@ struct SwiftDataClientTests {
       case fetchFailed
     }
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in
         throw TestError.fetchFailed
@@ -342,7 +342,7 @@ struct SwiftDataClientTests {
 
     var savedRecord: RunningRecord?
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { record in
@@ -389,7 +389,7 @@ struct SwiftDataClientTests {
 
     var savedRecord: RunningRecord?
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { record in
@@ -417,7 +417,7 @@ struct SwiftDataClientTests {
       case saveFailed
     }
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in
@@ -475,7 +475,7 @@ struct SwiftDataClientTests {
 
     var updated: RunningRecord?
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -525,7 +525,7 @@ struct SwiftDataClientTests {
 
     var updated: RunningRecord?
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -553,7 +553,7 @@ struct SwiftDataClientTests {
       case updateFailed
     }
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -612,7 +612,7 @@ struct SwiftDataClientTests {
 
     var deletedRecord: RunningRecord?
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -639,7 +639,7 @@ struct SwiftDataClientTests {
       case deleteFailed
     }
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { _ in nil },
       fetchRecords: { _, _ in [] },
       save: { _ in },
@@ -700,7 +700,7 @@ struct SwiftDataClientTests {
       )
     ]
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { date in
         storage.values.first { Calendar.current.isDate($0.yearMonthDay.toDate(), inSameDayAs: date) }
       },
@@ -769,7 +769,7 @@ struct SwiftDataClientTests {
     let time2Start = makeDate(day: 30)
     let time2End = time2Start.addingTimeInterval(2100)
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { date in
         storage.values.first { Calendar.current.isDate($0.yearMonthDay.toDate(), inSameDayAs: date) }
       },
@@ -835,7 +835,7 @@ struct SwiftDataClientTests {
     let startTime = makeDate()
     let endTime = startTime.addingTimeInterval(1800)
 
-    let client = SwiftDataClient(
+    let client = PersistencesClient(
       fetch: { date in
         storage.values.first { Calendar.current.isDate($0.yearMonthDay.toDate(), inSameDayAs: date) }
       },

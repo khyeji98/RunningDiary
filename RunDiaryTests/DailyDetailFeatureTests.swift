@@ -104,8 +104,8 @@ struct DailyDetailFeatureTests {
         // Given
         let initialDate = makeTodayYearMonthDay()
         let weekDates = DateHelper.getWeekDates(for: initialDate.toDate()).map { YearMonthDay(date: $0) }
-        // selectedDate는 weekDates 중 하나를 선택 (캐시에 존재하도록)
-        let selectedDate = weekDates[3] // 중간 날짜 선택
+        // initialDate와 다른 날짜를 선택 (캐시에 존재하도록)
+        let selectedDate = weekDates.first { $0 != initialDate } ?? weekDates[0]
 
         let records = weekDates.map {
             let dailyRecord = DailyRecord(yearMonthDay: $0, healthKitWorkouts: [], savedRecords: [])

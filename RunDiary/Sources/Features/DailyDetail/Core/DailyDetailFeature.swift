@@ -74,7 +74,7 @@ struct DailyDetailFeature {
 
     @Dependency(\.runningRecordClient) var runningRecordClient
     @Dependency(\.weatherClient) var weatherClient
-    @Dependency(\.swiftDataClient) var swiftDataClient
+    @Dependency(\.persistencesClient) var persistencesClient
 
     // MARK: - Reducer
 
@@ -292,7 +292,7 @@ struct DailyDetailFeature {
                 }
 
                 // 2. SwiftData cache clear (Repository의 캐시 제거)
-                swiftDataClient.clearCache()
+                persistencesClient.clearCache()
                 AppLogger.dailyDetail.debug("SwiftData cache cleared")
 
                 // 3. 다시 fetch (HealthKit은 자동으로 fresh fetch됨)

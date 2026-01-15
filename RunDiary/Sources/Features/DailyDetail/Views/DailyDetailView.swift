@@ -131,7 +131,7 @@ struct RecordContentSection: View {
         store: Store(initialState: DailyDetailFeature.State()) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.swiftDataClient = .previewValue
+            $0.persistencesClient = .previewValue
         }
     )
 }
@@ -156,7 +156,7 @@ struct RecordContentSection: View {
         ) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.swiftDataClient = .previewValue
+            $0.persistencesClient = .previewValue
         }
     )
 }

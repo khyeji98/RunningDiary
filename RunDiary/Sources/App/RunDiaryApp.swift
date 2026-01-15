@@ -6,7 +6,7 @@
 //
 
 import ComposableArchitecture
-import Models
+import PersistencesService
 import SwiftData
 import SwiftUI
 
@@ -20,7 +20,7 @@ struct RunDiaryApp: App {
             DailyDetailFeature()
                 ._printChanges()
         } withDependencies: {
-            $0.swiftDataClient = .live(modelContext: DataModel.shared.modelContainer.mainContext)
+            $0.persistencesClient = .live(modelContext: DataModel.shared.modelContainer.mainContext)
             $0.healthKitClient = .liveValue
         }
     }
