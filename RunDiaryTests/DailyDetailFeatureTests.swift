@@ -13,6 +13,7 @@ import Testing
 
 @testable import RunDiary
 
+@MainActor
 @Suite("DailyDetailFeature")
 struct DailyDetailFeatureTests {
 
