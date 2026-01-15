@@ -14,6 +14,13 @@ protocol SwiftDataRepository {
     func saveRunningRecord(_ record: RunningRecord) async throws
     func updateRunningRecord(_ record: RunningRecord) async throws
     func deleteRunningRecord(_ record: RunningRecord) async throws
+    func migrateHealthKitMetrics(
+        recordId: UUID,
+        activeEnergyBurned: Double,
+        runningVerticalOscillation: Double,
+        runningGroundContactTime: Double,
+        walkingStepLength: Double
+    ) async throws
     func clearCache()
     func clearCache(for yearMonth: YearMonth)
 }

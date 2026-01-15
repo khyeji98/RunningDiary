@@ -180,6 +180,10 @@ final class LiveSwiftDataRepository: SwiftDataRepository {
         existingModel.windSpeed = record.weather?.windSpeed
         existingModel.difficultyLevelRaw = record.difficultyLevel?.rawValue
         existingModel.routeData = record.routeData
+        existingModel.activeEnergyBurned = record.activeEnergyBurned
+        existingModel.runningVerticalOscillation = record.runningVerticalOscillation
+        existingModel.runningGroundContactTime = record.runningGroundContactTime
+        existingModel.walkingStepLength = record.walkingStepLength
         existingModel.hasMap = record.hasMap
         existingModel.startTime = record.startTime
         existingModel.endTime = record.endTime
@@ -232,6 +236,76 @@ final class LiveSwiftDataRepository: SwiftDataRepository {
             let errorMessage = error.localizedDescription
             AppLogger.database.error("delete 실패 - recordId: \(recordId), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
             throw SwiftDataError.deleteFailed
+        }
+    }
+
+    func migrateHealthKitMetrics(
+        recordId: UUID,
+        activeEnergyBurned: Double,
+        runningVerticalOscillation: Double,
+        runningGroundContactTime: Double,
+        walkingStepLength: Double
+    ) async throws {
+        let startTime = Date.now
+        AppLogger.database.debug("migrateHealthKitMetrics 시작 - recordId: \(recordId)")
+
+        // 기존 레코드 찾기
+        let predicate = #Predicate<RunningRecordPersistenceModel> { $0.id == recordId }
+        let descriptor = FetchDescriptor<RunningRecordPersistenceModel>(predicate: predicate)
+
+        guard let existingModel = try modelContext.fetch(descriptor).first else {
+            AppLogger.database.error("migrateHealthKitMetrics 실패 - recordId: \(recordId), 기존 레코드를 찾을 수 없음")
+            throw SwiftDataError.notFound
+        }
+
+        // nil인 필드만 업데이트
+        var updated = false
+
+        if existingModel.activeEnergyBurned == nil {
+            existingModel.activeEnergyBurned = activeEnergyBurned
+            updated = true
+            AppLogger.database.debug("activeEnergyBurned 업데이트: \(activeEnergyBurned)")
+        }
+
+        if existingModel.runningVerticalOscillation == nil {
+            existingModel.runningVerticalOscillation = runningVerticalOscillation
+            updated = true
+            AppLogger.database.debug("runningVerticalOscillation 업데이트: \(runningVerticalOscillation)")
+        }
+
+        if existingModel.runningGroundContactTime == nil {
+            existingModel.runningGroundContactTime = runningGroundContactTime
+            updated = true
+            AppLogger.database.debug("runningGroundContactTime 업데이트: \(runningGroundContactTime)")
+        }
+
+        if existingModel.walkingStepLength == nil {
+            existingModel.walkingStepLength = walkingStepLength
+            updated = true
+            AppLogger.database.debug("walkingStepLength 업데이트: \(walkingStepLength)")
+        }
+
+        guard updated else {
+            let elapsed = Date.now.timeIntervalSince(startTime)
+            AppLogger.database.info("migrateHealthKitMetrics 스킵 - recordId: \(recordId), 모든 필드가 이미 채워져 있음, elapsed: \(String(format: "%.3f", elapsed))s")
+            return
+        }
+
+        do {
+            try modelContext.save()
+
+            // 캐시 invalidate
+            let yearMonthDay = YearMonthDay(date: existingModel.date)
+            cache.removeValue(forKey: yearMonthDay)
+            AppLogger.database.debug("Cache invalidated - date: \(yearMonthDay)")
+
+            let elapsed = Date.now.timeIntervalSince(startTime)
+            AppLogger.database.info("migrateHealthKitMetrics 성공 - recordId: \(recordId), elapsed: \(String(format: "%.3f", elapsed))s")
+        } catch {
+            let elapsed = Date.now.timeIntervalSince(startTime)
+            let errorMessage = error.localizedDescription
+            AppLogger.database.error("migrateHealthKitMetrics 실패 - recordId: \(recordId), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
+            throw SwiftDataError.updateFailed
         }
     }
 

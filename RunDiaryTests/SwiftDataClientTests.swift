@@ -61,6 +61,7 @@ struct SwiftDataClientTests {
       save: { _ in },
       update: { _ in },
       delete: { _ in },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -92,6 +93,7 @@ struct SwiftDataClientTests {
       save: { _ in },
       update: { _ in },
       delete: { _ in },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -115,6 +117,7 @@ struct SwiftDataClientTests {
       save: { _ in },
       update: { _ in },
       delete: { _ in },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -177,6 +180,7 @@ struct SwiftDataClientTests {
       save: { _ in },
       update: { _ in },
       delete: { _ in },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -202,6 +206,7 @@ struct SwiftDataClientTests {
       save: { _ in },
       update: { _ in },
       delete: { _ in },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -272,6 +277,7 @@ struct SwiftDataClientTests {
       save: { _ in },
       update: { _ in },
       delete: { _ in },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -299,6 +305,7 @@ struct SwiftDataClientTests {
       save: { _ in },
       update: { _ in },
       delete: { _ in },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -343,6 +350,7 @@ struct SwiftDataClientTests {
       },
       update: { _ in },
       delete: { _ in },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -389,6 +397,7 @@ struct SwiftDataClientTests {
       },
       update: { _ in },
       delete: { _ in },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -416,6 +425,7 @@ struct SwiftDataClientTests {
       },
       update: { _ in },
       delete: { _ in },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -473,6 +483,7 @@ struct SwiftDataClientTests {
         updated = record
       },
       delete: { _ in },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -522,6 +533,7 @@ struct SwiftDataClientTests {
         updated = record
       },
       delete: { _ in },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -549,6 +561,7 @@ struct SwiftDataClientTests {
         throw TestError.updateFailed
       },
       delete: { _ in },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -607,6 +620,7 @@ struct SwiftDataClientTests {
       delete: { record in
         deletedRecord = record
       },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -633,6 +647,7 @@ struct SwiftDataClientTests {
       delete: { _ in
         throw TestError.deleteFailed
       },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -699,6 +714,7 @@ struct SwiftDataClientTests {
       delete: { record in
         storage.removeValue(forKey: record.id)
       },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -769,6 +785,7 @@ struct SwiftDataClientTests {
       delete: { record in
         storage.removeValue(forKey: record.id)
       },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )
@@ -832,6 +849,7 @@ struct SwiftDataClientTests {
       delete: { record in
         storage.removeValue(forKey: record.id)
       },
+      migrateHealthKitMetrics: { _, _, _, _, _ in },
       clearCache: { },
       clearCacheForMonth: { _ in }
     )

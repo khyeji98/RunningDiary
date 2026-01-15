@@ -18,6 +18,13 @@ struct SwiftDataClient {
     var save: @MainActor @Sendable (RunningRecord) async throws -> Void
     var update: @MainActor @Sendable (RunningRecord) async throws -> Void
     var delete: @MainActor @Sendable (RunningRecord) async throws -> Void
+    var migrateHealthKitMetrics: @MainActor @Sendable (
+        _ recordId: UUID,
+        _ activeEnergyBurned: Double,
+        _ runningVerticalOscillation: Double,
+        _ runningGroundContactTime: Double,
+        _ walkingStepLength: Double
+    ) async throws -> Void
     var clearCache: @MainActor @Sendable () -> Void
     var clearCacheForMonth: @MainActor @Sendable (YearMonth) -> Void
 }
@@ -39,6 +46,9 @@ extension SwiftDataClient: DependencyKey {
         delete: { _ in
             fatalError("RepositoryClient.delete must be overridden with live implementation")
         },
+        migrateHealthKitMetrics: { _, _, _, _, _ in
+            fatalError("RepositoryClient.migrateHealthKitMetrics must be overridden with live implementation")
+        },
         clearCache: {
             fatalError("RepositoryClient.clearCache must be overridden with live implementation")
         },
@@ -53,6 +63,7 @@ extension SwiftDataClient: DependencyKey {
         save: unimplemented("\(Self.self).save"),
         update: unimplemented("\(Self.self).update"),
         delete: unimplemented("\(Self.self).delete"),
+        migrateHealthKitMetrics: unimplemented("\(Self.self).migrateHealthKitMetrics"),
         clearCache: unimplemented("\(Self.self).clearCache"),
         clearCacheForMonth: unimplemented("\(Self.self).clearCacheForMonth")
     )
@@ -74,6 +85,7 @@ extension SwiftDataClient: DependencyKey {
         save: { _ in },
         update: { _ in },
         delete: { _ in },
+        migrateHealthKitMetrics: { _, _, _, _, _ in },
         clearCache: { },
         clearCacheForMonth: { _ in }
     )
@@ -107,6 +119,15 @@ extension SwiftDataClient {
             },
             delete: { record in
                 try await repository.deleteRunningRecord(record)
+            },
+            migrateHealthKitMetrics: { recordId, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength in
+                try await repository.migrateHealthKitMetrics(
+                    recordId: recordId,
+                    activeEnergyBurned: activeEnergyBurned,
+                    runningVerticalOscillation: runningVerticalOscillation,
+                    runningGroundContactTime: runningGroundContactTime,
+                    walkingStepLength: walkingStepLength
+                )
             },
             clearCache: {
                 repository.clearCache()
