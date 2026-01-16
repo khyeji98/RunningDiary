@@ -43,7 +43,7 @@ jobs:
           bundler-cache: true
 
       - name: Install fastlane
-        run: gem install fastlane
+        run: brew install fastlane
 
       - name: Upload to TestFlight
         env:
@@ -54,3 +54,6 @@ jobs:
           KEYCHAIN_NAME: ${{ secrets.KEYCHAIN_NAME }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: fastlane beta
+
+#      - name: Debug codesign identities
+#        run: security find-identity -v -p codesigning
