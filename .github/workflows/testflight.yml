@@ -23,11 +23,6 @@ jobs:
           xcodebuild -version
           swift --version
 
-      - name: Install iOS Platform
-        run: |
-          sudo xcodebuild -downloadPlatform iOS
-
-
       - name: Setup SSH for match
         uses: webfactory/ssh-agent@v0.9.0
         with:

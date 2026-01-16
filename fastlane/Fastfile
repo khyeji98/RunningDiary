@@ -38,8 +38,8 @@ platform :ios do
 	build_number: latest_build_number + 1
     )
 
-    build_app(
-	configuration: "Debug"
+    build_ios_app(
+	scheme: "RunDiary"
     )
 
     upload_to_testflight(
