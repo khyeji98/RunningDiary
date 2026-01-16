@@ -9,6 +9,7 @@ import ComposableArchitecture
 import CoreLocation
 import Foundation
 import Models
+import PersistencesService
 
 nonisolated enum RecordMode: Equatable {
     case add
@@ -152,6 +153,10 @@ struct AddRecordFeature {
                             weather: weather,
                             difficultyLevel: difficultyLevel,
                             routeData: healthKitWorkout.routeData,
+                            activeEnergyBurned: healthKitWorkout.activeEnergyBurned,
+                            runningVerticalOscillation: healthKitWorkout.runningVerticalOscillation,
+                            runningGroundContactTime: healthKitWorkout.runningGroundContactTime,
+                            walkingStepLength: healthKitWorkout.walkingStepLength,
                             hasMap: healthKitWorkout.routeData != nil,
                             startTime: healthKitWorkout.startDate,
                             endTime: healthKitWorkout.endDate
@@ -165,7 +170,7 @@ struct AddRecordFeature {
 
                         await send(.recordSaved)
                     } catch {
-                        if let runningRecordError = error as? SwiftDataError {
+                        if let runningRecordError = error as? PersistencesError {
                             await send(.recordSaveFailed(runningRecordError.errorDescription ?? runningRecordError.localizedDescription))
                         } else {
                             await send(.recordSaveFailed(error.localizedDescription))

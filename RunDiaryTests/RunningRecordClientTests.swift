@@ -189,7 +189,7 @@ struct RunningRecordClientTests {
     // MARK: - Save and Update Tests
 
     @Test("saveRecord는 의존성을 통해 저장")
-    func saveRecord_callsSwiftDataClient() async throws {
+    func saveRecord_callsPersistencesClient() async throws {
         // Given
         let testDate = makeYearMonthDay(month: 1, day: 15)
         let recordToSave = makeRunningRecord(yearMonthDay: testDate)
@@ -212,7 +212,7 @@ struct RunningRecordClientTests {
     }
 
     @Test("updateRecord는 의존성을 통해 업데이트")
-    func updateRecord_callsSwiftDataClient() async throws {
+    func updateRecord_callsPersistencesClient() async throws {
         // Given
         let testDate = makeYearMonthDay(month: 1, day: 15)
         let recordToUpdate = makeRunningRecord(yearMonthDay: testDate)
@@ -234,8 +234,8 @@ struct RunningRecordClientTests {
         #expect(updatedRecord?.yearMonthDay == testDate)
     }
 
-    @Test("clearCache는 swiftDataClient.clearCache 호출")
-    func clearCache_callsSwiftDataClientClearCache() async throws {
+    @Test("clearCache는 persistencesClient.clearCache 호출")
+    func clearCache_callsPersistencesClientClearCache() async throws {
         // Given
         var clearCacheCalled = false
         let client = makeTestClient(
@@ -281,6 +281,10 @@ private extension RunningRecordClientTests {
             averagePace: "6'00\"",
             averageHeartRate: 150,
             averageCadence: 170,
+            activeEnergyBurned: 350.0,
+            runningVerticalOscillation: 8.0,
+            runningGroundContactTime: 240.0,
+            walkingStepLength: 1.0,
             routeData: nil,
             startDate: start,
             endDate: start.addingTimeInterval(1800)

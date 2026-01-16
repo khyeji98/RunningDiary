@@ -1,19 +1,15 @@
 //
-//  SwiftDataError.swift
+//  PersistencesError+Localization.swift
 //  RunDiary
 //
-//  Created by 김혜지 on 11/5/25.
+//  Created by 김혜지 on 1/15/26.
 //
 
 import Foundation
+import PersistencesService
 
-enum SwiftDataError: LocalizedError, Equatable {
-    case notFound
-    case saveFailed
-    case updateFailed
-    case deleteFailed
-
-    var errorDescription: String? {
+extension PersistencesError: @retroactive LocalizedError {
+    public var errorDescription: String? {
         switch self {
         case .notFound:
             return L10n.repositoryErrorNotFound.value

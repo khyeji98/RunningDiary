@@ -8,6 +8,7 @@
 import ComposableArchitecture
 import Foundation
 import Models
+import PersistencesService
 
 @DependencyClient
 struct RunningRecordClient {
@@ -21,7 +22,7 @@ extension RunningRecordClient: DependencyKey {
     static let liveValue: RunningRecordClient = RunningRecordClient(
         fetchData: { from, to in
             @Dependency(\.healthKitClient) var healthKitClient
-            @Dependency(\.swiftDataClient) var swiftDataClient
+            @Dependency(\.persistencesClient) var persistencesClient
 
             try await healthKitClient.ensureAuthorizationIfNeeded()
 
@@ -30,12 +31,19 @@ extension RunningRecordClient: DependencyKey {
                 from.toDate(),
                 to.toDate()
             )
-            let savedRecords = try await swiftDataClient.fetchRecords(
+            let savedRecords = try await persistencesClient.fetchRecords(
                 from.toDate(),
                 to.toDate()
             )
 
-            // 2. Build (비즈니스 로직은 Client가 담당)
+            // 2. Migration: 새로운 HealthKit 필드가 nil인 기존 레코드 업데이트
+            await Self.migrateHealthKitMetricsIfNeeded(
+                savedRecords: savedRecords,
+                healthKitWorkouts: healthKitWorkouts,
+                persistencesClient: persistencesClient
+            )
+
+            // 3. Build (비즈니스 로직은 Client가 담당)
             return Self.merge(
                 healthKitWorkouts: healthKitWorkouts,
                 savedRecords: savedRecords,
@@ -44,16 +52,16 @@ extension RunningRecordClient: DependencyKey {
             )
         },
         saveRecord: { record in
-            @Dependency(\.swiftDataClient) var swiftDataClient
-            try await swiftDataClient.save(record)
+            @Dependency(\.persistencesClient) var persistencesClient
+            try await persistencesClient.save(record)
         },
         updateRecord: { record in
-            @Dependency(\.swiftDataClient) var swiftDataClient
-            try await swiftDataClient.update(record)
+            @Dependency(\.persistencesClient) var persistencesClient
+            try await persistencesClient.update(record)
         },
         clearCache: {
-            @Dependency(\.swiftDataClient) var swiftDataClient
-            swiftDataClient.clearCache()
+            @Dependency(\.persistencesClient) var persistencesClient
+            persistencesClient.clearCache()
         }
     )
 
@@ -125,6 +133,43 @@ extension RunningRecordClient: DependencyKey {
         }
 
         return dates
+    }
+
+    /// 새로 추가된 HealthKit 메트릭 필드가 nil인 기존 SwiftData 레코드를 HealthKit 데이터로 마이그레이션
+    @MainActor
+    private static func migrateHealthKitMetricsIfNeeded(
+        savedRecords: [RunningRecord],
+        healthKitWorkouts: [HealthKitWorkout],
+        persistencesClient: PersistencesClient
+    ) async {
+        for savedRecord in savedRecords {
+            // 마이그레이션이 필요한지 확인 (새 필드 중 하나라도 nil이면)
+            let needsMigration = savedRecord.activeEnergyBurned == nil
+                || savedRecord.runningVerticalOscillation == nil
+                || savedRecord.runningGroundContactTime == nil
+                || savedRecord.walkingStepLength == nil
+
+            guard needsMigration else { continue }
+
+            // startTime으로 매칭되는 HealthKit workout 찾기
+            guard let matchingWorkout = healthKitWorkouts.first(where: { $0.startDate == savedRecord.startTime }) else {
+                continue
+            }
+
+            // 마이그레이션 실행
+            do {
+                try await persistencesClient.migrateHealthKitMetrics(
+                    savedRecord.id,
+                    matchingWorkout.activeEnergyBurned,
+                    matchingWorkout.runningVerticalOscillation,
+                    matchingWorkout.runningGroundContactTime,
+                    matchingWorkout.walkingStepLength
+                )
+            } catch {
+                // 마이그레이션 실패는 무시하고 계속 진행 (데이터 fetch는 정상 동작해야 함)
+                AppLogger.app.warning("HealthKit 메트릭 마이그레이션 실패 - recordId: \(savedRecord.id), error: \(error.localizedDescription)")
+            }
+        }
     }
 }
 

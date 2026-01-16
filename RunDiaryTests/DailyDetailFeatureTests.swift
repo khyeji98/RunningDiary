@@ -13,6 +13,7 @@ import Testing
 
 @testable import RunDiary
 
+@MainActor
 @Suite("DailyDetailFeature")
 struct DailyDetailFeatureTests {
 
@@ -103,8 +104,8 @@ struct DailyDetailFeatureTests {
         // Given
         let initialDate = makeTodayYearMonthDay()
         let weekDates = DateHelper.getWeekDates(for: initialDate.toDate()).map { YearMonthDay(date: $0) }
-        // selectedDate는 weekDates 중 하나를 선택 (캐시에 존재하도록)
-        let selectedDate = weekDates[3] // 중간 날짜 선택
+        // initialDate와 다른 날짜를 선택 (캐시에 존재하도록)
+        let selectedDate = weekDates.first { $0 != initialDate } ?? weekDates[0]
 
         let records = weekDates.map {
             let dailyRecord = DailyRecord(yearMonthDay: $0, healthKitWorkouts: [], savedRecords: [])
@@ -899,6 +900,10 @@ private extension DailyDetailFeatureTests {
             averagePace: "6'00\"",
             averageHeartRate: 150,
             averageCadence: 170,
+            activeEnergyBurned: 350.0,
+            runningVerticalOscillation: 8.0,
+            runningGroundContactTime: 240.0,
+            walkingStepLength: 1.0,
             routeData: nil,
             startDate: startDate,
             endDate: startDate.addingTimeInterval(1800)

@@ -1,5 +1,5 @@
 //
-//  LiveSwiftDataRepository.swift
+//  LivePersistencesRepository.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 9/23/25.
@@ -9,39 +9,27 @@ import Foundation
 import Models
 import SwiftData
 
-final class LiveSwiftDataRepository: SwiftDataRepository {
+public final class LivePersistencesRepository: PersistencesRepository {
+    // ModelContext : 데이터 변경을 추적하고 저장/조회/삭제를 실행하는 중심 객체
     private let modelContext: ModelContext
     private var cache: [YearMonthDay: [RunningRecord]] = [:]
 
-    init(modelContext: ModelContext) {
+    public init(modelContext: ModelContext) {
         self.modelContext = modelContext
     }
 
-    func fetchRunningRecord(for date: Date) async throws -> RunningRecord? {
-        let startTime = Date.now
-        AppLogger.database.debug("fetch 시작 - date: \(date)")
-
+    public func fetchRunningRecord(for date: Date) async throws -> RunningRecord? {
         let yearMonthDay = YearMonthDay(date: date)
 
         // 1. 캐시 확인
         if let cachedRecords = cache[yearMonthDay] {
-            let result = cachedRecords.first
-            let elapsed = Date.now.timeIntervalSince(startTime)
-
-            if result != nil {
-                AppLogger.database.info("fetch 성공 (cached) - date: \(yearMonthDay), elapsed: \(String(format: "%.3f", elapsed))s")
-            } else {
-                AppLogger.database.debug("fetch 결과 없음 (cached) - date: \(yearMonthDay), elapsed: \(String(format: "%.3f", elapsed))s")
-            }
-
-            return result
+            return cachedRecords.first
         }
 
         // 2. 캐시 미스: DB 조회
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
-            AppLogger.database.warning("fetch 실패 - endOfDay 계산 실패")
             return nil
         }
 
@@ -59,22 +47,10 @@ final class LiveSwiftDataRepository: SwiftDataRepository {
         // 3. 캐시에 저장
         cache[yearMonthDay] = records
 
-        let elapsed = Date.now.timeIntervalSince(startTime)
-        let result = records.first
-
-        if result != nil {
-            AppLogger.database.info("fetch 성공 (DB) - date: \(yearMonthDay), elapsed: \(String(format: "%.3f", elapsed))s")
-        } else {
-            AppLogger.database.debug("fetch 결과 없음 (DB) - date: \(yearMonthDay), elapsed: \(String(format: "%.3f", elapsed))s")
-        }
-
-        return result
+        return records.first
     }
 
-    func fetchRunningRecords(from startDate: Date, to endDate: Date) async throws -> [RunningRecord] {
-        let startTime = Date.now
-        AppLogger.database.debug("fetchRecords 시작 - startDate: \(startDate), endDate: \(endDate)")
-
+    public func fetchRunningRecords(from startDate: Date, to endDate: Date) async throws -> [RunningRecord] {
         // 1. 요청 범위의 날짜들 추출
         let requestedDates = generateDateRange(from: startDate, to: endDate)
 
@@ -104,49 +80,28 @@ final class LiveSwiftDataRepository: SwiftDataRepository {
             for date in missingDates {
                 cache[date] = groupedRecords[date] ?? []
             }
-
-            AppLogger.database.debug("Cache miss - DB fetch: \(fetchedRecords.count) records")
-        } else {
-            AppLogger.database.debug("Cache hit - all dates cached")
         }
 
         // 5. 캐시에서 결과 추출
         let result = requestedDates.flatMap { cache[$0] ?? [] }
 
-        let elapsed = Date.now.timeIntervalSince(startTime)
-        AppLogger.database.info("fetchRecords 완료 - count: \(result.count), elapsed: \(String(format: "%.3f", elapsed))s")
-
         return result
     }
 
-    func saveRunningRecord(_ record: RunningRecord) async throws {
-        let startTime = Date.now
-        AppLogger.database.debug("save 시작 - recordId: \(record.id), date: \(record.yearMonthDay)")
-
+    public func saveRunningRecord(_ record: RunningRecord) async throws {
         let model = RunningRecordPersistenceModel.fromDomain(record)
         modelContext.insert(model)
 
         do {
             try modelContext.save()
-
             // 캐시 invalidate
             cache.removeValue(forKey: record.yearMonthDay)
-            AppLogger.database.debug("Cache invalidated - date: \(record.yearMonthDay)")
-
-            let elapsed = Date.now.timeIntervalSince(startTime)
-            AppLogger.database.info("save 성공 - recordId: \(record.id), elapsed: \(String(format: "%.3f", elapsed))s")
         } catch {
-            let elapsed = Date.now.timeIntervalSince(startTime)
-            let errorMessage = error.localizedDescription
-            AppLogger.database.error("save 실패 - recordId: \(record.id), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
-            throw SwiftDataError.saveFailed
+            throw PersistencesError.saveFailed
         }
     }
 
-    func updateRunningRecord(_ record: RunningRecord) async throws {
-        let startTime = Date.now
-        AppLogger.database.debug("update 시작 - recordId: \(record.id), date: \(record.yearMonthDay)")
-
+    public func updateRunningRecord(_ record: RunningRecord) async throws {
         // 기존 레코드 찾기
         let recordId = record.id
         let predicate = #Predicate<RunningRecordPersistenceModel> { $0.id == recordId }
@@ -155,8 +110,7 @@ final class LiveSwiftDataRepository: SwiftDataRepository {
         )
 
         guard let existingModel = try modelContext.fetch(descriptor).first else {
-            AppLogger.database.error("update 실패 - recordId: \(recordId), 기존 레코드를 찾을 수 없음")
-            throw SwiftDataError.notFound
+            throw PersistencesError.notFound
         }
 
         // 업데이트
@@ -180,31 +134,24 @@ final class LiveSwiftDataRepository: SwiftDataRepository {
         existingModel.windSpeed = record.weather?.windSpeed
         existingModel.difficultyLevelRaw = record.difficultyLevel?.rawValue
         existingModel.routeData = record.routeData
+        existingModel.activeEnergyBurned = record.activeEnergyBurned
+        existingModel.runningVerticalOscillation = record.runningVerticalOscillation
+        existingModel.runningGroundContactTime = record.runningGroundContactTime
+        existingModel.walkingStepLength = record.walkingStepLength
         existingModel.hasMap = record.hasMap
         existingModel.startTime = record.startTime
         existingModel.endTime = record.endTime
 
         do {
             try modelContext.save()
-
             // 캐시 invalidate
             cache.removeValue(forKey: record.yearMonthDay)
-            AppLogger.database.debug("Cache invalidated - date: \(record.yearMonthDay)")
-
-            let elapsed = Date.now.timeIntervalSince(startTime)
-            AppLogger.database.info("update 성공 - recordId: \(recordId), elapsed: \(String(format: "%.3f", elapsed))s")
         } catch {
-            let elapsed = Date.now.timeIntervalSince(startTime)
-            let errorMessage = error.localizedDescription
-            AppLogger.database.error("update 실패 - recordId: \(recordId), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
-            throw SwiftDataError.updateFailed
+            throw PersistencesError.updateFailed
         }
     }
 
-    func deleteRunningRecord(_ record: RunningRecord) async throws {
-        let startTime = Date.now
-        AppLogger.database.debug("delete 시작 - recordId: \(record.id)")
-
+    public func deleteRunningRecord(_ record: RunningRecord) async throws {
         let recordId = record.id
         let predicate = #Predicate<RunningRecordPersistenceModel> { $0.id == recordId }
         let descriptor = FetchDescriptor<RunningRecordPersistenceModel>(
@@ -212,8 +159,7 @@ final class LiveSwiftDataRepository: SwiftDataRepository {
         )
 
         guard let model = try modelContext.fetch(descriptor).first else {
-            AppLogger.database.error("delete 실패 - recordId: \(recordId), 기존 레코드를 찾을 수 없음")
-            throw SwiftDataError.notFound
+            throw PersistencesError.notFound
         }
 
         modelContext.delete(model)
@@ -223,31 +169,73 @@ final class LiveSwiftDataRepository: SwiftDataRepository {
 
             // 캐시 invalidate
             cache.removeValue(forKey: record.yearMonthDay)
-            AppLogger.database.debug("Cache invalidated - date: \(record.yearMonthDay)")
-
-            let elapsed = Date.now.timeIntervalSince(startTime)
-            AppLogger.database.info("delete 성공 - recordId: \(recordId), elapsed: \(String(format: "%.3f", elapsed))s")
         } catch {
-            let elapsed = Date.now.timeIntervalSince(startTime)
-            let errorMessage = error.localizedDescription
-            AppLogger.database.error("delete 실패 - recordId: \(recordId), error: \(errorMessage), elapsed: \(String(format: "%.3f", elapsed))s")
-            throw SwiftDataError.deleteFailed
+            throw PersistencesError.deleteFailed
+        }
+    }
+
+    public func migrateHealthKitMetrics(
+        recordId: UUID,
+        activeEnergyBurned: Double,
+        runningVerticalOscillation: Double,
+        runningGroundContactTime: Double,
+        walkingStepLength: Double
+    ) async throws {
+        // 기존 레코드 찾기
+        let predicate = #Predicate<RunningRecordPersistenceModel> { $0.id == recordId }
+        let descriptor = FetchDescriptor<RunningRecordPersistenceModel>(predicate: predicate)
+
+        guard let existingModel = try modelContext.fetch(descriptor).first else {
+            throw PersistencesError.notFound
+        }
+
+        // nil인 필드만 업데이트
+        var updated = false
+
+        if existingModel.activeEnergyBurned == nil {
+            existingModel.activeEnergyBurned = activeEnergyBurned
+            updated = true
+        }
+
+        if existingModel.runningVerticalOscillation == nil {
+            existingModel.runningVerticalOscillation = runningVerticalOscillation
+            updated = true
+        }
+
+        if existingModel.runningGroundContactTime == nil {
+            existingModel.runningGroundContactTime = runningGroundContactTime
+            updated = true
+        }
+
+        if existingModel.walkingStepLength == nil {
+            existingModel.walkingStepLength = walkingStepLength
+            updated = true
+        }
+
+        guard updated else { return }
+
+        do {
+            try modelContext.save()
+
+            // 캐시 invalidate
+            let yearMonthDay = YearMonthDay(date: existingModel.date)
+            cache.removeValue(forKey: yearMonthDay)
+        } catch {
+            throw PersistencesError.updateFailed
         }
     }
 
     // MARK: - Cache Management
 
-    func clearCache() {
+    public func clearCache() {
         cache.removeAll()
-        AppLogger.database.info("Cache cleared - all dates")
     }
 
-    func clearCache(for yearMonth: YearMonth) {
+    public func clearCache(for yearMonth: YearMonth) {
         let datesToRemove = cache.keys.filter { $0.toYearMonth() == yearMonth }
         for date in datesToRemove {
             cache.removeValue(forKey: date)
         }
-        AppLogger.database.info("Cache cleared - month: \(yearMonth), dates: \(datesToRemove.count)")
     }
 
     // MARK: - Helper Methods

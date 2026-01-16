@@ -77,7 +77,7 @@ struct CalendarFeature {
     // MARK: - Dependency
 
     @Dependency(\.runningRecordClient) var runningRecordClient
-    @Dependency(\.swiftDataClient) var swiftDataClient
+    @Dependency(\.persistencesClient) var persistencesClient
 
     // MARK: - Reducer
 
@@ -174,7 +174,7 @@ struct CalendarFeature {
                 state.monthlyTotals.removeAll()
 
                 // 2. SwiftData cache clear (Repository의 캐시 제거)
-                swiftDataClient.clearCache()
+                persistencesClient.clearCache()
                 AppLogger.calendar.debug("SwiftData cache cleared")
 
                 // 3. 현재 범위 다시 fetch (HealthKit은 자동으로 fresh fetch됨)

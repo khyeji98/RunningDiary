@@ -1,5 +1,5 @@
 //
-//  SwiftDataClient.swift
+//  PersistencesClient.swift
 //  RunDiary
 //
 //  Created by Claude on 10/19/25.
@@ -10,20 +10,28 @@ import DependenciesMacros
 import Foundation
 import SwiftData
 import Models
+import PersistencesService
 
 @DependencyClient
-struct SwiftDataClient {
+struct PersistencesClient {
     var fetch: @MainActor @Sendable (Date) async throws -> RunningRecord?
     var fetchRecords: @MainActor @Sendable (Date, Date) async throws -> [RunningRecord]
     var save: @MainActor @Sendable (RunningRecord) async throws -> Void
     var update: @MainActor @Sendable (RunningRecord) async throws -> Void
     var delete: @MainActor @Sendable (RunningRecord) async throws -> Void
+    var migrateHealthKitMetrics: @MainActor @Sendable (
+        _ recordId: UUID,
+        _ activeEnergyBurned: Double,
+        _ runningVerticalOscillation: Double,
+        _ runningGroundContactTime: Double,
+        _ walkingStepLength: Double
+    ) async throws -> Void
     var clearCache: @MainActor @Sendable () -> Void
     var clearCacheForMonth: @MainActor @Sendable (YearMonth) -> Void
 }
 
-extension SwiftDataClient: DependencyKey {
-    static let liveValue: SwiftDataClient = SwiftDataClient(
+extension PersistencesClient: DependencyKey {
+    static let liveValue: PersistencesClient = PersistencesClient(
         fetch: { _ in
             fatalError("RepositoryClient.fetch must be overridden with live implementation")
         },
@@ -39,6 +47,9 @@ extension SwiftDataClient: DependencyKey {
         delete: { _ in
             fatalError("RepositoryClient.delete must be overridden with live implementation")
         },
+        migrateHealthKitMetrics: { _, _, _, _, _ in
+            fatalError("RepositoryClient.migrateHealthKitMetrics must be overridden with live implementation")
+        },
         clearCache: {
             fatalError("RepositoryClient.clearCache must be overridden with live implementation")
         },
@@ -47,17 +58,18 @@ extension SwiftDataClient: DependencyKey {
         }
     )
 
-    static let testValue = SwiftDataClient(
+    static let testValue = PersistencesClient(
         fetch: unimplemented("\(Self.self).fetch"),
         fetchRecords: unimplemented("\(Self.self).fetchRecords"),
         save: unimplemented("\(Self.self).save"),
         update: unimplemented("\(Self.self).update"),
         delete: unimplemented("\(Self.self).delete"),
+        migrateHealthKitMetrics: unimplemented("\(Self.self).migrateHealthKitMetrics"),
         clearCache: unimplemented("\(Self.self).clearCache"),
         clearCacheForMonth: unimplemented("\(Self.self).clearCacheForMonth")
     )
 
-    static let previewValue = SwiftDataClient(
+    static let previewValue = PersistencesClient(
         fetch: { date in
             // RunningRecordModel.previewRecords에서 날짜가 일치하는 레코드 찾기
             let calendar = Calendar.current
@@ -74,25 +86,26 @@ extension SwiftDataClient: DependencyKey {
         save: { _ in },
         update: { _ in },
         delete: { _ in },
+        migrateHealthKitMetrics: { _, _, _, _, _ in },
         clearCache: { },
         clearCacheForMonth: { _ in }
     )
 }
 
 extension DependencyValues {
-    var swiftDataClient: SwiftDataClient {
-        get { self[SwiftDataClient.self] }
-        set { self[SwiftDataClient.self] = newValue }
+    var persistencesClient: PersistencesClient {
+        get { self[PersistencesClient.self] }
+        set { self[PersistencesClient.self] = newValue }
     }
 }
 
 // MARK: - Helper
 
-extension SwiftDataClient {
-    static func live(modelContext: ModelContext) -> SwiftDataClient {
-        let repository = LiveSwiftDataRepository(modelContext: modelContext)
+extension PersistencesClient {
+    static func live(modelContext: ModelContext) -> PersistencesClient {
+        let repository = LivePersistencesRepository(modelContext: modelContext)
 
-        return SwiftDataClient(
+        return PersistencesClient(
             fetch: { date in
                 try await repository.fetchRunningRecord(for: date)
             },
@@ -107,6 +120,15 @@ extension SwiftDataClient {
             },
             delete: { record in
                 try await repository.deleteRunningRecord(record)
+            },
+            migrateHealthKitMetrics: { recordId, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength in
+                try await repository.migrateHealthKitMetrics(
+                    recordId: recordId,
+                    activeEnergyBurned: activeEnergyBurned,
+                    runningVerticalOscillation: runningVerticalOscillation,
+                    runningGroundContactTime: runningGroundContactTime,
+                    walkingStepLength: walkingStepLength
+                )
             },
             clearCache: {
                 repository.clearCache()
