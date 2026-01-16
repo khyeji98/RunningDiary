@@ -39,7 +39,8 @@ platform :ios do
     )
 
     build_app(
-	scheme: "RunDiary"
+	scheme: "RunDiary",
+	export_method: "app-store"
     )
 
     upload_to_testflight(
