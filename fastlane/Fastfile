@@ -40,7 +40,13 @@ platform :ios do
 
     build_app(
 	scheme: "RunDiary",
-	export_method: "app-store"
+	export_method: "app-store",
+	export_options: {
+	    signingStyle: "manual",
+	    provisioningProfiles: {
+		"com.kimhyeji.RunDiary" => "match AppStore com.kimhyeji.RunDiary"
+    	    }
+        }
     )
 
     upload_to_testflight(
