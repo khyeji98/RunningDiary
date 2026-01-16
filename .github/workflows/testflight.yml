@@ -23,7 +23,7 @@ jobs:
         run: rm -rf ~/Library/Developer/Xcode/DerivedData
 
       - name: Resolve Dependencies
-        run: xcodebuild -resolvePackageDependencies -project RunDiary/RunDiary.xcodeproj
+        run: xcodebuild -resolvePackageDependencies -project RunDiary.xcodeproj
 
       - name: Skip Macro Validation
         run: |
