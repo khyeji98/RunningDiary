@@ -16,12 +16,11 @@
 default_platform(:ios)
 
 platform :ios do
+
   desc "Push a new beta build to TestFlight"
 
-  #########################################
-  # 🔐 키체인 생성 lane
-  #########################################
-  lane :setup_keychain do
+  lane :beta do
+    # 1️⃣ Keychain 생성
     create_keychain(
     	name: ENV["KEYCHAIN_NAME"],
     	password: ENV["KEYCHAIN_PASSWORD"],
@@ -30,12 +29,8 @@ platform :ios do
     	unlock: true,
     	lock_when_sleeps: false
     )
-  end
 
-  #########################################
-  # 🛠 Match lane
-  #########################################
-  lane :setup_match do
+    # 2️⃣ Match 인증서/프로비저닝 설정
     match(
     	git_url: "git@github.com:khyeji98/RunningDiary-certificates.git",
     	storage_mode: "git",
@@ -44,17 +39,6 @@ platform :ios do
     	keychain_name: ENV["KEYCHAIN_NAME"],
     	keychain_password: ENV["KEYCHAIN_PASSWORD"]
     )
-  end
-
-  #########################################
-  # 📦 테스트플라이트 배포 lane
-  #########################################
-  lane :beta do
-    # 1️⃣ Keychain 설정
-    setup_keychain
-
-    # 2️⃣ Match 인증서/프로비저닝 설정
-    setup_match
 
     api_key = app_store_connect_api_key(
         key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
@@ -63,6 +47,7 @@ platform :ios do
     )
 
     current_version = get_version_number
+
     latest_build_number=latest_testflight_build_number(
 	api_key: api_key,
 	version: current_version,
