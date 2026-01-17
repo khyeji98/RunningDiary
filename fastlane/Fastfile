@@ -61,7 +61,7 @@ platform :ios do
     build_app(
       	project: "RunDiary.xcodeproj",
         scheme: "RunDiary",
-	destination: "platform=iOS Simulator,name=iPhone 16 Pro",
+	export_method: "app-store",
 	clean: true
     )
 

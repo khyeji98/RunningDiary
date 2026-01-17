@@ -17,7 +17,7 @@ jobs:
 
       # 2️⃣ Xcode Version 설정
       - name: 2️⃣ Setting Xcode Version
-        run: sudo xcode-select -s '/Applications/Xcode_16.4.app/Contents/Developer'
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
 
       - name: 🧹 Clean DerivedData
         run: rm -rf ~/Library/Developer/Xcode/DerivedData
@@ -42,9 +42,9 @@ jobs:
           ruby-version: "3.2"
           bundler-cache: true
 
-      # 4️⃣ fastlane 설치
-      - name: 4️⃣ Install fastlane
-        run: brew install fastlane
+      # 4️⃣ 의존성 설치
+      - name: 4️⃣ Install Dependencies
+        run: bundle install
 
       # 5️⃣ Install SSH Key
       - name: 5️⃣ Install SSH Key
@@ -62,4 +62,4 @@ jobs:
           APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
           KEYCHAIN_NAME: ${{ secrets.KEYCHAIN_NAME }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-        run: fastlane beta
+        run: bundle exec fastlane beta
