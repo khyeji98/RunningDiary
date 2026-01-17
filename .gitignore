@@ -32,7 +32,7 @@ Packages/
 
 ### Fastlane ###
 
-fastlane/env
+fastlane/.env
 
 ### Claude Code ###
 

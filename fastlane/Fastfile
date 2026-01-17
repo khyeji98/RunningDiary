@@ -62,8 +62,11 @@ platform :ios do
         key_content: ENV["APP_STORE_CONNECT_API_KEY_CONTENT"]
     )
 
+    current_version = get_version_number
     latest_build_number=latest_testflight_build_number(
-	api_key: api_key
+	api_key: api_key,
+	version: current_version,
+	initial_build_number: 0
     )
 
     increment_build_number(
@@ -73,7 +76,8 @@ platform :ios do
     build_app(
       	project: "RunDiary.xcodeproj",
         scheme: "RunDiary",
-        configuration: "Debug"
+	destination: "platform=iOS Simulator,name=iPhone 16 Pro",
+	clean: true
     )
 
     upload_to_testflight(

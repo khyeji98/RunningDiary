@@ -15,13 +15,29 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
+### ios setup_keychain
+
+```sh
+[bundle exec] fastlane ios setup_keychain
+```
+
+Push a new beta build to TestFlight
+
+### ios setup_match
+
+```sh
+[bundle exec] fastlane ios setup_match
+```
+
+
+
 ### ios beta
 
 ```sh
 [bundle exec] fastlane ios beta
 ```
 
-Push a new beta build to TestFlight
+
 
 ----
 
