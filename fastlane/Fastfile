@@ -41,13 +41,18 @@ platform :ios do
     	keychain_password: ENV["KEYCHAIN_PASSWORD"]
     )
 
-    sh("security list-keychains -d user")
-    sh("security default-keychain")
-    sh("security find-identity -p codesigning -v")
-    sh("security find-certificate -c 'Apple Distribution' -a")
-
     sh("security unlock-keychain -p #{ENV['KEYCHAIN_PASSWORD']} ~/Library/Keychains/#{ENV['KEYCHAIN_NAME']}-db")
     sh("security set-keychain-settings -lut 21600 ~/Library/Keychains/#{ENV['KEYCHAIN_NAME']}-db")
+
+    sh(<<~CMD)
+	security set-key-partition-list \
+	    -S apple-tool:,apple:,codesign: \
+	    -s \
+	    -k #{ENV['KEYCHAIN_PASSWORD']} \
+    	    ~/Library/Keychains/#{ENV['KEYCHAIN_NAME']}-db
+    CMD
+
+    sh("security find-identity -p codesigning -v")
 
     api_key = app_store_connect_api_key(
         key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
