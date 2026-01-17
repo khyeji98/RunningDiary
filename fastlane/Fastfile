@@ -58,6 +58,8 @@ platform :ios do
 	build_number: latest_build_number + 1
     )
 
+    xcodes(version: "16.4")
+
     build_app(
       	project: "RunDiary.xcodeproj",
         scheme: "RunDiary",
