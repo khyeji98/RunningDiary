@@ -62,6 +62,7 @@ platform :ios do
       	project: "RunDiary.xcodeproj",
         scheme: "RunDiary",
 	export_method: "app-store",
+	destination: "generic/platform=iOS",
 	clean: true
     )
 
