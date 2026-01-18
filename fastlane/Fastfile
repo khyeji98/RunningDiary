@@ -20,6 +20,9 @@ platform :ios do
   desc "Push a new beta build to TestFlight"
 
   lane :beta do
+
+    sh("security delete-keychain #{ENV['KEYCHAIN_NAME']} || true")
+
     # 1️⃣ Keychain 생성
     create_keychain(
     	name: ENV["KEYCHAIN_NAME"],
