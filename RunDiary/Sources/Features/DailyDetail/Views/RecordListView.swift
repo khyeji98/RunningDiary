@@ -12,43 +12,42 @@ import SwiftUI
 
 struct RecordListView: View {
     let store: StoreOf<DailyDetailFeature>
-    let dailyRecord: DailyRecord
+    let diaries: [Diary]
+    let workouts: [HealthKitWorkout]
 
     init(
         store: StoreOf<DailyDetailFeature>,
-        dailyRecord: DailyRecord
+        diaries: [Diary],
+        workouts: [HealthKitWorkout]
     ) {
         self.store = store
-        self.dailyRecord = dailyRecord
+        self.diaries = diaries
+        self.workouts = workouts
     }
 
     var body: some View {
-        if dailyRecord.hasAnyData {
-            LazyVStack(spacing: 12) {
-                ForEach(dailyRecord.savedRecords) { record in
-                    RunningRecordCard(record: record, onEdit: { store.send(.editRecord(record)) })
-                }
-
-                if dailyRecord.hasSavedRecord, let trademark = store.weatherTrademark {
-                    WeatherTrademarkView(trademark: trademark)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                        .padding(.top, 8)
-                }
-
-                if dailyRecord.hasSavedRecord && dailyRecord.hasHealthKitWorkout {
-                    Divider()
-                        .padding(.vertical, 10)
-                }
-
-                ForEach(dailyRecord.healthKitWorkouts) { record in
-                    HealthKitWorkoutCard(record: record, onCreate: { store.send(.createRecord(record)) })
-                }
+        LazyVStack(spacing: 12) {
+            ForEach(diaries) { diary in
+                RunningRecordCard(record: diary, onEdit: { store.send(.editRecord(diary)) })
             }
-            .padding(.vertical, 20)
-            .padding(.horizontal, 20)
-        } else {
-            EmptyRecordView()
+
+            if !diaries.isEmpty, let trademark = store.weatherTrademark {
+                WeatherTrademarkView(trademark: trademark)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.top, 8)
+            }
+
+            if !diaries.isEmpty && !workouts.isEmpty {
+                Divider()
+                    .padding(.vertical, 10)
+            }
+
+            ForEach(workouts) { workout in
+                HealthKitWorkoutCard(record: workout, onCreate: { store.send(.createRecord(workout)) })
+            }
         }
+        .padding(.vertical, 20)
+        .padding(.horizontal, 20)
     }
 }
 

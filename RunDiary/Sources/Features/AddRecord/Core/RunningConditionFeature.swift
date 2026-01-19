@@ -31,7 +31,7 @@ struct RunningConditionFeature {
         let painAreaOptions = PainArea.allCases
         let runningStyleOptions = RunninStyle.allCases
 
-        init(existingRecord: RunningRecord?) {
+        init(existingRecord: Diary?) {
             self.selectedPainAreas = Set(existingRecord?.painAreas ?? [])
             self.selectedRunningStyle = existingRecord?.runningStyle
             self.sleepHours = existingRecord?.condition.sleep?.toString ?? ""

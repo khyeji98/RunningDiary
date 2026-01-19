@@ -14,7 +14,7 @@ struct DayView: View {
     let day: Int
     let isSunday: Bool
     let isToday: Bool
-    let records: [RunningRecord]
+    let records: [Diary]
     let isSelected: Bool
     let hasUnsavedWorkout: Bool
 
@@ -27,7 +27,7 @@ struct DayView: View {
         day: Int,
         isSunday: Bool,
         isToday: Bool,
-        records: [RunningRecord],
+        records: [Diary],
         isSelected: Bool,
         hasUnsavedWorkout: Bool
     ) {

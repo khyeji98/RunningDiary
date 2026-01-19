@@ -12,10 +12,10 @@ import SwiftUI
 struct RunningRecordCard: View {
     @State private var isFolded: Bool = true
 
-    let record: RunningRecord
+    let record: Diary
     let onEdit: () -> Void
 
-    init(record: RunningRecord, onEdit: @escaping () -> Void) {
+    init(record: Diary, onEdit: @escaping () -> Void) {
         self.record = record
         self.onEdit = onEdit
     }

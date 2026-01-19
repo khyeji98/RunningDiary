@@ -70,7 +70,7 @@ struct CalendarFeature {
         case refreshAll
 
         enum Delegate {
-            case dailyRecordSaved([YearMonthDay: DailyRecord])
+            case dailyRecordSaved(Diary, at: YearMonthDay)
         }
     }
 
@@ -123,7 +123,7 @@ struct CalendarFeature {
                     state.monthlyTotals[yearMonth, default: 0] += totalDistances
                 }
 
-                return .send(.delegate(.dailyRecordSaved(state.dailyRecords)))
+                return .none
 
             case let .recordsFetchedFailure(error):
                 state.isLoading = false

@@ -27,7 +27,7 @@ struct DateCarouselView: View {
                 WeekView(
                     store: store,
                     dates: DateHelper.getWeekDates(
-                        for: DateHelper.addWeeks(-1, to: store.currentWeekDates.first?.toDate() ?? .now)
+                        for: DateHelper.addWeeks(-1, to: store.dates.first?.toDate() ?? .now)
                     ).map { YearMonthDay(date: $0) },
                     selectedDate: Binding(
                         get: { store.selectedDate },
@@ -39,7 +39,7 @@ struct DateCarouselView: View {
                 // 현재 주
                 WeekView(
                     store: store,
-                    dates: store.currentWeekDates,
+                    dates: store.dates,
                     selectedDate: Binding(
                         get: { store.selectedDate },
                         set: { store.send(.dateSelected($0)) }
@@ -51,7 +51,7 @@ struct DateCarouselView: View {
                 WeekView(
                     store: store,
                     dates: DateHelper.getWeekDates(
-                        for: DateHelper.addWeeks(1, to: store.currentWeekDates.first?.toDate() ?? .now)
+                        for: DateHelper.addWeeks(1, to: store.dates.first?.toDate() ?? .now)
                     ).map { YearMonthDay(date: $0) },
                     selectedDate: Binding(
                         get: { store.selectedDate },
@@ -148,8 +148,9 @@ private struct WeekView: View {
     }
 
     private func hasRecord(on date: YearMonthDay) -> Bool {
-        guard let value = store.dailyRecords[date] else { return false }
-        return value.hasAnyData
+        let isEmptyDiary = store.diaries[date]?.isEmpty ?? true
+        let isEmptyWorkout = store.workouts[date]?.isEmpty ?? true
+        return !isEmptyDiary || !isEmptyWorkout
     }
 }
 
@@ -182,7 +183,6 @@ private struct DateItemView: View {
                 .font(.headline)
                 .foregroundColor(isSelected ? .white : .gray700)
 
-            // 후보 1
             Circle()
                 .frame(width: 6, height: 6)
                 .foregroundStyle(hasRecord ? .yellow100 : .clear)

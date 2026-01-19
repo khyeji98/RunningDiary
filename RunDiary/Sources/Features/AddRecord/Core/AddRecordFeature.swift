@@ -25,7 +25,7 @@ struct AddRecordFeature {
             return healthKitWorkout.data != nil ? .add : .edit
         }
 
-        var existingRecord: RunningRecord?
+        var existingRecord: Diary?
         var healthKitWorkout: HealthKitWorkoutFeature.State
         var condition: RunningConditionFeature.State
         var selectedDifficultyLevel: DifficultyLevel?
@@ -48,7 +48,7 @@ struct AddRecordFeature {
         }
 
         init(
-            existingRecord: RunningRecord? = nil,
+            existingRecord: Diary? = nil,
             healthKitWorkout: HealthKitWorkout? = nil
         ) {
             self.existingRecord = existingRecord
@@ -133,7 +133,7 @@ struct AddRecordFeature {
                             weather = nil
                         }
 
-                        let record = await RunningRecord(
+                        let record = await Diary(
                             id: existingRecordId ?? UUID(),
                             yearMonthDay: yearMonthDay,
                             distanceInKilometers: healthKitWorkout.distance,

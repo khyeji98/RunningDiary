@@ -22,7 +22,7 @@ struct HealthKitWorkoutFeature {
     }
 
     enum Action {
-        case loadFromRecord(RunningRecord)
+        case loadFromRecord(Diary)
     }
     
     var body: some Reducer<State, Action> {

@@ -113,8 +113,12 @@ struct RecordContentSection: View {
 
     var body: some View {
         ScrollView(.vertical) {
-            if let currentDailyRecord = store.state.currentDailyRecord {
-                RecordListView(store: store, dailyRecord: currentDailyRecord)
+            if store.diariesOnSelectedDate.isEmpty == false && store.workoutsOnSelectedDate.isEmpty == false {
+                RecordListView(
+                    store: store,
+                    diaries: store.state.diariesOnSelectedDate,
+                    workouts: store.state.workoutsOnSelectedDate
+                )
             } else {
                 EmptyRecordView(error: store.error)
             }
@@ -144,14 +148,7 @@ struct RecordContentSection: View {
     DailyDetailView(
         store: Store(
             initialState: DailyDetailFeature.State(
-                selectedDate: previewRecord.yearMonthDay,
-                cachedRecords: [
-                    previewKey: DailyRecord(
-                        yearMonthDay: previewRecord.yearMonthDay,
-                        healthKitWorkouts: [],
-                        savedRecords: [previewRecord]
-                    )
-                ]
+                selectedDate: previewRecord.yearMonthDay
             )
         ) {
             DailyDetailFeature()

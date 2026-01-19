@@ -16,8 +16,9 @@ struct DailyDetailFeature {
     @ObservableState
     struct State: Equatable {
         var selectedDate: YearMonthDay
-        var currentWeekDates: [YearMonthDay]
-        var dailyRecords: [YearMonthDay: DailyRecord]
+        var dates: [YearMonthDay]
+        var diaries: [YearMonthDay: [Diary]] = [:]
+        var workouts: [YearMonthDay: [HealthKitWorkout]] = [:]
         var isLoading: Bool = false
         var error: DailyDetailError? = nil
         var weatherTrademark: WeatherTrademark? = nil
@@ -25,23 +26,26 @@ struct DailyDetailFeature {
         @Presents var calendar: CalendarFeature.State?
         @Presents var settings: SettingsFeature.State?
 
-        var currentDailyRecord: DailyRecord? {
-            return dailyRecords[selectedDate]
+        var diariesOnSelectedDate: [Diary] {
+            diaries[selectedDate] ?? []
+        }
+        var workoutsOnSelectedDate: [HealthKitWorkout] {
+            workouts[selectedDate] ?? []
         }
 
         init(
             selectedDate: YearMonthDay = .today,
-            currentWeekDates: [YearMonthDay] = [],
-            cachedRecords: [YearMonthDay: DailyRecord] = [:],
-            isLoading: Bool = false,
+            dates: [YearMonthDay] = [],
+            diaries: [YearMonthDay: [Diary]] = [:],
+            workouts: [YearMonthDay: [HealthKitWorkout]] = [:],
             addRecord: AddRecordFeature.State? = nil,
             calendar: CalendarFeature.State? = nil,
             settings: SettingsFeature.State? = nil
         ) {
             self.selectedDate = selectedDate
-            self.currentWeekDates = currentWeekDates
-            self.dailyRecords = cachedRecords
-            self.isLoading = isLoading
+            self.dates = dates
+            self.diaries = diaries
+            self.workouts = workouts
             self.addRecord = addRecord
             self.calendar = calendar
             self.settings = settings
@@ -55,26 +59,25 @@ struct DailyDetailFeature {
         case dateSelected(YearMonthDay)
         case weekChanged(offset: Int)
         case fetchWeekRecords
-        case weekRecordsFetched([YearMonthDay: DailyRecord])
+        case weekRecordsFetched([Diary], [HealthKitWorkout])
         case weekRecordsFetchFailed(DailyDetailError)
         case fetchWeatherTrademark
         case weatherTrademarkFetched(WeatherTrademark)
         case createRecord(HealthKitWorkout)
-        case editRecord(RunningRecord)
+        case editRecord(Diary)
         case addRecord(PresentationAction<AddRecordFeature.Action>)
         case calendarButtonTapped
         case calendar(PresentationAction<CalendarFeature.Action>)
         case settingsButtonTapped
         case settings(PresentationAction<SettingsFeature.Action>)
         case refreshCurrentWeek
-        case refreshCompleted
     }
 
     // MARK: - Dependency
 
-    @Dependency(\.runningRecordClient) var runningRecordClient
-    @Dependency(\.weatherClient) var weatherClient
+    @Dependency(\.healthKitClient) var healthKitClient
     @Dependency(\.persistencesClient) var persistencesClient
+    @Dependency(\.weatherClient) var weatherClient
 
     // MARK: - Reducer
 
@@ -82,51 +85,29 @@ struct DailyDetailFeature {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                AppLogger.dailyDetail.debug("onAppear - 화면 표시됨")
-                // 현재 주의 날짜들로 초기화
-                if state.currentWeekDates.isEmpty {
-                    state.currentWeekDates = DateHelper.getWeekDates(for: state.selectedDate.toDate()).map { YearMonthDay(date: $0) }
-                    AppLogger.dailyDetail.info("주간 날짜 초기화 완료 - 시작일: \(state.currentWeekDates.first ?? nil)")
+                if state.dates.isEmpty {
+                    state.dates = DateHelper.getWeekDates(for: state.selectedDate.toDate()).map { YearMonthDay(date: $0) }
                 }
 
-                // Fetch trademark only if not already loaded
-                if state.weatherTrademark == nil {
-                    return .merge(
-                        .send(.fetchWeekRecords),
-                        .send(.fetchWeatherTrademark)
-                    )
-                }
-
-                return .send(.fetchWeekRecords)
+                return .merge(
+                    .send(.fetchWeekRecords),
+                    .send(.fetchWeatherTrademark)
+                )
 
             case let .dateSelected(date):
                 state.selectedDate = date
-                AppLogger.dailyDetail.debug("dateSelected - 선택된 날짜: \(date)")
-
-                // 캐시 히트 확인
-                if state.dailyRecords[date] != nil {
-                    // 캐시 히트: fetch 생략
-                    AppLogger.dailyDetail.info("캐시 히트 - 날짜: \(date), fetch 생략")
-                    return .none
-                } else {
-                    // 캐시 미스: 주 단위 fetch
-                    AppLogger.dailyDetail.notice("캐시 미스 - 날짜: \(date), 주 단위 fetch 시작")
-                    return .send(.fetchWeekRecords)
-                }
+                return .none
 
             case let .weekChanged(offset):
-                AppLogger.dailyDetail.debug("weekChanged - offset: \(offset)")
-                
                 // 현재 주에서 N주 이동
                 let calendar = Calendar.current
-                let currentWeekStart = state.currentWeekDates.first ?? state.selectedDate
+                let currentWeekStart = state.dates.first ?? state.selectedDate
                 let newWeekStart = DateHelper.addWeeks(offset, to: currentWeekStart.toDate())
-                state.currentWeekDates = DateHelper.getWeekDates(for: newWeekStart).map { YearMonthDay(date: $0) }
-                AppLogger.dailyDetail.info("주 변경 완료 - 새 시작일: \(newWeekStart)")
+                state.dates = DateHelper.getWeekDates(for: newWeekStart).map { YearMonthDay(date: $0) }
 
                 // 선택된 날짜를 새 주의 같은 요일로 이동
                 if let selectedDateWeekday = calendar.dateComponents([.weekday], from: state.selectedDate.toDate()).weekday,
-                   let newSelectedDate = state.currentWeekDates.first(where: {
+                   let newSelectedDate = state.dates.first(where: {
                        calendar.dateComponents([.weekday], from: $0.toDate()).weekday == selectedDateWeekday
                    }) {
                     state.selectedDate = newSelectedDate
@@ -135,55 +116,42 @@ struct DailyDetailFeature {
                     state.selectedDate = YearMonthDay(date: newWeekStart)
                 }
 
-                // 새 주의 선택된 날짜가 캐시에 있는지 확인
-                if state.dailyRecords[state.selectedDate] != nil {
-                    // 캐시 히트: fetch 생략
-                    AppLogger.dailyDetail.info("캐시 히트 - 날짜: \(state.selectedDate), fetch 생략")
-                    return .none
-                } else {
-                    // 캐시 미스: 주 단위 fetch
-                    AppLogger.dailyDetail.notice("캐시 미스 - 날짜: \(state.selectedDate), 주 단위 fetch 시작")
-                    return .send(.fetchWeekRecords)
-                }
+                return .send(.fetchWeekRecords)
 
             case .fetchWeekRecords:
-                guard let weekStart = state.currentWeekDates.first,
-                      let weekEnd = state.currentWeekDates.last else {
+                guard let startDate = state.dates.first,
+                      let endDate = state.dates.last else {
                     return .send(.weekRecordsFetchFailed(.emptyWeekDates))
                 }
 
                 state.isLoading = true
                 state.error = nil
-                AppLogger.dailyDetail.debug("fetchWeekRecords 시작")
 
                 return .run { send in
                     do {
-                        let dailyRecords = try await runningRecordClient.fetchData(
-                            from: weekStart,
-                            to: weekEnd
-                        )
-                        await send(.weekRecordsFetched(dailyRecords))
+                        async let diaries = try await persistencesClient.fetchRecords(startDate.toDate(), endDate.toDate())
+                        async let workouts = try await healthKitClient.fetchRunningDataBetweenDates(startDate.toDate(), endDate.toDate())
+                        try await send(.weekRecordsFetched(diaries, workouts))
                     } catch {
                         let errorMessage = error.localizedDescription
                         await send(.weekRecordsFetchFailed(.fetchFailed(underlyingError: errorMessage)))
                     }
                 }
 
-            case let .weekRecordsFetched(dailyRecords):
-                state.dailyRecords.merge(dailyRecords) { _, new in new }
+            case let .weekRecordsFetched(diaries, workouts):
+                state.diaries = Dictionary(grouping: diaries, by: \.yearMonthDay)
+                state.workouts = Dictionary(grouping: workouts, by: \.yearMonthDay)
                 state.isLoading = false
-                AppLogger.dailyDetail.info("weekRecordsFetched 완료 - 총 캐시 크기: \(state.dailyRecords.count)")
-                return .send(.refreshCompleted)
+                return .none
 
             case let .weekRecordsFetchFailed(error):
                 state.isLoading = false
                 state.error = error
-                let errorMessage = error.localizedDescription
-                AppLogger.dailyDetail.error("weekRecordsFetchFailed - error: \(errorMessage)")
+                AppLogger.dailyDetail.error("weekRecordsFetchFailed - error: \(error.localizedDescription)")
                 return .none
 
             case .fetchWeatherTrademark:
-                AppLogger.dailyDetail.debug("fetchWeatherTrademark 시작")
+                guard state.weatherTrademark == nil else { return .none }
 
                 return .run { send in
                     let trademark = try await weatherClient.fetchTrademark()
@@ -192,7 +160,6 @@ struct DailyDetailFeature {
 
             case let .weatherTrademarkFetched(trademark):
                 state.weatherTrademark = trademark
-                AppLogger.dailyDetail.info("weatherTrademarkFetched 완료 - imageURL: \(trademark.imageURL != nil), legalURL: \(trademark.legalPageURL != nil)")
                 return .none
 
             case let .createRecord(healthKitWorkout):
@@ -234,12 +201,6 @@ struct DailyDetailFeature {
                 state.calendar = nil
                 return .none
 
-            case let .calendar(.presented(.delegate(.dailyRecordSaved(dailyRecords)))):
-                for (yearMonthDay, dailyRecord) in dailyRecords {
-                    state.dailyRecords.updateValue(dailyRecord, forKey: yearMonthDay)
-                }
-                return .none
-
             case .calendar(.presented(.navigateToDiary)):
                 guard let selectedYearMonthDay = state.calendar?.selectedDate else {
                     AppLogger.dailyDetail.error("navigateToDiary - selectedDate가 없음")
@@ -252,20 +213,13 @@ struct DailyDetailFeature {
 
                 // 선택된 날짜가 속한 주로 즉시 전환
                 let newWeekDates = DateHelper.getWeekDates(for: selectedDate.toDate()).map { YearMonthDay(date: $0) }
-                state.currentWeekDates = newWeekDates
+                state.dates = newWeekDates
                 state.selectedDate = selectedDate
 
                 // 캘린더 시트 닫기
                 state.calendar = nil
 
-                // 캐시 확인 후 필요시 fetch
-                if state.dailyRecords[selectedDate] != nil {
-                    AppLogger.dailyDetail.debug("navigateToDiary - 캐시 히트, fetch 생략")
-                    return .none
-                } else {
-                    AppLogger.dailyDetail.debug("navigateToDiary - 캐시 미스, 주 단위 fetch 시작")
-                    return .send(.fetchWeekRecords)
-                }
+                return .send(.fetchWeekRecords)
 
             case .calendar:
                 return .none
@@ -284,23 +238,7 @@ struct DailyDetailFeature {
                 return .none
 
             case .refreshCurrentWeek:
-                AppLogger.dailyDetail.info("refreshCurrentWeek - 수동 새로고침 시작")
-
-                // 1. Feature cache에서 현재 주 제거
-                for date in state.currentWeekDates {
-                    state.dailyRecords.removeValue(forKey: date)
-                }
-
-                // 2. SwiftData cache clear (Repository의 캐시 제거)
-                persistencesClient.clearCache()
-                AppLogger.dailyDetail.debug("SwiftData cache cleared")
-
-                // 3. 다시 fetch (HealthKit은 자동으로 fresh fetch됨)
                 return .send(.fetchWeekRecords)
-
-            case .refreshCompleted:
-                // UI 피드백 (예: 햅틱, 토스트 등)
-                return .none
             }
         }
         .ifLet(\.$addRecord, action: \.addRecord) {
