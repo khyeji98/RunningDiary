@@ -12,31 +12,31 @@ import SwiftData
 public final class RunningRecordPersistenceModel {
     @Attribute(.unique)
     public var id: UUID
-    public var date: Date
-    public var distance: Double
-    public var duration: TimeInterval
-    public var averagePace: String
-    public var averageHeartRate: Int
-    public var averageCadence: Int
-    public var painAreasRawData: String?
-    public var runningStyleRaw: String?
-    public var sleepHours: Int?
-    public var hadMeal: Bool
-    public var hadAlcohol: Bool
-    public var memo: String?
-    public var shoes: String?
-    public var temperature: Double?
-    public var humidity: Int?
-    public var windSpeed: Double?
-    public var difficultyLevelRaw: Int?
-    public var routeData: Data?
-    public var activeEnergyBurned: Double?
-    public var runningVerticalOscillation: Double?
-    public var runningGroundContactTime: Double?
-    public var walkingStepLength: Double?
-    public var hasMap: Bool
-    public var startTime: Date
-    public var endTime: Date
+    public var date: Date                               // 달리기 날짜
+    public var distance: Double                         // 달리기 거리 (km)
+    public var duration: TimeInterval                   // 달리기 시간 (sec)
+    public var averagePace: String                      // 평균 페이스 (min/km)
+    public var averageHeartRate: Int                    // 평균 심박수 (bpm)
+    public var averageCadence: Int                      // 평균 케이던스 (spm)
+    public var painAreasRawData: String?                // 통증 부위 (raw)
+    public var runningStyleRaw: String?                 // 달리기 스타일 (raw)
+    public var sleepHours: Int?                         // 수면 시간 (hr)
+    public var hadMeal: Bool                            // 식사 여부
+    public var hadAlcohol: Bool                         // 음주 여부
+    public var memo: String?                            // 메모
+    public var shoes: String?                           // 신발
+    public var temperature: Double?                     // 온도 (ºC)
+    public var humidity: Int?                           // 습도 (%)
+    public var windSpeed: Double?                       // 풍속 (m/s)
+    public var difficultyLevelRaw: Int?                 // 달리기 난이도 (raw)
+    public var routeData: Data?                         // 달리기 경로 데이터
+    public var activeEnergyBurned: Double?              // 활동 에너지 소모량 (kcal)
+    public var runningVerticalOscillation: Double?      // 수직 진폭 (cm)
+    public var runningGroundContactTime: Double?        // 지면 접촉 시간 (ms)
+    public var walkingStepLength: Double?               // 보폭 (m)
+    public var hasMap: Bool                             // 지도 데이터 유무
+    public var startTime: Date                          // 달리기 시작 시간
+    public var endTime: Date                            // 달리기 종료 시간
 
     public init(
         id: UUID = UUID(),

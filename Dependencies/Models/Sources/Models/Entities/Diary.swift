@@ -8,27 +8,27 @@
 import Foundation
 
 public struct Diary: Identifiable, Equatable, Sendable {
-    public let id: UUID
-    public let yearMonthDay: YearMonthDay
-    public let distanceInKilometers: Double
-    public let durationInSeconds: TimeInterval  // seconds
-    public let averagePace: String  // min/km
-    public let averageHeartRate: Int  // bpm
-    public let averageCadence: Int  // steps/min
-    public let painAreas: [PainArea]
-    public let runningStyle: RunninStyle?
-    public let condition: RunningCondition
-    public let shoes: String?
-    public let weather: WeatherData?
-    public let difficultyLevel: DifficultyLevel?
-    public let routeData: Data?  // HealthKit route data
-    public let activeEnergyBurned: Double?          // kcal
-    public let runningVerticalOscillation: Double?  // cm
-    public let runningGroundContactTime: Double?    // ms
-    public let walkingStepLength: Double?           // m
-    public let hasMap: Bool
-    public let startTime: Date
-    public let endTime: Date
+    public let id: UUID                                 // 다이어리 고유 id
+    public let yearMonthDay: YearMonthDay               // 다이어리 날짜
+    public let distanceInKilometers: Double             // 달리기 거리 (km)
+    public let durationInSeconds: TimeInterval          // 달리기 시간 (sec)
+    public let averagePace: String                      // 평균 페이스 (min/km)
+    public let averageHeartRate: Int                    // 평균 심박수 (bpm)
+    public let averageCadence: Int                      // 평균 케이던스 (spm)
+    public let painAreas: [PainArea]                    // 통증 부위
+    public let runningStyle: RunninStyle?               // 달리기 스타일
+    public let condition: RunningCondition              // 달리기 컨디션
+    public let shoes: String?                           // 신발
+    public let weather: WeatherData?                    // 날씨
+    public let difficultyLevel: DifficultyLevel?        // 달리기 난이도
+    public let routeData: Data?                         // 달리기 경로 데이터
+    public let activeEnergyBurned: Double?              // 활동 에너지 소모량 (kcal)
+    public let runningVerticalOscillation: Double?      // 수직 진폭 (cm)
+    public let runningGroundContactTime: Double?        // 지면 접촉 시간 (ms)
+    public let walkingStepLength: Double?               // 보폭 (m)
+    public let hasMap: Bool                             // 지도 데이터 유무
+    public let startTime: Date                          // 달리기 시작 시간
+    public let endTime: Date                            // 달리기 종료 시간
 
     public var distanceInMiles: Double {
         durationInSeconds * 0.621371

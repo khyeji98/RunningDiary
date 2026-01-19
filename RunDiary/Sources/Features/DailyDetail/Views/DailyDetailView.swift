@@ -113,11 +113,11 @@ struct RecordContentSection: View {
 
     var body: some View {
         ScrollView(.vertical) {
-            if store.diariesOnSelectedDate.isEmpty == false && store.workoutsOnSelectedDate.isEmpty == false {
+            if store.diariesOnSelectedDate.isEmpty == false || store.filteredWorkoutsOnSelectedDate.isEmpty == false {
                 RecordListView(
                     store: store,
                     diaries: store.state.diariesOnSelectedDate,
-                    workouts: store.state.workoutsOnSelectedDate
+                    workouts: store.state.filteredWorkoutsOnSelectedDate
                 )
             } else {
                 EmptyRecordView(error: store.error)

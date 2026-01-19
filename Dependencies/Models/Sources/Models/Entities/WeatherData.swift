@@ -7,8 +7,8 @@
 
 public struct WeatherData: Equatable, Sendable {
     public let temperature: Double  // 기온 (°C)
-    public let humidity: Int  // 습도 (%)
-    public let windSpeed: Double  // 풍속 (m/s)
+    public let humidity: Int        // 습도 (%)
+    public let windSpeed: Double    // 풍속 (m/s)
 
     public init(
         temperature: Double,

@@ -640,6 +640,7 @@ private extension DailyDetailFeatureTests {
         } withDependencies: {
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in workouts }
             $0.persistencesClient.fetchRecords = { _, _ in diaries }
+            $0.persistencesClient.migrateHealthKitMetrics = { _, _, _, _, _ in }
         }
     }
 }

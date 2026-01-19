@@ -33,6 +33,11 @@ struct DailyDetailFeature {
             workouts[selectedDate] ?? []
         }
 
+        var filteredWorkoutsOnSelectedDate: [HealthKitWorkout] {
+            let diaryStartTimes = Set(diariesOnSelectedDate.map { $0.startTime })
+            return workoutsOnSelectedDate.filter { !diaryStartTimes.contains($0.startDate) }
+        }
+
         init(
             selectedDate: YearMonthDay = .today,
             dates: [YearMonthDay] = [],
@@ -142,7 +147,30 @@ struct DailyDetailFeature {
                 state.diaries = Dictionary(grouping: diaries, by: \.yearMonthDay)
                 state.workouts = Dictionary(grouping: workouts, by: \.yearMonthDay)
                 state.isLoading = false
-                return .none
+                return .run { [persistencesClient] _ in
+                    // HealthKit -> SwiftData 데이터 동기화
+                    for diary in diaries {
+                        // 4개 속성 중 하나라도 nil이면 마이그레이션 대상
+                        guard diary.activeEnergyBurned == nil
+                            || diary.runningVerticalOscillation == nil
+                            || diary.runningGroundContactTime == nil
+                            || diary.walkingStepLength == nil
+                        else { continue }
+
+                        // startTime이 일치하는 workout 찾기
+                        guard let matchingWorkout = workouts.first(where: { $0.startDate == diary.startTime })
+                        else { continue }
+
+                        // persistencesClient로 업데이트 요청
+                        try? await persistencesClient.migrateHealthKitMetrics(
+                            diary.id,
+                            matchingWorkout.activeEnergyBurned,
+                            matchingWorkout.runningVerticalOscillation,
+                            matchingWorkout.runningGroundContactTime,
+                            matchingWorkout.walkingStepLength
+                        )
+                    }
+                }
 
             case let .weekRecordsFetchFailed(error):
                 state.isLoading = false

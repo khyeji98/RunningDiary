@@ -10,19 +10,19 @@ import Foundation
 
 public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
     public let id = UUID()
-    public let yearMonthDay: YearMonthDay
-    public let distance: Double         // km
-    public let duration: TimeInterval   // seconds
-    public let averagePace: String      // min/km
-    public let averageHeartRate: Int    // bpm
-    public let averageCadence: Int      // spm
-    public let activeEnergyBurned: Double // kcal
-    public let runningVerticalOscillation: Double // cm
-    public let runningGroundContactTime: Double // ms
-    public let walkingStepLength: Double // m
-    public let routeData: Data?
-    public let startDate: Date
-    public let endDate: Date
+    public let yearMonthDay: YearMonthDay               // 달리기 날짜
+    public let distance: Double                         // 달리기 거리 (km)
+    public let duration: TimeInterval                   // 달리기 시간 (sec)
+    public let averagePace: String                      // 평균 페이스 (min/km)
+    public let averageHeartRate: Int                    // 평균 심박수 (bpm)
+    public let averageCadence: Int                      // 평균 케이던스 (spm)
+    public let activeEnergyBurned: Double               // 활동 에너지 소모량 (kcal)
+    public let runningVerticalOscillation: Double       // 수직 진폭 (cm)
+    public let runningGroundContactTime: Double         // 지면 접촉 시간 (ms)
+    public let walkingStepLength: Double                // 보폭 (m)
+    public let routeData: Data?                         // 달리기 경로 데이터
+    public let startDate: Date                          // 달리기 시작 시간
+    public let endDate: Date                            // 달리기 종료 시간
 
     public var formattedDuration: String {
         let hours = Int(duration) / 3600
