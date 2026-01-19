@@ -21,7 +21,7 @@ platform :ios do
 
   lane :beta do
 
-    sh("security delete-keychain #{ENV['KEYCHAIN_NAME']} || true")
+#    sh("security delete-keychain #{ENV['KEYCHAIN_NAME']} || true")
 
     # 1️⃣ Keychain 생성
     create_keychain(
