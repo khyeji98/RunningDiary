@@ -35,7 +35,7 @@ struct DailyDetailFeature {
 
         var filteredWorkoutsOnSelectedDate: [HealthKitWorkout] {
             let diaryStartTimes = Set(diariesOnSelectedDate.map { $0.startTime })
-            return workoutsOnSelectedDate.filter { !diaryStartTimes.contains($0.startDate) }
+            return workoutsOnSelectedDate.filter { !diaryStartTimes.contains($0.startTime) }
         }
 
         init(
@@ -158,16 +158,15 @@ struct DailyDetailFeature {
                         else { continue }
 
                         // startTime이 일치하는 workout 찾기
-                        guard let matchingWorkout = workouts.first(where: { $0.startDate == diary.startTime })
-                        else { continue }
+                        guard let matchingWorkout = workouts.first(where: { $0.startTime == diary.startTime }) else { continue }
 
                         // persistencesClient로 업데이트 요청
-                        try? await persistencesClient.migrateHealthKitMetrics(
-                            diary.id,
-                            matchingWorkout.activeEnergyBurned,
-                            matchingWorkout.runningVerticalOscillation,
-                            matchingWorkout.runningGroundContactTime,
-                            matchingWorkout.walkingStepLength
+                        try? await persistencesClient.updateRecord(
+                            recordId: diary.id,
+                            activeEnergyBurned: matchingWorkout.activeEnergyBurned,
+                            runningVerticalOscillation: matchingWorkout.runningVerticalOscillation,
+                            runningGroundContactTime: matchingWorkout.runningGroundContactTime,
+                            walkingStepLength: matchingWorkout.walkingStepLength
                         )
                     }
                 }
@@ -220,18 +219,15 @@ struct DailyDetailFeature {
                 return .none
 
             case .calendarButtonTapped:
-                AppLogger.dailyDetail.debug("calendarButtonTapped - 캘린더 화면 표시")
                 state.calendar = CalendarFeature.State(selectedDate: state.selectedDate)
                 return .none
 
             case .calendar(.dismiss):
-                AppLogger.dailyDetail.debug("calendar dismiss - 캘린더 화면 닫힘")
                 state.calendar = nil
                 return .none
 
             case .calendar(.presented(.navigateToDiary)):
                 guard let selectedYearMonthDay = state.calendar?.selectedDate else {
-                    AppLogger.dailyDetail.error("navigateToDiary - selectedDate가 없음")
                     state.calendar = nil
                     return .none
                 }

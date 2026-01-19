@@ -12,15 +12,28 @@ public protocol PersistencesRepository {
     func fetchRunningRecord(for date: Date) async throws -> Diary?
     func fetchRunningRecords(from startDate: Date, to endDate: Date) async throws -> [Diary]
     func saveRunningRecord(_ record: Diary) async throws
-    func updateRunningRecord(_ record: Diary) async throws
-    func deleteRunningRecord(_ record: Diary) async throws
-    func migrateHealthKitMetrics(
+    func updateRunningRecord(
         recordId: UUID,
-        activeEnergyBurned: Double,
-        runningVerticalOscillation: Double,
-        runningGroundContactTime: Double,
-        walkingStepLength: Double
+        date: YearMonthDay?,
+        distance: Double?,
+        duration: TimeInterval?,
+        averagePace: String?,
+        averageHeartRate: Int?,
+        averageCadence: Int?,
+        painAreas: [PainArea]?,
+        runningStyle: RunninStyle?,
+        condition: RunningCondition?,
+        shoes: String?,
+        weather: WeatherData?,
+        difficultyLevel: DifficultyLevel?,
+        routeData: Data?,
+        activeEnergyBurned: Double?,
+        runningVerticalOscillation: Double?,
+        runningGroundContactTime: Double?,
+        walkingStepLength: Double?,
+        hasMap: Bool?,
+        startTime: Date?,
+        endTime: Date?
     ) async throws
-    func clearCache()
-    func clearCache(for yearMonth: YearMonth)
+    func deleteRunningRecord(_ record: Diary) async throws
 }

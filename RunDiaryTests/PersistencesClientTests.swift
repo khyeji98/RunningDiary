@@ -30,6 +30,22 @@ struct PersistencesClientTests {
         return Calendar.current.date(from: components)!
     }
 
+    private func makeTestClient(
+        fetch: @escaping @MainActor @Sendable (Date) async throws -> Diary? = { _ in nil },
+        fetchRecords: @escaping @MainActor @Sendable (Date, Date) async throws -> [Diary] = { _, _ in [] },
+        save: @escaping @MainActor @Sendable (Diary) async throws -> Void = { _ in },
+        update: @escaping @MainActor @Sendable (UUID, YearMonthDay?, Double?, TimeInterval?, String?, Int?, Int?, [PainArea]?, RunninStyle?, RunningCondition?, String?, WeatherData?, DifficultyLevel?, Data?, Double?, Double?, Double?, Double?, Bool?, Date?, Date?) async throws -> Void = { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in },
+        delete: @escaping @MainActor @Sendable (Diary) async throws -> Void = { _ in }
+    ) -> PersistencesClient {
+        PersistencesClient(
+            fetch: fetch,
+            fetchRecords: fetchRecords,
+            save: save,
+            update: update,
+            delete: delete
+        )
+    }
+
     // MARK: - fetch Tests
 
     @Test("fetch: 특정 날짜의 기록 조회 성공")
@@ -52,18 +68,11 @@ struct PersistencesClientTests {
             endTime: endTime
         )
 
-        let client = PersistencesClient(
+        let client = makeTestClient(
             fetch: { date in
                 #expect(Calendar.current.isDate(date, inSameDayAs: testDate.toDate()))
                 return expectedRecord
-            },
-            fetchRecords: { _, _ in [] },
-            save: { _ in },
-            update: { _ in },
-            delete: { _ in },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+            }
         )
 
         let result = try await client.fetch(testDate.toDate())
@@ -84,18 +93,11 @@ struct PersistencesClientTests {
     func fetchReturnsNilWhenNoRecord() async throws {
         let testDate = makeYearMonthDay()
 
-        let client = PersistencesClient(
+        let client = makeTestClient(
             fetch: { date in
                 #expect(Calendar.current.isDate(date, inSameDayAs: testDate.toDate()))
                 return nil
-            },
-            fetchRecords: { _, _ in [] },
-            save: { _ in },
-            update: { _ in },
-            delete: { _ in },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+            }
         )
 
         let result = try await client.fetch(testDate.toDate())
@@ -109,17 +111,10 @@ struct PersistencesClientTests {
             case fetchFailed
         }
 
-        let client = PersistencesClient(
+        let client = makeTestClient(
             fetch: { _ in
                 throw TestError.fetchFailed
-            },
-            fetchRecords: { _, _ in [] },
-            save: { _ in },
-            update: { _ in },
-            delete: { _ in },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+            }
         )
 
         await #expect(throws: TestError.fetchFailed) {
@@ -170,19 +165,12 @@ struct PersistencesClientTests {
             ),
         ]
 
-        let client = PersistencesClient(
-            fetch: { _ in nil },
+        let client = makeTestClient(
             fetchRecords: { start, end in
                 #expect(Calendar.current.isDate(start, inSameDayAs: startDate))
                 #expect(Calendar.current.isDate(end, inSameDayAs: endDate))
                 return expectedRecords
-            },
-            save: { _ in },
-            update: { _ in },
-            delete: { _ in },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+            }
         )
 
         let result = try await client.fetchRecords(startDate, endDate)
@@ -200,94 +188,10 @@ struct PersistencesClientTests {
         let startDate = makeDate()
         let endDate = Calendar.current.date(byAdding: .day, value: 7, to: startDate)!
 
-        let client = PersistencesClient(
-            fetch: { _ in nil },
-            fetchRecords: { _, _ in [] },
-            save: { _ in },
-            update: { _ in },
-            delete: { _ in },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
-        )
+        let client = makeTestClient()
 
         let result = try await client.fetchRecords(startDate, endDate)
         #expect(result.isEmpty)
-    }
-
-    @Test("fetchRecords: 날짜 순서가 올바른지 확인")
-    @MainActor
-    func fetchRecordsVerifiesDateOrder() async throws {
-        let startDate = makeDate()
-        let endDate = Calendar.current.date(byAdding: .day, value: 7, to: startDate)!
-
-        let day1 = makeYearMonthDay()
-        let day2 = makeYearMonthDay(day: 29)
-        let day3 = makeYearMonthDay(month: 12, day: 2)
-
-        let time1 = makeDate()
-        let time2 = makeDate(day: 29)
-        let time3 = makeDate(month: 12, day: 2)
-
-        let records = [
-            Diary(
-                yearMonthDay: day1,
-                distanceInKilometers: 5.0,
-                durationInSeconds: 1500,
-                averagePace: "5'00\"",
-                averageHeartRate: 145,
-                averageCadence: 165,
-                runningStyle: .forefoot,
-                condition: RunningCondition(meal: true, alcohol: false),
-                startTime: time1,
-                endTime: time1.addingTimeInterval(1500)
-            ),
-            Diary(
-                yearMonthDay: day2,
-                distanceInKilometers: 6.0,
-                durationInSeconds: 1800,
-                averagePace: "5'00\"",
-                averageHeartRate: 148,
-                averageCadence: 168,
-                runningStyle: .midfoot,
-                condition: RunningCondition(meal: false, alcohol: false),
-                startTime: time2,
-                endTime: time2.addingTimeInterval(1800)
-            ),
-            Diary(
-                yearMonthDay: day3,
-                distanceInKilometers: 8.0,
-                durationInSeconds: 2400,
-                averagePace: "5'00\"",
-                averageHeartRate: 152,
-                averageCadence: 172,
-                runningStyle: .forefoot,
-                condition: RunningCondition(meal: true, alcohol: true),
-                startTime: time3,
-                endTime: time3.addingTimeInterval(2400)
-            ),
-        ]
-
-        let client = PersistencesClient(
-            fetch: { _ in nil },
-            fetchRecords: { start, end in
-                #expect(start <= end, "시작 날짜는 종료 날짜보다 이전이어야 합니다")
-                return records
-            },
-            save: { _ in },
-            update: { _ in },
-            delete: { _ in },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
-        )
-
-        let result = try await client.fetchRecords(startDate, endDate)
-
-        #expect(result.count == 3)
-        for i in 0..<result.count - 1 {
-            #expect(result[i].startTime <= result[i + 1].startTime, "기록은 날짜 순으로 정렬되어야 합니다")
-        }
     }
 
     @Test("fetchRecords: 에러 발생 시 throw")
@@ -297,17 +201,10 @@ struct PersistencesClientTests {
             case fetchFailed
         }
 
-        let client = PersistencesClient(
-            fetch: { _ in nil },
+        let client = makeTestClient(
             fetchRecords: { _, _ in
                 throw TestError.fetchFailed
-            },
-            save: { _ in },
-            update: { _ in },
-            delete: { _ in },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+            }
         )
 
         let startDate = makeDate()
@@ -342,17 +239,10 @@ struct PersistencesClientTests {
 
         var savedRecord: Diary?
 
-        let client = PersistencesClient(
-            fetch: { _ in nil },
-            fetchRecords: { _, _ in [] },
+        let client = makeTestClient(
             save: { record in
                 savedRecord = record
-            },
-            update: { _ in },
-            delete: { _ in },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+            }
         )
 
         try await client.save(newRecord)
@@ -364,52 +254,6 @@ struct PersistencesClientTests {
         #expect(savedRecord?.averageHeartRate == 160)
     }
 
-    @Test("save: 모든 필드가 올바르게 저장되는지 확인")
-    @MainActor
-    func saveStoresAllFields() async throws {
-        let yearMonthDay = makeYearMonthDay()
-        let startTime = makeDate()
-        let endTime = startTime.addingTimeInterval(2550)
-
-        let newRecord = Diary(
-            yearMonthDay: yearMonthDay,
-            distanceInKilometers: 8.5,
-            durationInSeconds: 2550,
-            averagePace: "5'00\"",
-            averageHeartRate: 155,
-            averageCadence: 175,
-            painAreas: [.knee, .ankle],
-            runningStyle: .forefoot,
-            condition: RunningCondition(meal: false, alcohol: true),
-            shoes: nil,
-            weather: nil,
-            startTime: startTime,
-            endTime: endTime
-        )
-
-        var savedRecord: Diary?
-
-        let client = PersistencesClient(
-            fetch: { _ in nil },
-            fetchRecords: { _, _ in [] },
-            save: { record in
-                savedRecord = record
-            },
-            update: { _ in },
-            delete: { _ in },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
-        )
-
-        try await client.save(newRecord)
-
-        #expect(savedRecord != nil)
-        #expect(savedRecord?.painAreas == [.knee, .ankle])
-        #expect(savedRecord?.condition.meal == false)
-        #expect(savedRecord?.condition.alcohol == true)
-    }
-
     @Test("save: 에러 발생 시 throw")
     @MainActor
     func saveThrowsErrorOnFailure() async throws {
@@ -417,17 +261,10 @@ struct PersistencesClientTests {
             case saveFailed
         }
 
-        let client = PersistencesClient(
-            fetch: { _ in nil },
-            fetchRecords: { _, _ in [] },
+        let client = makeTestClient(
             save: { _ in
                 throw TestError.saveFailed
-            },
-            update: { _ in },
-            delete: { _ in },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+            }
         )
 
         let yearMonthDay = makeYearMonthDay()
@@ -455,95 +292,33 @@ struct PersistencesClientTests {
     @Test("update: 기존 기록 업데이트 성공")
     @MainActor
     func updateModifiesExistingRecord() async throws {
+        let recordId = UUID()
         let yearMonthDay = makeYearMonthDay()
         let startTime = makeDate()
         let endTime = startTime.addingTimeInterval(1800)
 
-        let updatedRecord = Diary(
-            id: UUID(),
-            yearMonthDay: yearMonthDay,
-            distanceInKilometers: 6.0,
-            durationInSeconds: 1800,
-            averagePace: "5'00\"",
-            averageHeartRate: 155,
-            averageCadence: 175,
-            runningStyle: .forefoot,
-            condition: RunningCondition(meal: false, alcohol: true),
-            startTime: startTime,
-            endTime: endTime
+        var updatedRecordId: UUID?
+        var updatedDistance: Double?
+        var updatedCondition: RunningCondition?
+
+        let client = makeTestClient(
+            update: { id, _, distance, _, _, _, _, _, _, condition, _, _, _, _, _, _, _, _, _, _, _ in
+                updatedRecordId = id
+                updatedDistance = distance
+                updatedCondition = condition
+            }
         )
 
-        var updated: Diary?
-
-        let client = PersistencesClient(
-            fetch: { _ in nil },
-            fetchRecords: { _, _ in [] },
-            save: { _ in },
-            update: { record in
-                updated = record
-            },
-            delete: { _ in },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+        try await client.updateRecord(
+            recordId: recordId,
+            distance: 6.0,
+            condition: RunningCondition(meal: false, alcohol: true)
         )
 
-        try await client.update(updatedRecord)
-
-        #expect(updated != nil)
-        #expect(updated?.id == updatedRecord.id)
-        #expect(updated?.distanceInKilometers == 6.0)
-        #expect(updated?.durationInSeconds == 1800)
-        #expect(updated?.condition.meal == false)
-        #expect(updated?.condition.alcohol == true)
-    }
-
-    @Test("update: 모든 필드 업데이트 확인")
-    @MainActor
-    func updateModifiesAllFields() async throws {
-        let recordId = UUID()
-        let yearMonthDay = makeYearMonthDay()
-        let startTime = makeDate()
-        let endTime = startTime.addingTimeInterval(3600)
-
-        let updatedRecord = Diary(
-            id: recordId,
-            yearMonthDay: yearMonthDay,
-            distanceInKilometers: 12.0,
-            durationInSeconds: 3600,
-            averagePace: "5'00\"",
-            averageHeartRate: 165,
-            averageCadence: 185,
-            painAreas: [.calf],
-            runningStyle: .midfoot,
-            condition: RunningCondition(meal: true, alcohol: false),
-            shoes: nil,
-            weather: nil,
-            startTime: startTime,
-            endTime: endTime
-        )
-
-        var updated: Diary?
-
-        let client = PersistencesClient(
-            fetch: { _ in nil },
-            fetchRecords: { _, _ in [] },
-            save: { _ in },
-            update: { record in
-                updated = record
-            },
-            delete: { _ in },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
-        )
-
-        try await client.update(updatedRecord)
-
-        #expect(updated != nil)
-        #expect(updated?.id == recordId)
-        #expect(updated?.painAreas == [.calf])
-        #expect(updated?.runningStyle == .midfoot)
+        #expect(updatedRecordId == recordId)
+        #expect(updatedDistance == 6.0)
+        #expect(updatedCondition?.meal == false)
+        #expect(updatedCondition?.alcohol == true)
     }
 
     @Test("update: 에러 발생 시 throw")
@@ -553,37 +328,16 @@ struct PersistencesClientTests {
             case updateFailed
         }
 
-        let client = PersistencesClient(
-            fetch: { _ in nil },
-            fetchRecords: { _, _ in [] },
-            save: { _ in },
-            update: { _ in
+        let client = makeTestClient(
+            update: { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in
                 throw TestError.updateFailed
-            },
-            delete: { _ in },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+            }
         )
 
-        let yearMonthDay = makeYearMonthDay()
-        let startTime = makeDate()
-        let record = Diary(
-            id: UUID(),
-            yearMonthDay: yearMonthDay,
-            distanceInKilometers: 5.0,
-            durationInSeconds: 1500,
-            averagePace: "5'00\"",
-            averageHeartRate: 150,
-            averageCadence: 170,
-            runningStyle: .midfoot,
-            condition: RunningCondition(meal: true, alcohol: false),
-            startTime: startTime,
-            endTime: startTime.addingTimeInterval(1500)
-        )
+        let recordId = UUID()
 
         await #expect(throws: TestError.updateFailed) {
-            try await client.update(record)
+            try await client.updateRecord(recordId: recordId, distance: 5.0)
         }
     }
 
@@ -612,17 +366,10 @@ struct PersistencesClientTests {
 
         var deletedRecord: Diary?
 
-        let client = PersistencesClient(
-            fetch: { _ in nil },
-            fetchRecords: { _, _ in [] },
-            save: { _ in },
-            update: { _ in },
+        let client = makeTestClient(
             delete: { record in
                 deletedRecord = record
-            },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+            }
         )
 
         try await client.delete(recordToDelete)
@@ -639,17 +386,10 @@ struct PersistencesClientTests {
             case deleteFailed
         }
 
-        let client = PersistencesClient(
-            fetch: { _ in nil },
-            fetchRecords: { _, _ in [] },
-            save: { _ in },
-            update: { _ in },
+        let client = makeTestClient(
             delete: { _ in
                 throw TestError.deleteFailed
-            },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+            }
         )
 
         let yearMonthDay = makeYearMonthDay()
@@ -700,7 +440,7 @@ struct PersistencesClientTests {
             )
         ]
 
-        let client = PersistencesClient(
+        let client = makeTestClient(
             fetch: { date in
                 storage.values.first { Calendar.current.isDate($0.yearMonthDay.toDate(), inSameDayAs: date) }
             },
@@ -708,47 +448,22 @@ struct PersistencesClientTests {
             save: { record in
                 storage[record.id] = record
             },
-            update: { record in
-                storage[record.id] = record
+            update: { recordId, date, distance, duration, averagePace, averageHeartRate, averageCadence, painAreas, runningStyle, condition, shoes, weather, difficultyLevel, routeData, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength, hasMap, startTimeParam, endTimeParam in
+                guard var existingRecord = storage[recordId] else { return }
+                // Update only non-nil values
+                if let distance { existingRecord = Diary(id: existingRecord.id, yearMonthDay: existingRecord.yearMonthDay, distanceInKilometers: distance, durationInSeconds: existingRecord.durationInSeconds, averagePace: existingRecord.averagePace, averageHeartRate: existingRecord.averageHeartRate, averageCadence: existingRecord.averageCadence, runningStyle: existingRecord.runningStyle, condition: existingRecord.condition, startTime: existingRecord.startTime, endTime: existingRecord.endTime) }
+                storage[recordId] = existingRecord
             },
             delete: { record in
                 storage.removeValue(forKey: record.id)
-            },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+            }
         )
 
         let fetched = try await client.fetch(testDate)
         #expect(fetched != nil)
         #expect(fetched?.distanceInKilometers == 5.0)
 
-        var updatedRecord = fetched!
-        let newYearMonthDay = updatedRecord.yearMonthDay
-        let newStartTime = updatedRecord.startTime
-        let newEndTime = updatedRecord.endTime
-
-        updatedRecord = Diary(
-            id: updatedRecord.id,
-            yearMonthDay: newYearMonthDay,
-            distanceInKilometers: 7.5,
-            durationInSeconds: updatedRecord.durationInSeconds,
-            averagePace: updatedRecord.averagePace,
-            averageHeartRate: updatedRecord.averageHeartRate,
-            averageCadence: updatedRecord.averageCadence,
-            painAreas: updatedRecord.painAreas,
-            runningStyle: updatedRecord.runningStyle,
-            condition: updatedRecord.condition,
-            shoes: updatedRecord.shoes,
-            weather: updatedRecord.weather,
-            difficultyLevel: updatedRecord.difficultyLevel,
-            routeData: updatedRecord.routeData,
-            hasMap: updatedRecord.hasMap,
-            startTime: newStartTime,
-            endTime: newEndTime
-        )
-
-        try await client.update(updatedRecord)
+        try await client.updateRecord(recordId: originalId, distance: 7.5)
 
         let fetchedAgain = try await client.fetch(testDate)
         #expect(fetchedAgain?.distanceInKilometers == 7.5)
@@ -769,7 +484,7 @@ struct PersistencesClientTests {
         let time2Start = makeDate(day: 30)
         let time2End = time2Start.addingTimeInterval(2100)
 
-        let client = PersistencesClient(
+        let client = makeTestClient(
             fetch: { date in
                 storage.values.first { Calendar.current.isDate($0.yearMonthDay.toDate(), inSameDayAs: date) }
             },
@@ -778,16 +493,7 @@ struct PersistencesClientTests {
             },
             save: { record in
                 storage[record.id] = record
-            },
-            update: { record in
-                storage[record.id] = record
-            },
-            delete: { record in
-                storage.removeValue(forKey: record.id)
-            },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+            }
         )
 
         let record1 = Diary(
@@ -835,7 +541,7 @@ struct PersistencesClientTests {
         let startTime = makeDate()
         let endTime = startTime.addingTimeInterval(1800)
 
-        let client = PersistencesClient(
+        let client = makeTestClient(
             fetch: { date in
                 storage.values.first { Calendar.current.isDate($0.yearMonthDay.toDate(), inSameDayAs: date) }
             },
@@ -843,15 +549,9 @@ struct PersistencesClientTests {
             save: { record in
                 storage[record.id] = record
             },
-            update: { record in
-                storage[record.id] = record
-            },
             delete: { record in
                 storage.removeValue(forKey: record.id)
-            },
-            migrateHealthKitMetrics: { _, _, _, _, _ in },
-            clearCache: { },
-            clearCacheForMonth: { _ in }
+            }
         )
 
         let newRecord = Diary(

@@ -17,17 +17,66 @@ struct PersistencesClient {
     var fetch: @MainActor @Sendable (Date) async throws -> Diary?
     var fetchRecords: @MainActor @Sendable (Date, Date) async throws -> [Diary]
     var save: @MainActor @Sendable (Diary) async throws -> Void
-    var update: @MainActor @Sendable (Diary) async throws -> Void
-    var delete: @MainActor @Sendable (Diary) async throws -> Void
-    var migrateHealthKitMetrics: @MainActor @Sendable (
+    var update: @MainActor @Sendable (
         _ recordId: UUID,
-        _ activeEnergyBurned: Double,
-        _ runningVerticalOscillation: Double,
-        _ runningGroundContactTime: Double,
-        _ walkingStepLength: Double
+        _ date: YearMonthDay?,
+        _ distance: Double?,
+        _ duration: TimeInterval?,
+        _ averagePace: String?,
+        _ averageHeartRate: Int?,
+        _ averageCadence: Int?,
+        _ painAreas: [PainArea]?,
+        _ runningStyle: RunninStyle?,
+        _ condition: RunningCondition?,
+        _ shoes: String?,
+        _ weather: WeatherData?,
+        _ difficultyLevel: DifficultyLevel?,
+        _ routeData: Data?,
+        _ activeEnergyBurned: Double?,
+        _ runningVerticalOscillation: Double?,
+        _ runningGroundContactTime: Double?,
+        _ walkingStepLength: Double?,
+        _ hasMap: Bool?,
+        _ startTime: Date?,
+        _ endTime: Date?
     ) async throws -> Void
-    var clearCache: @MainActor @Sendable () -> Void
-    var clearCacheForMonth: @MainActor @Sendable (YearMonth) -> Void
+    var delete: @MainActor @Sendable (Diary) async throws -> Void
+}
+
+extension PersistencesClient {
+    /// Convenience method with default nil values for optional parameters
+    func updateRecord(
+        recordId: UUID,
+        date: YearMonthDay? = nil,
+        distance: Double? = nil,
+        duration: TimeInterval? = nil,
+        averagePace: String? = nil,
+        averageHeartRate: Int? = nil,
+        averageCadence: Int? = nil,
+        painAreas: [PainArea]? = nil,
+        runningStyle: RunninStyle? = nil,
+        condition: RunningCondition? = nil,
+        shoes: String? = nil,
+        weather: WeatherData? = nil,
+        difficultyLevel: DifficultyLevel? = nil,
+        routeData: Data? = nil,
+        activeEnergyBurned: Double? = nil,
+        runningVerticalOscillation: Double? = nil,
+        runningGroundContactTime: Double? = nil,
+        walkingStepLength: Double? = nil,
+        hasMap: Bool? = nil,
+        startTime: Date? = nil,
+        endTime: Date? = nil
+    ) async throws {
+        try await self.update(
+            recordId, date, distance, duration, averagePace,
+            averageHeartRate, averageCadence, painAreas, runningStyle,
+            condition, shoes, weather, difficultyLevel, routeData,
+            activeEnergyBurned, runningVerticalOscillation,
+            runningGroundContactTime, walkingStepLength, hasMap,
+            startTime, endTime
+        )
+    }
 }
 
 extension PersistencesClient {
@@ -44,26 +93,33 @@ extension PersistencesClient {
             save: { record in
                 try await repository.saveRunningRecord(record)
             },
-            update: { record in
-                try await repository.updateRunningRecord(record)
-            },
-            delete: { record in
-                try await repository.deleteRunningRecord(record)
-            },
-            migrateHealthKitMetrics: { recordId, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength in
-                try await repository.migrateHealthKitMetrics(
+            update: { recordId, date, distance, duration, averagePace, averageHeartRate, averageCadence, painAreas, runningStyle, condition, shoes, weather, difficultyLevel, routeData, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength, hasMap, startTime, endTime in
+                try await repository.updateRunningRecord(
                     recordId: recordId,
+                    date: date,
+                    distance: distance,
+                    duration: duration,
+                    averagePace: averagePace,
+                    averageHeartRate: averageHeartRate,
+                    averageCadence: averageCadence,
+                    painAreas: painAreas,
+                    runningStyle: runningStyle,
+                    condition: condition,
+                    shoes: shoes,
+                    weather: weather,
+                    difficultyLevel: difficultyLevel,
+                    routeData: routeData,
                     activeEnergyBurned: activeEnergyBurned,
                     runningVerticalOscillation: runningVerticalOscillation,
                     runningGroundContactTime: runningGroundContactTime,
-                    walkingStepLength: walkingStepLength
+                    walkingStepLength: walkingStepLength,
+                    hasMap: hasMap,
+                    startTime: startTime,
+                    endTime: endTime
                 )
             },
-            clearCache: {
-                repository.clearCache()
-            },
-            clearCacheForMonth: { yearMonth in
-                repository.clearCache(for: yearMonth)
+            delete: { record in
+                try await repository.deleteRunningRecord(record)
             }
         )
     }
@@ -80,20 +136,11 @@ extension PersistencesClient: DependencyKey {
         save: { _ in
             fatalError("RepositoryClient.save must be overridden with live implementation")
         },
-        update: { _ in
+        update: { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in
             fatalError("RepositoryClient.update must be overridden with live implementation")
         },
         delete: { _ in
             fatalError("RepositoryClient.delete must be overridden with live implementation")
-        },
-        migrateHealthKitMetrics: { _, _, _, _, _ in
-            fatalError("RepositoryClient.migrateHealthKitMetrics must be overridden with live implementation")
-        },
-        clearCache: {
-            fatalError("RepositoryClient.clearCache must be overridden with live implementation")
-        },
-        clearCacheForMonth: { _ in
-            fatalError("RepositoryClient.clearCacheForMonth must be overridden with live implementation")
         }
     )
 
@@ -102,10 +149,7 @@ extension PersistencesClient: DependencyKey {
         fetchRecords: unimplemented("\(Self.self).fetchRecords"),
         save: unimplemented("\(Self.self).save"),
         update: unimplemented("\(Self.self).update"),
-        delete: unimplemented("\(Self.self).delete"),
-        migrateHealthKitMetrics: unimplemented("\(Self.self).migrateHealthKitMetrics"),
-        clearCache: unimplemented("\(Self.self).clearCache"),
-        clearCacheForMonth: unimplemented("\(Self.self).clearCacheForMonth")
+        delete: unimplemented("\(Self.self).delete")
     )
 
     static let previewValue = PersistencesClient(
@@ -123,11 +167,8 @@ extension PersistencesClient: DependencyKey {
                 .map { $0.toDomain() }
         },
         save: { _ in },
-        update: { _ in },
-        delete: { _ in },
-        migrateHealthKitMetrics: { _, _, _, _, _ in },
-        clearCache: { },
-        clearCacheForMonth: { _ in }
+        update: { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in },
+        delete: { _ in }
     )
 }
 

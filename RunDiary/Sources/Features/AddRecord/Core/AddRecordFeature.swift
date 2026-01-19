@@ -106,14 +106,14 @@ struct AddRecordFeature {
                 state.errorMassage = nil
 
                 let location = extractLocationFromRoute(healthKitWorkout.routeData)
-                let yearMonthDay = YearMonthDay(date: healthKitWorkout.startDate)
+                let yearMonthDay = YearMonthDay(date: healthKitWorkout.startTime)
                 let condition = state.condition
                 let existingRecordId = state.existingRecord?.id
                 let mode = state.mode
                 let difficultyLevel = state.selectedDifficultyLevel
 
-                let startInterval = healthKitWorkout.startDate.timeIntervalSince1970
-                let endInterval = healthKitWorkout.endDate.timeIntervalSince1970
+                let startInterval = healthKitWorkout.startTime.timeIntervalSince1970
+                let endInterval = healthKitWorkout.endTime.timeIntervalSince1970
                 let middleInterval = (startInterval + endInterval) / 2.0
                 let middleTime = Date(timeIntervalSince1970: middleInterval)
 
@@ -158,8 +158,8 @@ struct AddRecordFeature {
                             runningGroundContactTime: healthKitWorkout.runningGroundContactTime,
                             walkingStepLength: healthKitWorkout.walkingStepLength,
                             hasMap: healthKitWorkout.routeData != nil,
-                            startTime: healthKitWorkout.startDate,
-                            endTime: healthKitWorkout.endDate
+                            startTime: healthKitWorkout.startTime,
+                            endTime: healthKitWorkout.endTime
                         )
 
                         if mode == .add {

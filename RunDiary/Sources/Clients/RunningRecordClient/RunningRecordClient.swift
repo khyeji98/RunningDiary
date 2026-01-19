@@ -15,7 +15,6 @@ struct RunningRecordClient {
     var fetchData: @MainActor @Sendable (_ from: YearMonthDay, _ to: YearMonthDay) async throws -> [YearMonthDay: DailyRecord]
     var saveRecord: @MainActor @Sendable (_ record: Diary) async throws -> Void
     var updateRecord: @MainActor @Sendable (_ record: Diary) async throws -> Void
-    var clearCache: @MainActor @Sendable () -> Void
 }
 
 extension RunningRecordClient: DependencyKey {
@@ -62,19 +61,36 @@ extension RunningRecordClient: DependencyKey {
         },
         updateRecord: { record in
             @Dependency(\.persistencesClient) var persistencesClient
-            try await persistencesClient.update(record)
-        },
-        clearCache: {
-            @Dependency(\.persistencesClient) var persistencesClient
-            persistencesClient.clearCache()
+            try await persistencesClient.updateRecord(
+                recordId: record.id,
+                date: record.yearMonthDay,
+                distance: record.distanceInKilometers,
+                duration: record.durationInSeconds,
+                averagePace: record.averagePace,
+                averageHeartRate: record.averageHeartRate,
+                averageCadence: record.averageCadence,
+                painAreas: record.painAreas,
+                runningStyle: record.runningStyle,
+                condition: record.condition,
+                shoes: record.shoes,
+                weather: record.weather,
+                difficultyLevel: record.difficultyLevel,
+                routeData: record.routeData,
+                activeEnergyBurned: record.activeEnergyBurned,
+                runningVerticalOscillation: record.runningVerticalOscillation,
+                runningGroundContactTime: record.runningGroundContactTime,
+                walkingStepLength: record.walkingStepLength,
+                hasMap: record.hasMap,
+                startTime: record.startTime,
+                endTime: record.endTime
+            )
         }
     )
 
     static let testValue = RunningRecordClient(
         fetchData: unimplemented("\(Self.self).fetchData"),
         saveRecord: unimplemented("\(Self.self).saveRecord"),
-        updateRecord: unimplemented("\(Self.self).updateRecord"),
-        clearCache: unimplemented("\(Self.self).clearCache")
+        updateRecord: unimplemented("\(Self.self).updateRecord")
     )
 
     static let previewValue = RunningRecordClient(
@@ -89,8 +105,7 @@ extension RunningRecordClient: DependencyKey {
             })
         },
         saveRecord: { _ in },
-        updateRecord: { _ in },
-        clearCache: { }
+        updateRecord: { _ in }
     )
 
     private static func merge(
@@ -114,12 +129,12 @@ extension RunningRecordClient: DependencyKey {
 
             // 4. 중복 제거: SwiftData에 저장된 것은 HealthKit에서 제외
             let filteredHealthKit = healthKit.filter { workout in
-                !saved.contains(where: { $0.startTime == workout.startDate })
+                !saved.contains(where: { $0.startTime == workout.startTime })
             }
 
             result[date] = DailyRecord(
                 yearMonthDay: date,
-                healthKitWorkouts: filteredHealthKit.sorted { $0.startDate < $1.startDate },
+                healthKitWorkouts: filteredHealthKit.sorted { $0.startTime < $1.startTime },
                 savedRecords: saved
             )
         }
@@ -160,18 +175,18 @@ extension RunningRecordClient: DependencyKey {
             guard needsMigration else { continue }
 
             // startTime으로 매칭되는 HealthKit workout 찾기
-            guard let matchingWorkout = healthKitWorkouts.first(where: { $0.startDate == savedRecord.startTime }) else {
+            guard let matchingWorkout = healthKitWorkouts.first(where: { $0.startTime == savedRecord.startTime }) else {
                 continue
             }
 
             // 마이그레이션 실행
             do {
-                try await persistencesClient.migrateHealthKitMetrics(
-                    savedRecord.id,
-                    matchingWorkout.activeEnergyBurned,
-                    matchingWorkout.runningVerticalOscillation,
-                    matchingWorkout.runningGroundContactTime,
-                    matchingWorkout.walkingStepLength
+                try await persistencesClient.updateRecord(
+                    recordId: savedRecord.id,
+                    activeEnergyBurned: matchingWorkout.activeEnergyBurned,
+                    runningVerticalOscillation: matchingWorkout.runningVerticalOscillation,
+                    runningGroundContactTime: matchingWorkout.runningGroundContactTime,
+                    walkingStepLength: matchingWorkout.walkingStepLength
                 )
                 migrationOccurred = true
             } catch {

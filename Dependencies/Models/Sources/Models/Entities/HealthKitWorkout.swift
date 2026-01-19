@@ -21,8 +21,8 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
     public let runningGroundContactTime: Double         // 지면 접촉 시간 (ms)
     public let walkingStepLength: Double                // 보폭 (m)
     public let routeData: Data?                         // 달리기 경로 데이터
-    public let startDate: Date                          // 달리기 시작 시간
-    public let endDate: Date                            // 달리기 종료 시간
+    public let startTime: Date                          // 달리기 시작 시간
+    public let endTime: Date                            // 달리기 종료 시간
 
     public var formattedDuration: String {
         let hours = Int(duration) / 3600
@@ -73,8 +73,8 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
         self.runningGroundContactTime = runningGroundContactTime
         self.walkingStepLength = walkingStepLength
         self.routeData = routeData
-        self.startDate = startDate
-        self.endDate = endDate
+        self.startTime = startDate
+        self.endTime = endDate
     }
 
     /// routeData를 [Location] 배열로 디코딩합니다.

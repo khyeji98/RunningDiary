@@ -101,51 +101,71 @@ public final class LivePersistencesRepository: PersistencesRepository {
         }
     }
 
-    public func updateRunningRecord(_ record: Diary) async throws {
-        // 기존 레코드 찾기
-        let recordId = record.id
+    public func updateRunningRecord(
+        recordId: UUID,
+        date: YearMonthDay?,
+        distance: Double?,
+        duration: TimeInterval?,
+        averagePace: String?,
+        averageHeartRate: Int?,
+        averageCadence: Int?,
+        painAreas: [PainArea]?,
+        runningStyle: RunninStyle?,
+        condition: RunningCondition?,
+        shoes: String?,
+        weather: WeatherData?,
+        difficultyLevel: DifficultyLevel?,
+        routeData: Data?,
+        activeEnergyBurned: Double?,
+        runningVerticalOscillation: Double?,
+        runningGroundContactTime: Double?,
+        walkingStepLength: Double?,
+        hasMap: Bool?,
+        startTime: Date?,
+        endTime: Date?
+    ) async throws {
         let predicate = #Predicate<RunningRecordPersistenceModel> { $0.id == recordId }
-        let descriptor = FetchDescriptor<RunningRecordPersistenceModel>(
-            predicate: predicate
-        )
+        let descriptor = FetchDescriptor<RunningRecordPersistenceModel>(predicate: predicate)
 
         guard let existingModel = try modelContext.fetch(descriptor).first else {
             throw PersistencesError.notFound
         }
 
-        // 업데이트
-        existingModel.date = record.yearMonthDay.toDate()
-        existingModel.distance = record.distanceInKilometers
-        existingModel.duration = record.durationInSeconds
-        existingModel.averagePace = record.averagePace
-        existingModel.averageHeartRate = record.averageHeartRate
-        existingModel.averageCadence = record.averageCadence
-        existingModel.painAreasRawData = PainAreasMapper.encode(
-            record.painAreas
-        )
-        existingModel.runningStyleRaw = record.runningStyle?.rawValue
-        existingModel.sleepHours = record.condition.sleep
-        existingModel.hadMeal = record.condition.meal
-        existingModel.hadAlcohol = record.condition.alcohol
-        existingModel.memo = record.condition.memo
-        existingModel.shoes = record.shoes
-        existingModel.temperature = record.weather?.temperature
-        existingModel.humidity = record.weather?.humidity
-        existingModel.windSpeed = record.weather?.windSpeed
-        existingModel.difficultyLevelRaw = record.difficultyLevel?.rawValue
-        existingModel.routeData = record.routeData
-        existingModel.activeEnergyBurned = record.activeEnergyBurned
-        existingModel.runningVerticalOscillation = record.runningVerticalOscillation
-        existingModel.runningGroundContactTime = record.runningGroundContactTime
-        existingModel.walkingStepLength = record.walkingStepLength
-        existingModel.hasMap = record.hasMap
-        existingModel.startTime = record.startTime
-        existingModel.endTime = record.endTime
+        // nil이 아닌 값만 할당
+        if let date { existingModel.date = date.toDate() }
+        if let distance { existingModel.distance = distance }
+        if let duration { existingModel.duration = duration }
+        if let averagePace { existingModel.averagePace = averagePace }
+        if let averageHeartRate { existingModel.averageHeartRate = averageHeartRate }
+        if let averageCadence { existingModel.averageCadence = averageCadence }
+        if let painAreas { existingModel.painAreasRawData = PainAreasMapper.encode(painAreas) }
+        if let runningStyle { existingModel.runningStyleRaw = runningStyle.rawValue }
+        if let condition {
+            existingModel.sleepHours = condition.sleep
+            existingModel.hadMeal = condition.meal
+            existingModel.hadAlcohol = condition.alcohol
+            existingModel.memo = condition.memo
+        }
+        if let shoes { existingModel.shoes = shoes }
+        if let weather {
+            existingModel.temperature = weather.temperature
+            existingModel.humidity = weather.humidity
+            existingModel.windSpeed = weather.windSpeed
+        }
+        if let difficultyLevel { existingModel.difficultyLevelRaw = difficultyLevel.rawValue }
+        if let routeData { existingModel.routeData = routeData }
+        if let activeEnergyBurned { existingModel.activeEnergyBurned = activeEnergyBurned }
+        if let runningVerticalOscillation { existingModel.runningVerticalOscillation = runningVerticalOscillation }
+        if let runningGroundContactTime { existingModel.runningGroundContactTime = runningGroundContactTime }
+        if let walkingStepLength { existingModel.walkingStepLength = walkingStepLength }
+        if let hasMap { existingModel.hasMap = hasMap }
+        if let startTime { existingModel.startTime = startTime }
+        if let endTime { existingModel.endTime = endTime }
 
         do {
             try modelContext.save()
-            // 캐시 invalidate
-            cache.removeValue(forKey: record.yearMonthDay)
+            let yearMonthDay = YearMonthDay(date: existingModel.date)
+            cache.removeValue(forKey: yearMonthDay)
         } catch {
             throw PersistencesError.updateFailed
         }
@@ -171,70 +191,6 @@ public final class LivePersistencesRepository: PersistencesRepository {
             cache.removeValue(forKey: record.yearMonthDay)
         } catch {
             throw PersistencesError.deleteFailed
-        }
-    }
-
-    public func migrateHealthKitMetrics(
-        recordId: UUID,
-        activeEnergyBurned: Double,
-        runningVerticalOscillation: Double,
-        runningGroundContactTime: Double,
-        walkingStepLength: Double
-    ) async throws {
-        // 기존 레코드 찾기
-        let predicate = #Predicate<RunningRecordPersistenceModel> { $0.id == recordId }
-        let descriptor = FetchDescriptor<RunningRecordPersistenceModel>(predicate: predicate)
-
-        guard let existingModel = try modelContext.fetch(descriptor).first else {
-            throw PersistencesError.notFound
-        }
-
-        // nil인 필드만 업데이트
-        var updated = false
-
-        if existingModel.activeEnergyBurned == nil {
-            existingModel.activeEnergyBurned = activeEnergyBurned
-            updated = true
-        }
-
-        if existingModel.runningVerticalOscillation == nil {
-            existingModel.runningVerticalOscillation = runningVerticalOscillation
-            updated = true
-        }
-
-        if existingModel.runningGroundContactTime == nil {
-            existingModel.runningGroundContactTime = runningGroundContactTime
-            updated = true
-        }
-
-        if existingModel.walkingStepLength == nil {
-            existingModel.walkingStepLength = walkingStepLength
-            updated = true
-        }
-
-        guard updated else { return }
-
-        do {
-            try modelContext.save()
-
-            // 캐시 invalidate
-            let yearMonthDay = YearMonthDay(date: existingModel.date)
-            cache.removeValue(forKey: yearMonthDay)
-        } catch {
-            throw PersistencesError.updateFailed
-        }
-    }
-
-    // MARK: - Cache Management
-
-    public func clearCache() {
-        cache.removeAll()
-    }
-
-    public func clearCache(for yearMonth: YearMonth) {
-        let datesToRemove = cache.keys.filter { $0.toYearMonth() == yearMonth }
-        for date in datesToRemove {
-            cache.removeValue(forKey: date)
         }
     }
 

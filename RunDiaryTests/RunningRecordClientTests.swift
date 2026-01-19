@@ -97,7 +97,7 @@ struct RunningRecordClientTests {
         let dailyRecord = result[testDate]
         #expect(dailyRecord?.savedRecords.count == 2)
         #expect(dailyRecord?.healthKitWorkouts.count == 1)
-        #expect(dailyRecord?.healthKitWorkouts.first?.startDate == startTime3)
+        #expect(dailyRecord?.healthKitWorkouts.first?.startTime == startTime3)
     }
 
     // MARK: - Date Range Tests
@@ -233,25 +233,6 @@ struct RunningRecordClientTests {
         #expect(updatedRecord != nil)
         #expect(updatedRecord?.yearMonthDay == testDate)
     }
-
-    @Test("clearCache는 persistencesClient.clearCache 호출")
-    func clearCache_callsPersistencesClientClearCache() async throws {
-        // Given
-        var clearCacheCalled = false
-        let client = makeTestClient(
-            healthKitWorkouts: [],
-            savedRecords: [],
-            onClearCache: {
-                clearCacheCalled = true
-            }
-        )
-
-        // When
-        client.clearCache()
-
-        // Then
-        #expect(clearCacheCalled == true)
-    }
 }
 
 // MARK: - Test Helpers
@@ -317,8 +298,7 @@ private extension RunningRecordClientTests {
         healthKitWorkouts: [HealthKitWorkout] = [],
         savedRecords: [Diary] = [],
         onSave: @escaping (Diary) -> Void = { _ in },
-        onUpdate: @escaping (Diary) -> Void = { _ in },
-        onClearCache: @escaping () -> Void = { }
+        onUpdate: @escaping (Diary) -> Void = { _ in }
     ) -> RunningRecordClient {
         // 직접 RunningRecordClient를 생성하여 테스트
         RunningRecordClient(
@@ -330,7 +310,7 @@ private extension RunningRecordClientTests {
 
                 // Return filtered workouts for date range
                 let filteredHealthKit = healthKitWorkouts.filter { workout in
-                    workout.startDate >= startOfFromDate && workout.startDate <= endOfToDate
+                    workout.startTime >= startOfFromDate && workout.startTime <= endOfToDate
                 }
                 let filteredRecords = savedRecords.filter { record in
                     record.startTime >= startOfFromDate && record.startTime <= endOfToDate
@@ -357,12 +337,12 @@ private extension RunningRecordClientTests {
 
                     // 중복 제거: SwiftData에 저장된 것은 HealthKit에서 제외
                     let filteredHealthKit = healthKit.filter { workout in
-                        !saved.contains(where: { $0.startTime == workout.startDate })
+                        !saved.contains(where: { $0.startTime == workout.startTime })
                     }
 
                     result[date] = DailyRecord(
                         yearMonthDay: date,
-                        healthKitWorkouts: filteredHealthKit.sorted { $0.startDate < $1.startDate },
+                        healthKitWorkouts: filteredHealthKit.sorted { $0.startTime < $1.startTime },
                         savedRecords: saved
                     )
                 }
@@ -374,9 +354,6 @@ private extension RunningRecordClientTests {
             },
             updateRecord: { record in
                 onUpdate(record)
-            },
-            clearCache: {
-                onClearCache()
             }
         )
     }

@@ -32,7 +32,6 @@ struct CalendarFeatureTests {
         await store.receive(\.recordsFetched) {
             $0.isLoading = false
         }
-        await store.receive(\.delegate)
     }
 
     @Test("fetchRecords 성공 시 dailyRecords 및 monthlyTotals 업데이트")
@@ -68,8 +67,6 @@ struct CalendarFeatureTests {
             let yearMonth = startDate.toYearMonth()
             $0.monthlyTotals[yearMonth] = 5.0
         }
-
-        await store.receive(\.delegate)
     }
 
     @Test("fetchRecords 실패 시 에러 처리")
@@ -127,7 +124,6 @@ struct CalendarFeatureTests {
         await store.receive(\.recordsFetched) {
             $0.isLoading = false
         }
-        await store.receive(\.delegate)
     }
 
     @Test("selectDate 시 selectedDate 업데이트")
