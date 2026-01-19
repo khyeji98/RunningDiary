@@ -12,13 +12,13 @@ import SwiftData
 public final class LivePersistencesRepository: PersistencesRepository {
     // ModelContext : 데이터 변경을 추적하고 저장/조회/삭제를 실행하는 중심 객체
     private let modelContext: ModelContext
-    private var cache: [YearMonthDay: [RunningRecord]] = [:]
+    private var cache: [YearMonthDay: [Diary]] = [:]
 
     public init(modelContext: ModelContext) {
         self.modelContext = modelContext
     }
 
-    public func fetchRunningRecord(for date: Date) async throws -> RunningRecord? {
+    public func fetchRunningRecord(for date: Date) async throws -> Diary? {
         let yearMonthDay = YearMonthDay(date: date)
 
         // 1. 캐시 확인
@@ -50,7 +50,7 @@ public final class LivePersistencesRepository: PersistencesRepository {
         return records.first
     }
 
-    public func fetchRunningRecords(from startDate: Date, to endDate: Date) async throws -> [RunningRecord] {
+    public func fetchRunningRecords(from startDate: Date, to endDate: Date) async throws -> [Diary] {
         // 1. 요청 범위의 날짜들 추출
         let requestedDates = generateDateRange(from: startDate, to: endDate)
 
@@ -88,7 +88,7 @@ public final class LivePersistencesRepository: PersistencesRepository {
         return result
     }
 
-    public func saveRunningRecord(_ record: RunningRecord) async throws {
+    public func saveRunningRecord(_ record: Diary) async throws {
         let model = RunningRecordPersistenceModel.fromDomain(record)
         modelContext.insert(model)
 
@@ -101,7 +101,7 @@ public final class LivePersistencesRepository: PersistencesRepository {
         }
     }
 
-    public func updateRunningRecord(_ record: RunningRecord) async throws {
+    public func updateRunningRecord(_ record: Diary) async throws {
         // 기존 레코드 찾기
         let recordId = record.id
         let predicate = #Predicate<RunningRecordPersistenceModel> { $0.id == recordId }
@@ -151,7 +151,7 @@ public final class LivePersistencesRepository: PersistencesRepository {
         }
     }
 
-    public func deleteRunningRecord(_ record: RunningRecord) async throws {
+    public func deleteRunningRecord(_ record: Diary) async throws {
         let recordId = record.id
         let predicate = #Predicate<RunningRecordPersistenceModel> { $0.id == recordId }
         let descriptor = FetchDescriptor<RunningRecordPersistenceModel>(

@@ -9,11 +9,11 @@ import Foundation
 import Models
 
 public protocol PersistencesRepository {
-    func fetchRunningRecord(for date: Date) async throws -> RunningRecord?
-    func fetchRunningRecords(from startDate: Date, to endDate: Date) async throws -> [RunningRecord]
-    func saveRunningRecord(_ record: RunningRecord) async throws
-    func updateRunningRecord(_ record: RunningRecord) async throws
-    func deleteRunningRecord(_ record: RunningRecord) async throws
+    func fetchRunningRecord(for date: Date) async throws -> Diary?
+    func fetchRunningRecords(from startDate: Date, to endDate: Date) async throws -> [Diary]
+    func saveRunningRecord(_ record: Diary) async throws
+    func updateRunningRecord(_ record: Diary) async throws
+    func deleteRunningRecord(_ record: Diary) async throws
     func migrateHealthKitMetrics(
         recordId: UUID,
         activeEnergyBurned: Double,

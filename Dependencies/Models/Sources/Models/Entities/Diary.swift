@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct RunningRecord: Identifiable, Equatable, Sendable {
+public struct Diary: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let yearMonthDay: YearMonthDay
     public let distanceInKilometers: Double

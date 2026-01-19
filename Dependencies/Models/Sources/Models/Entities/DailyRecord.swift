@@ -5,12 +5,12 @@ import Foundation
 public struct DailyRecord: Equatable, Sendable {
     public let yearMonthDay: YearMonthDay
     public let healthKitWorkouts: [HealthKitWorkout]  // HealthKit에서 가져온 러닝 기록등
-    public let savedRecords: [RunningRecord]    // Repository에 저장된 사용자 기록들
+    public let savedRecords: [Diary]    // Repository에 저장된 사용자 기록들
 
     public init(
         yearMonthDay: YearMonthDay,
         healthKitWorkouts: [HealthKitWorkout],
-        savedRecords: [RunningRecord]
+        savedRecords: [Diary]
     ) {
         self.yearMonthDay = yearMonthDay
         self.healthKitWorkouts = healthKitWorkouts

@@ -14,11 +14,11 @@ import PersistencesService
 
 @DependencyClient
 struct PersistencesClient {
-    var fetch: @MainActor @Sendable (Date) async throws -> RunningRecord?
-    var fetchRecords: @MainActor @Sendable (Date, Date) async throws -> [RunningRecord]
-    var save: @MainActor @Sendable (RunningRecord) async throws -> Void
-    var update: @MainActor @Sendable (RunningRecord) async throws -> Void
-    var delete: @MainActor @Sendable (RunningRecord) async throws -> Void
+    var fetch: @MainActor @Sendable (Date) async throws -> Diary?
+    var fetchRecords: @MainActor @Sendable (Date, Date) async throws -> [Diary]
+    var save: @MainActor @Sendable (Diary) async throws -> Void
+    var update: @MainActor @Sendable (Diary) async throws -> Void
+    var delete: @MainActor @Sendable (Diary) async throws -> Void
     var migrateHealthKitMetrics: @MainActor @Sendable (
         _ recordId: UUID,
         _ activeEnergyBurned: Double,
@@ -28,6 +28,45 @@ struct PersistencesClient {
     ) async throws -> Void
     var clearCache: @MainActor @Sendable () -> Void
     var clearCacheForMonth: @MainActor @Sendable (YearMonth) -> Void
+}
+
+extension PersistencesClient {
+    static func live(modelContext: ModelContext) -> PersistencesClient {
+        let repository = LivePersistencesRepository(modelContext: modelContext)
+
+        return PersistencesClient(
+            fetch: { date in
+                try await repository.fetchRunningRecord(for: date)
+            },
+            fetchRecords: { startDate, endDate in
+                try await repository.fetchRunningRecords(from: startDate, to: endDate)
+            },
+            save: { record in
+                try await repository.saveRunningRecord(record)
+            },
+            update: { record in
+                try await repository.updateRunningRecord(record)
+            },
+            delete: { record in
+                try await repository.deleteRunningRecord(record)
+            },
+            migrateHealthKitMetrics: { recordId, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength in
+                try await repository.migrateHealthKitMetrics(
+                    recordId: recordId,
+                    activeEnergyBurned: activeEnergyBurned,
+                    runningVerticalOscillation: runningVerticalOscillation,
+                    runningGroundContactTime: runningGroundContactTime,
+                    walkingStepLength: walkingStepLength
+                )
+            },
+            clearCache: {
+                repository.clearCache()
+            },
+            clearCacheForMonth: { yearMonth in
+                repository.clearCache(for: yearMonth)
+            }
+        )
+    }
 }
 
 extension PersistencesClient: DependencyKey {
@@ -96,46 +135,5 @@ extension DependencyValues {
     var persistencesClient: PersistencesClient {
         get { self[PersistencesClient.self] }
         set { self[PersistencesClient.self] = newValue }
-    }
-}
-
-// MARK: - Helper
-
-extension PersistencesClient {
-    static func live(modelContext: ModelContext) -> PersistencesClient {
-        let repository = LivePersistencesRepository(modelContext: modelContext)
-
-        return PersistencesClient(
-            fetch: { date in
-                try await repository.fetchRunningRecord(for: date)
-            },
-            fetchRecords: { startDate, endDate in
-                try await repository.fetchRunningRecords(from: startDate, to: endDate)
-            },
-            save: { record in
-                try await repository.saveRunningRecord(record)
-            },
-            update: { record in
-                try await repository.updateRunningRecord(record)
-            },
-            delete: { record in
-                try await repository.deleteRunningRecord(record)
-            },
-            migrateHealthKitMetrics: { recordId, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength in
-                try await repository.migrateHealthKitMetrics(
-                    recordId: recordId,
-                    activeEnergyBurned: activeEnergyBurned,
-                    runningVerticalOscillation: runningVerticalOscillation,
-                    runningGroundContactTime: runningGroundContactTime,
-                    walkingStepLength: walkingStepLength
-                )
-            },
-            clearCache: {
-                repository.clearCache()
-            },
-            clearCacheForMonth: { yearMonth in
-                repository.clearCache(for: yearMonth)
-            }
-        )
     }
 }

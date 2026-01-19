@@ -13,8 +13,8 @@ import PersistencesService
 @DependencyClient
 struct RunningRecordClient {
     var fetchData: @MainActor @Sendable (_ from: YearMonthDay, _ to: YearMonthDay) async throws -> [YearMonthDay: DailyRecord]
-    var saveRecord: @MainActor @Sendable (_ record: RunningRecord) async throws -> Void
-    var updateRecord: @MainActor @Sendable (_ record: RunningRecord) async throws -> Void
+    var saveRecord: @MainActor @Sendable (_ record: Diary) async throws -> Void
+    var updateRecord: @MainActor @Sendable (_ record: Diary) async throws -> Void
     var clearCache: @MainActor @Sendable () -> Void
 }
 
@@ -37,16 +37,21 @@ extension RunningRecordClient: DependencyKey {
             )
 
             // 2. Migration: 새로운 HealthKit 필드가 nil인 기존 레코드 업데이트
-            await Self.migrateHealthKitMetricsIfNeeded(
+            let migrationOccurred = await Self.migrateHealthKitMetricsIfNeeded(
                 savedRecords: savedRecords,
                 healthKitWorkouts: healthKitWorkouts,
                 persistencesClient: persistencesClient
             )
 
-            // 3. Build (비즈니스 로직은 Client가 담당)
+            // 3. 마이그레이션 발생 시 다시 fetch (struct이므로 DB 변경이 반영되지 않음)
+            let finalRecords = migrationOccurred
+                ? try await persistencesClient.fetchRecords(from.toDate(), to.toDate())
+                : savedRecords
+
+            // 4. Build (비즈니스 로직은 Client가 담당)
             return Self.merge(
                 healthKitWorkouts: healthKitWorkouts,
-                savedRecords: savedRecords,
+                savedRecords: finalRecords,
                 from: from,
                 to: to
             )
@@ -90,7 +95,7 @@ extension RunningRecordClient: DependencyKey {
 
     private static func merge(
         healthKitWorkouts: [HealthKitWorkout],
-        savedRecords: [RunningRecord],
+        savedRecords: [Diary],
         from: YearMonthDay,
         to: YearMonthDay
     ) -> [YearMonthDay: DailyRecord] {
@@ -136,12 +141,15 @@ extension RunningRecordClient: DependencyKey {
     }
 
     /// 새로 추가된 HealthKit 메트릭 필드가 nil인 기존 SwiftData 레코드를 HealthKit 데이터로 마이그레이션
+    /// - Returns: 마이그레이션이 발생했는지 여부
     @MainActor
     private static func migrateHealthKitMetricsIfNeeded(
-        savedRecords: [RunningRecord],
+        savedRecords: [Diary],
         healthKitWorkouts: [HealthKitWorkout],
         persistencesClient: PersistencesClient
-    ) async {
+    ) async -> Bool {
+        var migrationOccurred = false
+
         for savedRecord in savedRecords {
             // 마이그레이션이 필요한지 확인 (새 필드 중 하나라도 nil이면)
             let needsMigration = savedRecord.activeEnergyBurned == nil
@@ -165,11 +173,14 @@ extension RunningRecordClient: DependencyKey {
                     matchingWorkout.runningGroundContactTime,
                     matchingWorkout.walkingStepLength
                 )
+                migrationOccurred = true
             } catch {
                 // 마이그레이션 실패는 무시하고 계속 진행 (데이터 fetch는 정상 동작해야 함)
                 AppLogger.app.warning("HealthKit 메트릭 마이그레이션 실패 - recordId: \(savedRecord.id), error: \(error.localizedDescription)")
             }
         }
+
+        return migrationOccurred
     }
 }
 

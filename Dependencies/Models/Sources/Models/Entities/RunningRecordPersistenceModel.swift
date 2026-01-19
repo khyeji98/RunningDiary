@@ -99,7 +99,7 @@ public final class RunningRecordPersistenceModel {
 // MARK: - Conversion Methods
 
 public extension RunningRecordPersistenceModel {
-    func toDomain() -> RunningRecord {
+    func toDomain() -> Diary {
         let condition = RunningCondition(
             sleep: sleepHours,
             meal: hadMeal,
@@ -123,7 +123,7 @@ public extension RunningRecordPersistenceModel {
         let runningStyle = runningStyleRaw.flatMap { RunninStyle(rawValue: $0) }
         let difficultyLevel = difficultyLevelRaw.flatMap { DifficultyLevel(rawValue: $0) }
 
-        return RunningRecord(
+        return Diary(
             id: id,
             yearMonthDay: YearMonthDay(date: date),
             distanceInKilometers: distance,
@@ -148,7 +148,7 @@ public extension RunningRecordPersistenceModel {
         )
     }
 
-    static func fromDomain(_ record: RunningRecord) -> RunningRecordPersistenceModel {
+    static func fromDomain(_ record: Diary) -> RunningRecordPersistenceModel {
         RunningRecordPersistenceModel(
             id: record.id,
             date: record.yearMonthDay.toDate(),
