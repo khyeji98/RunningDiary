@@ -169,9 +169,9 @@ struct CalendarFeatureTests {
         yearMonthDay: YearMonthDay,
         distance: Double = 5.0,
         startTime: Date? = nil
-    ) -> RunningRecord {
+    ) -> Diary {
         let start = startTime ?? yearMonthDay.toDate()
-        return RunningRecord(
+        return Diary(
             yearMonthDay: yearMonthDay,
             distanceInKilometers: distance,
             durationInSeconds: 1800,

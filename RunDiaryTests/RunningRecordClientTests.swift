@@ -194,7 +194,7 @@ struct RunningRecordClientTests {
         let testDate = makeYearMonthDay(month: 1, day: 15)
         let recordToSave = makeRunningRecord(yearMonthDay: testDate)
 
-        var savedRecord: RunningRecord?
+        var savedRecord: Diary?
         let client = makeTestClient(
             healthKitWorkouts: [],
             savedRecords: [],
@@ -217,7 +217,7 @@ struct RunningRecordClientTests {
         let testDate = makeYearMonthDay(month: 1, day: 15)
         let recordToUpdate = makeRunningRecord(yearMonthDay: testDate)
 
-        var updatedRecord: RunningRecord?
+        var updatedRecord: Diary?
         let client = makeTestClient(
             healthKitWorkouts: [],
             savedRecords: [],
@@ -296,9 +296,9 @@ private extension RunningRecordClientTests {
         yearMonthDay: YearMonthDay,
         distance: Double = 5.0,
         startTime: Date? = nil
-    ) -> RunningRecord {
+    ) -> Diary {
         let start = startTime ?? yearMonthDay.toDate()
-        return RunningRecord(
+        return Diary(
             yearMonthDay: yearMonthDay,
             distanceInKilometers: distance,
             durationInSeconds: 1800,
@@ -315,9 +315,9 @@ private extension RunningRecordClientTests {
     @MainActor
     func makeTestClient(
         healthKitWorkouts: [HealthKitWorkout] = [],
-        savedRecords: [RunningRecord] = [],
-        onSave: @escaping (RunningRecord) -> Void = { _ in },
-        onUpdate: @escaping (RunningRecord) -> Void = { _ in },
+        savedRecords: [Diary] = [],
+        onSave: @escaping (Diary) -> Void = { _ in },
+        onUpdate: @escaping (Diary) -> Void = { _ in },
         onClearCache: @escaping () -> Void = { }
     ) -> RunningRecordClient {
         // 직접 RunningRecordClient를 생성하여 테스트

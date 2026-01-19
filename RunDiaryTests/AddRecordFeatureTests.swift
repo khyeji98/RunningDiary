@@ -93,7 +93,7 @@ struct AddRecordFeatureTests {
         // Given
         let expectedDistance = 5.0
         let expectedWeather = WeatherData(temperature: 20.0, humidity: 55, windSpeed: 2.5)
-        var savedRecord: RunningRecord?
+        var savedRecord: Diary?
 
         let healthKitWorkout = makeHealthKitWorkout(distance: expectedDistance)
         var initialState = AddRecordFeature.State(healthKitWorkout: healthKitWorkout)
@@ -134,7 +134,7 @@ struct AddRecordFeatureTests {
         let expectedRecordId = UUID()
         let expectedDistance = 5.5
         let expectedWeather = WeatherData(temperature: 18.0, humidity: 65, windSpeed: 1.5)
-        var updatedRecord: RunningRecord?
+        var updatedRecord: Diary?
 
         let existingRecord = makeExistingRecord(id: expectedRecordId, distance: 3.0)
         let healthKitWorkout = makeHealthKitWorkout(distance: expectedDistance, duration: 2100)
@@ -353,9 +353,9 @@ private extension AddRecordFeatureTests {
         memo: String? = nil,
         weather: WeatherData? = nil,
         difficultyLevel: DifficultyLevel? = nil
-    ) -> RunningRecord {
+    ) -> Diary {
         let testDate = Date.now
-        return RunningRecord(
+        return Diary(
             id: id,
             yearMonthDay: YearMonthDay(date: testDate),
             distanceInKilometers: distance,
