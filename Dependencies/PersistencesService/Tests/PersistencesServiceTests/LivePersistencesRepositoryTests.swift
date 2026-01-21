@@ -12,8 +12,8 @@ import Testing
 
 @testable import PersistencesService
 
-@Suite("LivePersistencesRepository")
 @MainActor
+@Suite("LivePersistencesRepository")
 struct LivePersistencesRepositoryTests {
 
     // MARK: - Test Helpers
@@ -40,7 +40,7 @@ struct LivePersistencesRepositoryTests {
         averageCadence: Int = 170,
         painAreas: [PainArea] = [],
         runningStyle: RunninStyle? = .midfoot,
-        condition: RunningCondition = RunningCondition(meal: true, alcohol: false),
+        condition: RunningCondition = RunningCondition(),
         shoes: String? = nil,
         weather: WeatherData? = nil,
         difficultyLevel: DifficultyLevel? = nil,
@@ -49,7 +49,6 @@ struct LivePersistencesRepositoryTests {
         runningVerticalOscillation: Double? = nil,
         runningGroundContactTime: Double? = nil,
         walkingStepLength: Double? = nil,
-        hasMap: Bool = false,
         startOffset: TimeInterval = 0
     ) -> Diary {
         let ymd = yearMonthDay ?? makeYearMonthDay()
@@ -73,7 +72,6 @@ struct LivePersistencesRepositoryTests {
             runningVerticalOscillation: runningVerticalOscillation,
             runningGroundContactTime: runningGroundContactTime,
             walkingStepLength: walkingStepLength,
-            hasMap: hasMap,
             startTime: startTime,
             endTime: startTime.addingTimeInterval(duration)
         )
@@ -218,7 +216,10 @@ struct LivePersistencesRepositoryTests {
             runningVerticalOscillation: nil,
             runningGroundContactTime: nil,
             walkingStepLength: nil,
-            hasMap: nil,
+            restingHeartRate: nil,
+            runningPower: nil,
+            runningStrideLength: nil,
+            heartRateRecoveryOneMinute: nil,
             startTime: nil,
             endTime: nil
         )
@@ -255,7 +256,10 @@ struct LivePersistencesRepositoryTests {
                 runningVerticalOscillation: nil,
                 runningGroundContactTime: nil,
                 walkingStepLength: nil,
-                hasMap: nil,
+                restingHeartRate: nil,
+                runningPower: nil,
+                runningStrideLength: nil,
+                heartRateRecoveryOneMinute: nil,
                 startTime: nil,
                 endTime: nil
             )
@@ -268,7 +272,7 @@ struct LivePersistencesRepositoryTests {
         let repository = try makeTestRepository()
         let recordId = UUID()
         let testDate = makeYearMonthDay()
-        let originalCondition = RunningCondition(sleep: 7, meal: true, alcohol: false, memo: "Original memo")
+        let originalCondition = RunningCondition(sleep: 7, memo: "Original memo")
         let originalDiary = makeDiary(
             id: recordId,
             yearMonthDay: testDate,
@@ -305,7 +309,10 @@ struct LivePersistencesRepositoryTests {
             runningVerticalOscillation: nil,
             runningGroundContactTime: nil,
             walkingStepLength: nil,
-            hasMap: nil,
+            restingHeartRate: nil,
+            runningPower: nil,
+            runningStrideLength: nil,
+            heartRateRecoveryOneMinute: nil,
             startTime: nil,
             endTime: nil
         )

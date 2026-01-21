@@ -31,7 +31,10 @@ public protocol PersistencesRepository {
         runningVerticalOscillation: Double?,
         runningGroundContactTime: Double?,
         walkingStepLength: Double?,
-        hasMap: Bool?,
+        restingHeartRate: Double?,
+        runningPower: Double?,
+        runningStrideLength: Double?,
+        heartRateRecoveryOneMinute: Double?,
         startTime: Date?,
         endTime: Date?
     ) async throws

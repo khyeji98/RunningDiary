@@ -9,6 +9,7 @@ import Foundation
 import Models
 import SwiftData
 
+@MainActor
 public final class LivePersistencesRepository: PersistencesRepository {
     // ModelContext : 데이터 변경을 추적하고 저장/조회/삭제를 실행하는 중심 객체
     private let modelContext: ModelContext
@@ -120,7 +121,10 @@ public final class LivePersistencesRepository: PersistencesRepository {
         runningVerticalOscillation: Double?,
         runningGroundContactTime: Double?,
         walkingStepLength: Double?,
-        hasMap: Bool?,
+        restingHeartRate: Double?,
+        runningPower: Double?,
+        runningStrideLength: Double?,
+        heartRateRecoveryOneMinute: Double?,
         startTime: Date?,
         endTime: Date?
     ) async throws {
@@ -142,8 +146,6 @@ public final class LivePersistencesRepository: PersistencesRepository {
         if let runningStyle { existingModel.runningStyleRaw = runningStyle.rawValue }
         if let condition {
             existingModel.sleepHours = condition.sleep
-            existingModel.hadMeal = condition.meal
-            existingModel.hadAlcohol = condition.alcohol
             existingModel.memo = condition.memo
         }
         if let shoes { existingModel.shoes = shoes }
@@ -158,7 +160,10 @@ public final class LivePersistencesRepository: PersistencesRepository {
         if let runningVerticalOscillation { existingModel.runningVerticalOscillation = runningVerticalOscillation }
         if let runningGroundContactTime { existingModel.runningGroundContactTime = runningGroundContactTime }
         if let walkingStepLength { existingModel.walkingStepLength = walkingStepLength }
-        if let hasMap { existingModel.hasMap = hasMap }
+        if let restingHeartRate { existingModel.restingHeartRate = restingHeartRate }
+        if let runningPower { existingModel.runningPower = runningPower }
+        if let runningStrideLength { existingModel.runningStrideLength = runningStrideLength }
+        if let heartRateRecoveryOneMinute { existingModel.heartRateRecoveryOneMinute = heartRateRecoveryOneMinute }
         if let startTime { existingModel.startTime = startTime }
         if let endTime { existingModel.endTime = endTime }
 
