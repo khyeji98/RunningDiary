@@ -18,13 +18,13 @@ extension DateFormatter {
         return formatter
     }()
 
-    /// "HH:mm" 형식의 DateFormatter
+    /// "a h:mm" 형식의 DateFormatter (사용자 로케일)
     @MainActor
     public static let hourMinutes: DateFormatter = {
         let formatter = DateFormatter()
         formatter.timeZone = TimeZone.current
         formatter.locale = Locale.current
-        formatter.setLocalizedDateFormatFromTemplate("HH:mm")
+        formatter.setLocalizedDateFormatFromTemplate("a h:mm")
         return formatter
     }()
 
