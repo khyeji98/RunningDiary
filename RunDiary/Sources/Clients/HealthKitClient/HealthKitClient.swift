@@ -12,7 +12,6 @@ import Models
 
 @DependencyClient
 struct HealthKitClient {
-    var ensureAuthorizationIfNeeded: @MainActor @Sendable () async throws -> Void
     var fetchRunningDataOnDate: @MainActor @Sendable (Date) async throws -> [HealthKitWorkout]
     var fetchRunningDataBetweenDates: @MainActor @Sendable (Date, Date) async throws -> [HealthKitWorkout]
 }
@@ -22,9 +21,6 @@ extension HealthKitClient: DependencyKey {
         let manager = HealthKitManager()
 
         return HealthKitClient(
-            ensureAuthorizationIfNeeded: {
-                try await manager.ensureAuthorizationIfNeeded()
-            },
             fetchRunningDataOnDate: { date in
                 try await manager.fetchRunningData(for: date)
             },
@@ -35,15 +31,11 @@ extension HealthKitClient: DependencyKey {
     }()
 
     static let testValue = HealthKitClient(
-        ensureAuthorizationIfNeeded: unimplemented("\(Self.self).requestAuthorization"),
         fetchRunningDataOnDate: unimplemented("\(Self.self).fetchRunningData"),
         fetchRunningDataBetweenDates: unimplemented("\(Self.self).fetchWeeklyRunningData")
     )
 
     static let previewValue = HealthKitClient(
-        ensureAuthorizationIfNeeded: {
-            // Preview에서는 즉시 성공
-        },
         fetchRunningDataOnDate: { _ in
             // Mock 데이터 반환
             [
@@ -57,6 +49,10 @@ extension HealthKitClient: DependencyKey {
                     runningVerticalOscillation: 8.2,
                     runningGroundContactTime: 240.0,
                     walkingStepLength: 1.1,
+                    restingHeartRate: 60.0,
+                    runningPower: 300.0,
+                    runningStrideLength: 1.1,
+                    heartRateRecoveryOneMinute: 20.0,
                     routeData: nil,
                     startDate: Calendar.current.date(byAdding: .second, value: -3665, to: .now)!,
                     endDate: .now
@@ -78,6 +74,10 @@ extension HealthKitClient: DependencyKey {
                     runningVerticalOscillation: Double.random(in: 7.0...9.0),
                     runningGroundContactTime: Double.random(in: 230...260),
                     walkingStepLength: Double.random(in: 0.9...1.2),
+                    restingHeartRate: Double.random(in: 50...80),
+                    runningPower: Double.random(in: 200...400),
+                    runningStrideLength: Double.random(in: 0.9...1.2),
+                    heartRateRecoveryOneMinute: Double.random(in: 15...30),
                     routeData: nil,
                     startDate: Calendar.current.date(byAdding: .second, value: Int(-duration), to: .now)!,
                     endDate: .now

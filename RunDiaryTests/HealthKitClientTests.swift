@@ -16,40 +16,6 @@ import Testing
 @Suite("HealthKitClient")
 struct HealthKitClientTests {
 
-  // MARK: - ensureAuthorizationIfNeeded Tests
-
-  @Test("ensureAuthorizationIfNeeded: 권한 요청 성공")
-  func authorizationSucceeds() async throws {
-    var authorizationRequested = false
-
-    let client = HealthKitClient(
-      ensureAuthorizationIfNeeded: {
-        authorizationRequested = true
-      },
-      fetchRunningDataOnDate: { _ in [] },
-      fetchRunningDataBetweenDates: { _, _ in [] }
-    )
-
-    try await client.ensureAuthorizationIfNeeded()
-
-    #expect(authorizationRequested == true)
-  }
-
-  @Test("ensureAuthorizationIfNeeded: 권한 거부 시 에러 발생")
-  func authorizationThrowsErrorWhenDenied() async throws {
-    let client = HealthKitClient(
-      ensureAuthorizationIfNeeded: {
-        throw HealthKitError.authorizationFailed
-      },
-      fetchRunningDataOnDate: { _ in [] },
-      fetchRunningDataBetweenDates: { _, _ in [] }
-    )
-
-    await #expect(throws: HealthKitError.self) {
-      try await client.ensureAuthorizationIfNeeded()
-    }
-  }
-
   // MARK: - fetchRunningDataOnDate Tests
 
   @Test("fetchRunningDataOnDate: 러닝 데이터 조회 성공")
@@ -66,6 +32,10 @@ struct HealthKitClientTests {
         runningVerticalOscillation: 8.0,
         runningGroundContactTime: 240.0,
         walkingStepLength: 1.1,
+        restingHeartRate: 60.0,
+        runningPower: 300.0,
+        runningStrideLength: 1.1,
+        heartRateRecoveryOneMinute: 20.0,
         routeData: nil,
         startDate: testDate,
         endDate: Calendar.current.date(byAdding: .second, value: 1800, to: testDate)!
@@ -80,6 +50,10 @@ struct HealthKitClientTests {
         runningVerticalOscillation: 8.2,
         runningGroundContactTime: 250.0,
         walkingStepLength: 1.0,
+        restingHeartRate: 55.0,
+        runningPower: 280.0,
+        runningStrideLength: 1.0,
+        heartRateRecoveryOneMinute: 22.0,
         routeData: nil,
         startDate: Calendar.current.date(byAdding: .hour, value: 3, to: testDate)!,
         endDate: Calendar.current.date(byAdding: .hour, value: 3, to: testDate)!.addingTimeInterval(1200)
@@ -87,7 +61,6 @@ struct HealthKitClientTests {
     ]
 
     let client = HealthKitClient(
-      ensureAuthorizationIfNeeded: {},
       fetchRunningDataOnDate: { _ in expectedData },
       fetchRunningDataBetweenDates: { _, _ in [] }
     )
@@ -109,7 +82,6 @@ struct HealthKitClientTests {
     let testDate = Date.now
 
     let client = HealthKitClient(
-      ensureAuthorizationIfNeeded: {},
       fetchRunningDataOnDate: { _ in [] },
       fetchRunningDataBetweenDates: { _, _ in [] }
     )
@@ -122,7 +94,6 @@ struct HealthKitClientTests {
   @Test("fetchRunningDataOnDate: 데이터 조회 중 에러 발생")
   func fetchRunningDataOnDateThrowsError() async throws {
     let client = HealthKitClient(
-      ensureAuthorizationIfNeeded: {},
       fetchRunningDataOnDate: { _ in
         throw HealthKitError.notAvailable
       },
@@ -152,6 +123,10 @@ struct HealthKitClientTests {
         runningVerticalOscillation: 8.0,
         runningGroundContactTime: 240.0,
         walkingStepLength: 1.0,
+        restingHeartRate: 58.0,
+        runningPower: 290.0,
+        runningStrideLength: 1.0,
+        heartRateRecoveryOneMinute: 21.0,
         routeData: nil,
         startDate: Calendar.current.date(byAdding: .day, value: -5, to: endDate)!,
         endDate: Calendar.current.date(byAdding: .day, value: -5, to: endDate)!.addingTimeInterval(1800)
@@ -166,6 +141,10 @@ struct HealthKitClientTests {
         runningVerticalOscillation: 8.2,
         runningGroundContactTime: 235.0,
         walkingStepLength: 1.1,
+        restingHeartRate: 62.0,
+        runningPower: 310.0,
+        runningStrideLength: 1.1,
+        heartRateRecoveryOneMinute: 19.0,
         routeData: nil,
         startDate: Calendar.current.date(byAdding: .day, value: -3, to: endDate)!,
         endDate: Calendar.current.date(byAdding: .day, value: -3, to: endDate)!.addingTimeInterval(2700)
@@ -180,6 +159,10 @@ struct HealthKitClientTests {
         runningVerticalOscillation: 8.5,
         runningGroundContactTime: 230.0,
         walkingStepLength: 1.2,
+        restingHeartRate: 65.0,
+        runningPower: 320.0,
+        runningStrideLength: 1.2,
+        heartRateRecoveryOneMinute: 18.0,
         routeData: nil,
         startDate: Calendar.current.date(byAdding: .day, value: -1, to: endDate)!,
         endDate: Calendar.current.date(byAdding: .day, value: -1, to: endDate)!.addingTimeInterval(3600)
@@ -187,7 +170,6 @@ struct HealthKitClientTests {
     ]
 
     let client = HealthKitClient(
-      ensureAuthorizationIfNeeded: {},
       fetchRunningDataOnDate: { _ in [] },
       fetchRunningDataBetweenDates: { _, _ in expectedData }
     )
@@ -206,7 +188,6 @@ struct HealthKitClientTests {
     let endDate = Date.now
 
     let client = HealthKitClient(
-      ensureAuthorizationIfNeeded: {},
       fetchRunningDataOnDate: { _ in [] },
       fetchRunningDataBetweenDates: { _, _ in [] }
     )
@@ -222,7 +203,6 @@ struct HealthKitClientTests {
     let endDate = Date.now
 
     let client = HealthKitClient(
-      ensureAuthorizationIfNeeded: {},
       fetchRunningDataOnDate: { _ in [] },
       fetchRunningDataBetweenDates: { _, _ in
         throw HealthKitError.notAvailable
@@ -240,7 +220,6 @@ struct HealthKitClientTests {
     let endDate = Calendar.current.date(byAdding: .day, value: -7, to: Date.now)!
 
     let client = HealthKitClient(
-      ensureAuthorizationIfNeeded: {},
       fetchRunningDataOnDate: { _ in [] },
       fetchRunningDataBetweenDates: { _, _ in [] }
     )

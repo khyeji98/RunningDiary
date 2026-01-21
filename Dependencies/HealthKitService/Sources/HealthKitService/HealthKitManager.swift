@@ -5,6 +5,7 @@
 //  Created by 김혜지 on 9/23/25.
 //
 
+import CommonFoundation
 import CoreLocation
 import Foundation
 import HealthKit
@@ -14,16 +15,20 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
     private let healthStore = HKHealthStore()
 
     private let typesToRead: Set<HKObjectType> = [
-        HKObjectType.workoutType(),
-        HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning)!,
-        HKObjectType.quantityType(forIdentifier: .heartRate)!,
-        HKObjectType.quantityType(forIdentifier: .runningSpeed)!,
-        HKObjectType.quantityType(forIdentifier: .stepCount)!,
-        HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
-        HKObjectType.quantityType(forIdentifier: .runningVerticalOscillation)!,
-        HKObjectType.quantityType(forIdentifier: .runningGroundContactTime)!,
-        HKObjectType.quantityType(forIdentifier: .walkingStepLength)!,
-        HKSeriesType.workoutRoute(),
+        HKObjectType.workoutType(),                                                               // workout 타입
+        HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning)!,                       // 걷기/달리기 거리
+        HKObjectType.quantityType(forIdentifier: .heartRate)!,                                    // 심박수
+        HKObjectType.quantityType(forIdentifier: .runningSpeed)!,                                 // 달리기 속도
+        HKObjectType.quantityType(forIdentifier: .stepCount)!,                                    // 걸음 수
+        HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,                           // 활동 에너지 소모량
+        HKObjectType.quantityType(forIdentifier: .runningVerticalOscillation)!,                   // 달리기 수직 진폭
+        HKObjectType.quantityType(forIdentifier: .runningGroundContactTime)!,                     // 달리기 지면 접촉 시간
+        HKObjectType.quantityType(forIdentifier: .walkingStepLength)!,                            // 걷기 보폭 길이
+        HKObjectType.quantityType(forIdentifier: .restingHeartRate)!,                             // 휴식 심박수
+        HKObjectType.quantityType(forIdentifier: .runningPower)!,                                 // 달리기 파워
+        HKObjectType.quantityType(forIdentifier: .runningStrideLength)!,                          // 달리기 보폭 길이
+        HKObjectType.quantityType(forIdentifier: .heartRateRecoveryOneMinute)!,                   // 1분 심박수 회복
+        HKSeriesType.workoutRoute(),                                                              // 경로
     ]
 
     public init() {}
@@ -55,6 +60,8 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
 
     // 단일 Date에 대한 피트니스 기록을 가져옵니다.
     public func fetchRunningData(for date: Date) async throws -> [HealthKitWorkout] {
+        try await ensureAuthorizationIfNeeded()
+        
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         guard let endOfDay = calendar.endOfDay(for: date) else {
@@ -94,14 +101,18 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         for workout in workouts {
             guard let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo)),
                   let averagePace = calculateAveragePace(from: workout),
-                  let averageHeartRate = try await fetchAverageHeartRate(for: workout),
-                  let averageCadence = try await fetchAverageCadence(for: workout)
+                  let averageHeartRate = await fetchAverageHeartRate(for: workout),
+                  let averageCadence = await fetchAverageCadence(for: workout)
             else { continue }
             
             let activeEnergyBurned = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
-            let runningVerticalOscillation = try await fetchAverageVerticalOscillation(for: workout) ?? 0
-            let runningGroundContactTime = try await fetchAverageGroundContactTime(for: workout) ?? 0
-            let walkingStepLength = try await fetchAverageStepLength(for: workout) ?? 0
+            let runningVerticalOscillation = await fetchAverageVerticalOscillation(for: workout) ?? 0
+            let runningGroundContactTime = await fetchAverageGroundContactTime(for: workout) ?? 0
+            let walkingStepLength = await fetchAverageStepLength(for: workout) ?? 0
+            let restingHeartRate = await fetchAverageRestingHeartRate(for: workout) ?? 0
+            let runningPower = await fetchAverageRunningPower(for: workout) ?? 0
+            let runningStrideLength = await fetchAverageRunningStrideLength(for: workout) ?? 0
+            let heartRateRecoveryOneMinute = await fetchHeartRateRecoveryOneMinute(for: workout) ?? 0
             
             let routeData = try? await fetchRouteData(for: workout)
 
@@ -115,6 +126,10 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
                 runningVerticalOscillation: runningVerticalOscillation,
                 runningGroundContactTime: runningGroundContactTime,
                 walkingStepLength: walkingStepLength,
+                restingHeartRate: restingHeartRate,
+                runningPower: runningPower,
+                runningStrideLength: runningStrideLength,
+                heartRateRecoveryOneMinute: heartRateRecoveryOneMinute,
                 routeData: routeData,
                 startDate: workout.startDate,
                 endDate: workout.endDate
@@ -140,108 +155,103 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         return String(format: "%d'%02d\"", minutes, seconds)
     }
 
-    private func fetchAverageHeartRate(for workout: HKWorkout) async throws -> Int? {
-        guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else {
-            return nil
-        }
-
-        let predicate = HKQuery.predicateForSamples(
-            withStart: workout.startDate,
-            end: workout.endDate,
-            options: .strictStartDate
-        )
-
-        let samples = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[HKQuantitySample], Error>) in
-            let query = HKSampleQuery(
-                sampleType: heartRateType,
-                predicate: predicate,
-                limit: HKObjectQueryNoLimit,
-                sortDescriptors: nil
-            ) { _, samples, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume(
-                        returning: samples as? [HKQuantitySample] ?? []
-                    )
-                }
-            }
-            healthStore.execute(query)
-        }
-
-        guard !samples.isEmpty else {
-            return nil
-        }
-
-        let totalHeartRate = samples.reduce(0.0) {
-            $0 + $1.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))
-        }
-        let average = totalHeartRate / Double(samples.count)
-
-        return Int(floor(average))
+    private func fetchAverageHeartRate(for workout: HKWorkout) async -> Int? {
+        guard let type = HKQuantityType.quantityType(forIdentifier: .heartRate) else { return nil }
+        guard let average = await fetchAverageQuantity(for: workout, type: type, unit: HKUnit.count().unitDivided(by: .minute())) else { return nil }
+        return Int(average)
     }
 
-    private func fetchAverageCadence(for workout: HKWorkout) async throws -> Int? {
-        guard let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else {
-            return nil
-        }
-
+    private func fetchAverageCadence(for workout: HKWorkout) async -> Int? {
+        guard let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else { return nil }
+        
         let predicate = HKQuery.predicateForSamples(withStart: workout.startDate, end: workout.endDate, options: .strictStartDate)
-
-        let totalSteps = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Double, Error>) in
+        
+        let totalSteps = await withCheckedContinuation { (continuation: CheckedContinuation<Double, Never>) in
             let query = HKStatisticsQuery(
                 quantityType: stepType,
                 quantitySamplePredicate: predicate,
                 options: .cumulativeSum
             ) { _, statistics, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
+                if error != nil {
+                    continuation.resume(returning: 0)
                     return
                 }
-
-                let sum = statistics?.sumQuantity()?.doubleValue(for: .count())
-                continuation.resume(returning: sum ?? 0)
+                let sum = statistics?.sumQuantity()?.doubleValue(for: .count()) ?? 0
+                continuation.resume(returning: sum)
             }
             healthStore.execute(query)
         }
         
         let durationInMinutes = workout.duration / 60.0
-
+        
         guard durationInMinutes > 0 && totalSteps > 0 else {
             return nil
         }
-
-        let cadence = totalSteps / durationInMinutes
-
-        return Int(cadence)
+        
+        return Int(totalSteps / durationInMinutes)
     }
 
-    private func fetchAverageVerticalOscillation(for workout: HKWorkout) async throws -> Double? {
+    private func fetchAverageVerticalOscillation(for workout: HKWorkout) async -> Double? {
         guard let type = HKQuantityType.quantityType(forIdentifier: .runningVerticalOscillation) else { return nil }
-        return try await fetchAverageQuantity(for: workout, type: type, unit: .meterUnit(with: .centi))
+        return await fetchAverageQuantity(for: workout, type: type, unit: .meterUnit(with: .centi))
     }
 
-    private func fetchAverageGroundContactTime(for workout: HKWorkout) async throws -> Double? {
+    private func fetchAverageGroundContactTime(for workout: HKWorkout) async -> Double? {
         guard let type = HKQuantityType.quantityType(forIdentifier: .runningGroundContactTime) else { return nil }
-        return try await fetchAverageQuantity(for: workout, type: type, unit: .secondUnit(with: .milli))
+        return await fetchAverageQuantity(for: workout, type: type, unit: .secondUnit(with: .milli))
     }
 
-    private func fetchAverageStepLength(for workout: HKWorkout) async throws -> Double? {
+    private func fetchAverageStepLength(for workout: HKWorkout) async -> Double? {
         guard let type = HKQuantityType.quantityType(forIdentifier: .walkingStepLength) else { return nil }
-        return try await fetchAverageQuantity(for: workout, type: type, unit: .meter())
+        return await fetchAverageQuantity(for: workout, type: type, unit: .meter())
     }
 
-    private func fetchAverageQuantity(for workout: HKWorkout, type: HKQuantityType, unit: HKUnit) async throws -> Double? {
-        let predicate = HKQuery.predicateForSamples(withStart: workout.startDate, end: workout.endDate, options: .strictStartDate)
+    /// 휴식 심박수는 하루 단위로 기록되므로 workout 날짜의 전체 하루를 조회
+    private func fetchAverageRestingHeartRate(for workout: HKWorkout) async -> Double? {
+        guard let type = HKQuantityType.quantityType(forIdentifier: .restingHeartRate) else { return nil }
+        
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: workout.startDate)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return nil }
+        
+        return await fetchAverageQuantityForDateRange(from: startOfDay, to: endOfDay, type: type, unit: HKUnit.count().unitDivided(by: .minute()))
+    }
 
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Double?, Error>) in
+    private func fetchAverageRunningPower(for workout: HKWorkout) async -> Double? {
+        guard let type = HKQuantityType.quantityType(forIdentifier: .runningPower) else { return nil }
+        return await fetchAverageQuantity(for: workout, type: type, unit: .watt())
+    }
+
+    private func fetchAverageRunningStrideLength(for workout: HKWorkout) async -> Double? {
+        guard let type = HKQuantityType.quantityType(forIdentifier: .runningStrideLength) else { return nil }
+        return await fetchAverageQuantity(for: workout, type: type, unit: .meter())
+    }
+
+    /// 1분 심박수 회복은 운동 종료 후 측정되므로 종료 시간부터 5분까지 확장 조회
+    private func fetchHeartRateRecoveryOneMinute(for workout: HKWorkout) async -> Double? {
+        guard let type = HKQuantityType.quantityType(forIdentifier: .heartRateRecoveryOneMinute) else { return nil }
+        
+        let extendedEnd = workout.endDate.addingTimeInterval(5 * 60) // 운동 종료 후 5분
+        return await fetchAverageQuantityForDateRange(from: workout.endDate, to: extendedEnd, type: type, unit: HKUnit.count().unitDivided(by: .minute()))
+    }
+
+    private func fetchAverageQuantity(for workout: HKWorkout, type: HKQuantityType, unit: HKUnit) async -> Double? {
+        return await fetchAverageQuantityForDateRange(from: workout.startDate, to: workout.endDate, type: type, unit: unit)
+    }
+    
+    /// 특정 날짜 범위에 대해 평균값을 조회하는 공통 헬퍼
+    private func fetchAverageQuantityForDateRange(from startDate: Date, to endDate: Date, type: HKQuantityType, unit: HKUnit) async -> Double? {
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+
+        return await withCheckedContinuation { (continuation: CheckedContinuation<Double?, Never>) in
             let query = HKStatisticsQuery(
                 quantityType: type,
                 quantitySamplePredicate: predicate,
                 options: .discreteAverage
             ) { _, statistics, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
+                // 에러 발생 시 (데이터 없음 포함) nil 반환
+                if error != nil {
+                    continuation.resume(returning: nil)
                     return
                 }
                 
@@ -311,6 +321,8 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
 
     // startDate ~ endDate 기간에 대한 피트니스 기록을 가져옵니다.
     public func fetchWeeklyRunningData(from startDate: Date, to endDate: Date) async throws -> [HealthKitWorkout] {
+        try await ensureAuthorizationIfNeeded()
+        
         let calendar = Calendar.current
 
         // 시작일부터 종료일까지의 날짜 배열 생성

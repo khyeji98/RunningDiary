@@ -23,9 +23,7 @@ extension RunningRecordClient: DependencyKey {
             @Dependency(\.healthKitClient) var healthKitClient
             @Dependency(\.persistencesClient) var persistencesClient
 
-            try await healthKitClient.ensureAuthorizationIfNeeded()
-
-            // 1. Fetch (캐싱은 Repository가 담당)
+            // 1. Fetch (캐싱은 Repository가 담당, 권한은 Manager가 내부 처리)
             let healthKitWorkouts = try await healthKitClient.fetchRunningDataBetweenDates(
                 from.toDate(),
                 to.toDate()
@@ -80,7 +78,6 @@ extension RunningRecordClient: DependencyKey {
                 runningVerticalOscillation: record.runningVerticalOscillation,
                 runningGroundContactTime: record.runningGroundContactTime,
                 walkingStepLength: record.walkingStepLength,
-                hasMap: record.hasMap,
                 startTime: record.startTime,
                 endTime: record.endTime
             )
