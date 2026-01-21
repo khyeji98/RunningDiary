@@ -5,6 +5,7 @@
 //  Created by Claude on 10/19/25.
 //
 
+import CommonFoundation
 import ComposableArchitecture
 import Foundation
 import Models
@@ -150,11 +151,15 @@ struct DailyDetailFeature {
                 return .run { [persistencesClient] _ in
                     // HealthKit -> SwiftData 데이터 동기화
                     for diary in diaries {
-                        // 4개 속성 중 하나라도 nil이면 마이그레이션 대상
+                        // 8개 속성 중 하나라도 nil이면 마이그레이션 대상
                         guard diary.activeEnergyBurned == nil
                             || diary.runningVerticalOscillation == nil
                             || diary.runningGroundContactTime == nil
                             || diary.walkingStepLength == nil
+                            || diary.restingHeartRate == nil
+                            || diary.runningPower == nil
+                            || diary.runningStrideLength == nil
+                            || diary.heartRateRecoveryOneMinute == nil
                         else { continue }
 
                         // startTime이 일치하는 workout 찾기
@@ -166,7 +171,11 @@ struct DailyDetailFeature {
                             activeEnergyBurned: matchingWorkout.activeEnergyBurned,
                             runningVerticalOscillation: matchingWorkout.runningVerticalOscillation,
                             runningGroundContactTime: matchingWorkout.runningGroundContactTime,
-                            walkingStepLength: matchingWorkout.walkingStepLength
+                            walkingStepLength: matchingWorkout.walkingStepLength,
+                            restingHeartRate: matchingWorkout.restingHeartRate,
+                            runningPower: matchingWorkout.runningPower,
+                            runningStrideLength: matchingWorkout.runningStrideLength,
+                            heartRateRecoveryOneMinute: matchingWorkout.heartRateRecoveryOneMinute
                         )
                     }
                 }

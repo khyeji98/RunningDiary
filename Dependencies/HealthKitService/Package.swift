@@ -13,12 +13,13 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../Models")
+        .package(path: "../Models"),
+        .package(path: "../CommonFoundation"),
     ],
     targets: [
         .target(
             name: "HealthKitService",
-            dependencies: ["Models"]
+            dependencies: ["Models", "CommonFoundation"]
         ),
         .testTarget(
             name: "HealthKitServiceTests",
