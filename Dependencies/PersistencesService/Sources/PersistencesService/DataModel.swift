@@ -8,21 +8,21 @@
 import Models
 import SwiftData
 
-public actor DataModel {
+public final class DataModel {
+    @MainActor
     public static let shared = DataModel()
 
     // ModelContainer : 실제 데이터 저장소 역할
-    private static let container: ModelContainer = {
-        let modelContainer: ModelContainer
-        do {
-            modelContainer = try ModelContainer(for: RunningRecordPersistenceModel.self)
-        } catch {
-            fatalError("Failed to initialize ModelContainer: \(error)")
-        }
-        return modelContainer
-    }()
+    public let container: ModelContainer
 
-    nonisolated public var modelContainer: ModelContainer {
-        Self.container
+    @MainActor
+    private init() {
+        do {
+            self.container = try ModelContainer(
+                for: RunningRecordPersistenceModel.self
+            )
+        } catch {
+            fatalError("Failed to initialize ModelContainer after reset: \(error)")
+        }
     }
 }
