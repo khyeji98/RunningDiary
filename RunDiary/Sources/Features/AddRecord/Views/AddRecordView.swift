@@ -9,6 +9,7 @@ import ComposableArchitecture
 import CommonFoundation
 import SwiftUI
 import Models
+import PersistencesService
 
 struct AddRecordView: View {
     @Bindable var store: StoreOf<AddRecordFeature>
@@ -57,14 +58,6 @@ struct AddRecordView: View {
                     sleepHours: Binding(
                         get: { store.condition.sleepHours },
                         set: { store.send(.condition(.updateSleepHours($0))) }
-                    ),
-                    hadMeal: Binding(
-                        get: { store.condition.hadMeal },
-                        set: { store.send(.condition(.updateHadMeal($0))) }
-                    ),
-                    hadAlcohol: Binding(
-                        get: { store.condition.hadAlcohol },
-                        set: { store.send(.condition(.updateHadAlcohol($0))) }
                     ),
                     memo: Binding(
                         get: { store.condition.memo },
@@ -145,6 +138,10 @@ struct AddRecordView: View {
                         runningVerticalOscillation: 8.2,
                         runningGroundContactTime: 240.0,
                         walkingStepLength: 1.1,
+                        restingHeartRate: 60.0,
+                        runningPower: 300.0,
+                        runningStrideLength: 1.1,
+                        heartRateRecoveryOneMinute: 20.0,
                         routeData: nil,
                         startDate: .now,
                         endDate: .now

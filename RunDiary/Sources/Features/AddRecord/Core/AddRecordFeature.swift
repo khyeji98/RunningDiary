@@ -145,8 +145,6 @@ struct AddRecordFeature {
                             runningStyle: condition.selectedRunningStyle,
                             condition: RunningCondition(
                                 sleep: Int(condition.sleepHours),
-                                meal: condition.hadMeal,
-                                alcohol: condition.hadAlcohol,
                                 memo: condition.memo.isEmpty ? nil : condition.memo
                             ),
                             shoes: condition.selectedShoe?.id ?? "",
@@ -157,7 +155,10 @@ struct AddRecordFeature {
                             runningVerticalOscillation: healthKitWorkout.runningVerticalOscillation,
                             runningGroundContactTime: healthKitWorkout.runningGroundContactTime,
                             walkingStepLength: healthKitWorkout.walkingStepLength,
-                            hasMap: healthKitWorkout.routeData != nil,
+                            restingHeartRate: healthKitWorkout.restingHeartRate,
+                            runningPower: healthKitWorkout.runningPower,
+                            runningStrideLength: healthKitWorkout.runningStrideLength,
+                            heartRateRecoveryOneMinute: healthKitWorkout.heartRateRecoveryOneMinute,
                             startTime: healthKitWorkout.startTime,
                             endTime: healthKitWorkout.endTime
                         )

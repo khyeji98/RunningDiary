@@ -36,7 +36,10 @@ struct PersistencesClient {
         _ runningVerticalOscillation: Double?,
         _ runningGroundContactTime: Double?,
         _ walkingStepLength: Double?,
-        _ hasMap: Bool?,
+        _ restingHeartRate: Double?,
+        _ runningPower: Double?,
+        _ runningStrideLength: Double?,
+        _ heartRateRecoveryOneMinute: Double?,
         _ startTime: Date?,
         _ endTime: Date?
     ) async throws -> Void
@@ -64,7 +67,10 @@ extension PersistencesClient {
         runningVerticalOscillation: Double? = nil,
         runningGroundContactTime: Double? = nil,
         walkingStepLength: Double? = nil,
-        hasMap: Bool? = nil,
+        restingHeartRate: Double? = nil,
+        runningPower: Double? = nil,
+        runningStrideLength: Double? = nil,
+        heartRateRecoveryOneMinute: Double? = nil,
         startTime: Date? = nil,
         endTime: Date? = nil
     ) async throws {
@@ -73,8 +79,9 @@ extension PersistencesClient {
             averageHeartRate, averageCadence, painAreas, runningStyle,
             condition, shoes, weather, difficultyLevel, routeData,
             activeEnergyBurned, runningVerticalOscillation,
-            runningGroundContactTime, walkingStepLength, hasMap,
-            startTime, endTime
+            runningGroundContactTime, walkingStepLength,
+            restingHeartRate, runningPower, runningStrideLength,
+            heartRateRecoveryOneMinute, startTime, endTime
         )
     }
 }
@@ -93,7 +100,7 @@ extension PersistencesClient {
             save: { record in
                 try await repository.saveRunningRecord(record)
             },
-            update: { recordId, date, distance, duration, averagePace, averageHeartRate, averageCadence, painAreas, runningStyle, condition, shoes, weather, difficultyLevel, routeData, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength, hasMap, startTime, endTime in
+            update: { recordId, date, distance, duration, averagePace, averageHeartRate, averageCadence, painAreas, runningStyle, condition, shoes, weather, difficultyLevel, routeData, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength, restingHeartRate, runningPower, runningStrideLength, heartRateRecoveryOneMinute, startTime, endTime in
                 try await repository.updateRunningRecord(
                     recordId: recordId,
                     date: date,
@@ -113,7 +120,10 @@ extension PersistencesClient {
                     runningVerticalOscillation: runningVerticalOscillation,
                     runningGroundContactTime: runningGroundContactTime,
                     walkingStepLength: walkingStepLength,
-                    hasMap: hasMap,
+                    restingHeartRate: restingHeartRate,
+                    runningPower: runningPower,
+                    runningStrideLength: runningStrideLength,
+                    heartRateRecoveryOneMinute: heartRateRecoveryOneMinute,
                     startTime: startTime,
                     endTime: endTime
                 )
@@ -136,7 +146,7 @@ extension PersistencesClient: DependencyKey {
         save: { _ in
             fatalError("RepositoryClient.save must be overridden with live implementation")
         },
-        update: { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in
+        update: { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in
             fatalError("RepositoryClient.update must be overridden with live implementation")
         },
         delete: { _ in
@@ -167,7 +177,7 @@ extension PersistencesClient: DependencyKey {
                 .map { $0.toDomain() }
         },
         save: { _ in },
-        update: { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in },
+        update: { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in },
         delete: { _ in }
     )
 }

@@ -114,36 +114,24 @@ struct RunningRecordCard: View {
                             }
                         }
 
-                        Divider()
-
                         // 날씨 데이터
                         if let weather = record.weather {
+                            Divider()
                             WeatherSectionView(weather: weather)
                         }
 
-                        Divider()
-
-                        // 수면시간, 식사여부, 음주여부
-                        VStack(alignment: .leading, spacing: 14) {
-                            if let sleep = record.condition.sleep {
-                                RecordHorizontalRow(
-                                    title: L10n.recordFieldSleepLabel.value,
-                                    value: "\(sleep) \(L10n.unitHours.value)"
-                                )
-                            }
-
-                            RecordIconRow(
-                                title: L10n.recordFieldMealLabel.value,
-                                isChecked: record.condition.meal
-                            )
-                            RecordIconRow(
-                                title: L10n.recordFieldAlcoholLabel.value,
-                                isChecked: record.condition.alcohol
+                        // 수면시간
+                        if let sleep = record.condition.sleep {
+                            Divider()
+                            RecordHorizontalRow(
+                                title: L10n.recordFieldSleepLabel.value,
+                                value: "\(sleep) \(L10n.unitHours.value)"
                             )
                         }
 
                         // 메모
                         if let memo = record.condition.memo {
+                            Divider()
                             VStack(spacing: 20) {
                                 Image("quotes_leading")
                                     .resizable()

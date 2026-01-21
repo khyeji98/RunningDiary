@@ -12,7 +12,7 @@ import SwiftUI
 
 @main
 struct RunDiaryApp: App {
-    let modelContainer = DataModel.shared.modelContainer
+    let modelContainer = DataModel.shared.container
     let store: StoreOf<DailyDetailFeature>
 
     init() {
@@ -20,7 +20,7 @@ struct RunDiaryApp: App {
             DailyDetailFeature()
                 ._printChanges()
         } withDependencies: {
-            $0.persistencesClient = .live(modelContext: DataModel.shared.modelContainer.mainContext)
+            $0.persistencesClient = .live(modelContext: DataModel.shared.container.mainContext)
             $0.healthKitClient = .liveValue
         }
     }

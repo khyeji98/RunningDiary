@@ -8,6 +8,7 @@
 import CommonFoundation
 import ComposableArchitecture
 import Models
+import PersistencesService
 import SwiftUI
 
 struct DailyDetailView: View {

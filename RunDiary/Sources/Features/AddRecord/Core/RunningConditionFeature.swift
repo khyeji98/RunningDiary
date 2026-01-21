@@ -20,8 +20,6 @@ struct RunningConditionFeature {
 
         // Condition
         var sleepHours: String = ""
-        var hadMeal: Bool = false
-        var hadAlcohol: Bool = false
         var memo: String = ""
 
         // Shoes
@@ -35,8 +33,6 @@ struct RunningConditionFeature {
             self.selectedPainAreas = Set(existingRecord?.painAreas ?? [])
             self.selectedRunningStyle = existingRecord?.runningStyle
             self.sleepHours = existingRecord?.condition.sleep?.toString ?? ""
-            self.hadMeal = existingRecord?.condition.meal ?? false
-            self.hadAlcohol = existingRecord?.condition.alcohol ?? false
             self.memo = existingRecord?.condition.memo ?? ""
             self.selectedShoe = ShoeStorage.search(id: existingRecord?.shoes ?? "")
         }
@@ -46,8 +42,6 @@ struct RunningConditionFeature {
         case updateSelectedPainAreas(Set<PainArea>)
         case updateSelectedRunningStyle(RunninStyle?)
         case updateSleepHours(String)
-        case updateHadMeal(Bool)
-        case updateHadAlcohol(Bool)
         case updateMemo(String)
         case updateSelectedShoe(ShoeModel?)
     }
@@ -65,14 +59,6 @@ struct RunningConditionFeature {
 
             case .updateSleepHours(let hours):
                 state.sleepHours = hours
-                return .none
-
-            case .updateHadMeal(let value):
-                state.hadMeal = value
-                return .none
-
-            case .updateHadAlcohol(let value):
-                state.hadAlcohol = value
                 return .none
 
             case .updateMemo(let text):

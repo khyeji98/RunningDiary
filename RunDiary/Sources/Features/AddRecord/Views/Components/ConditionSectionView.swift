@@ -9,8 +9,6 @@ import SwiftUI
 
 struct ConditionSectionView: View {
     @Binding var sleepHours: String
-    @Binding var hadMeal: Bool
-    @Binding var hadAlcohol: Bool
     @Binding var memo: String
 
     var body: some View {
@@ -51,39 +49,10 @@ struct ConditionSectionView: View {
                     L10n.unitHours.text
                         .foregroundColor(.gray)
                 }
-
-                HStack {
-                    L10n.recordFieldHasMeal.text
-                        .foregroundColor(.gray)
-                    Spacer()
-                    CheckboxView(isChecked: $hadMeal)
-                }
-
-                HStack {
-                    L10n.recordFieldWasDrinking.text
-                        .foregroundColor(.gray)
-                    Spacer()
-                    CheckboxView(isChecked: $hadAlcohol)
-                }
             }
         }
         .padding()
         .background(Color.white)
         .cornerRadius(12)
-    }
-}
-
-struct CheckboxView: View {
-    @Binding var isChecked: Bool
-
-    var body: some View {
-        Button(action: {
-            isChecked.toggle()
-        }) {
-            Image(systemName: isChecked ? "checkmark.square.fill" : "square")
-                .foregroundColor(isChecked ? .blue : .gray)
-                .font(.title2)
-        }
-        .buttonStyle(.plain)
     }
 }
