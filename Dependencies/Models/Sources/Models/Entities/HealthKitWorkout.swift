@@ -20,6 +20,10 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
     public let runningVerticalOscillation: Double       // 수직 진폭 (cm)
     public let runningGroundContactTime: Double         // 지면 접촉 시간 (ms)
     public let walkingStepLength: Double                // 보폭 (m)
+    public let restingHeartRate: Double                 // 휴식 심박수 (bpm)
+    public let runningPower: Double                     // 러닝 파워 (watts)
+    public let runningStrideLength: Double              // 러닝 보폭 길이 (m)
+    public let heartRateRecoveryOneMinute: Double       // 1분 심박수 회복 (bpm)
     public let routeData: Data?                         // 달리기 경로 데이터
     public let startTime: Date                          // 달리기 시작 시간
     public let endTime: Date                            // 달리기 종료 시간
@@ -58,6 +62,10 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
         runningVerticalOscillation: Double,
         runningGroundContactTime: Double,
         walkingStepLength: Double,
+        restingHeartRate: Double,
+        runningPower: Double,
+        runningStrideLength: Double,
+        heartRateRecoveryOneMinute: Double,
         routeData: Data?,
         startDate: Date,
         endDate: Date
@@ -72,6 +80,10 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
         self.runningVerticalOscillation = runningVerticalOscillation
         self.runningGroundContactTime = runningGroundContactTime
         self.walkingStepLength = walkingStepLength
+        self.restingHeartRate = restingHeartRate
+        self.runningPower = runningPower
+        self.runningStrideLength = runningStrideLength
+        self.heartRateRecoveryOneMinute = heartRateRecoveryOneMinute
         self.routeData = routeData
         self.startTime = startDate
         self.endTime = endDate

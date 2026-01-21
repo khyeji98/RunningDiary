@@ -26,7 +26,10 @@ public struct Diary: Identifiable, Equatable, Sendable {
     public let runningVerticalOscillation: Double?      // 수직 진폭 (cm)
     public let runningGroundContactTime: Double?        // 지면 접촉 시간 (ms)
     public let walkingStepLength: Double?               // 보폭 (m)
-    public let hasMap: Bool                             // 지도 데이터 유무
+    public let restingHeartRate: Double?                // 휴식 심박수 (bpm)
+    public let runningPower: Double?                    // 러닝 파워 (watts)
+    public let runningStrideLength: Double?             // 러닝 보폭 길이 (m)
+    public let heartRateRecoveryOneMinute: Double?      // 1분 심박수 회복 (bpm)
     public let startTime: Date                          // 달리기 시작 시간
     public let endTime: Date                            // 달리기 종료 시간
 
@@ -65,7 +68,10 @@ public struct Diary: Identifiable, Equatable, Sendable {
         runningVerticalOscillation: Double? = nil,
         runningGroundContactTime: Double? = nil,
         walkingStepLength: Double? = nil,
-        hasMap: Bool = false,
+        restingHeartRate: Double? = nil,
+        runningPower: Double? = nil,
+        runningStrideLength: Double? = nil,
+        heartRateRecoveryOneMinute: Double? = nil,
         startTime: Date,
         endTime: Date
     ) {
@@ -87,7 +93,10 @@ public struct Diary: Identifiable, Equatable, Sendable {
         self.runningVerticalOscillation = runningVerticalOscillation
         self.runningGroundContactTime = runningGroundContactTime
         self.walkingStepLength = walkingStepLength
-        self.hasMap = hasMap
+        self.restingHeartRate = restingHeartRate
+        self.runningPower = runningPower
+        self.runningStrideLength = runningStrideLength
+        self.heartRateRecoveryOneMinute = heartRateRecoveryOneMinute
         self.startTime = startTime
         self.endTime = endTime
     }
