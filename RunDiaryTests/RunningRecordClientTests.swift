@@ -266,6 +266,10 @@ private extension RunningRecordClientTests {
             runningVerticalOscillation: 8.0,
             runningGroundContactTime: 240.0,
             walkingStepLength: 1.0,
+            restingHeartRate: 60.0,
+            runningPower: 250.0,
+            runningStrideLength: 1.2,
+            heartRateRecoveryOneMinute: 25.0,
             routeData: nil,
             startDate: start,
             endDate: start.addingTimeInterval(1800)

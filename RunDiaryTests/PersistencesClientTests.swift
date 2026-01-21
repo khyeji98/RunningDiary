@@ -34,7 +34,7 @@ struct PersistencesClientTests {
         fetch: @escaping @MainActor @Sendable (Date) async throws -> Diary? = { _ in nil },
         fetchRecords: @escaping @MainActor @Sendable (Date, Date) async throws -> [Diary] = { _, _ in [] },
         save: @escaping @MainActor @Sendable (Diary) async throws -> Void = { _ in },
-        update: @escaping @MainActor @Sendable (UUID, YearMonthDay?, Double?, TimeInterval?, String?, Int?, Int?, [PainArea]?, RunninStyle?, RunningCondition?, String?, WeatherData?, DifficultyLevel?, Data?, Double?, Double?, Double?, Double?, Bool?, Date?, Date?) async throws -> Void = { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in },
+        update: @escaping @MainActor @Sendable (UUID, YearMonthDay?, Double?, TimeInterval?, String?, Int?, Int?, [PainArea]?, RunninStyle?, RunningCondition?, String?, WeatherData?, DifficultyLevel?, Data?, Double?, Double?, Double?, Double?, Double?, Double?, Double?, Double?, Date?, Date?) async throws -> Void = { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in },
         delete: @escaping @MainActor @Sendable (Diary) async throws -> Void = { _ in }
     ) -> PersistencesClient {
         PersistencesClient(
@@ -63,7 +63,7 @@ struct PersistencesClientTests {
             averageHeartRate: 150,
             averageCadence: 170,
             runningStyle: .midfoot,
-            condition: RunningCondition(meal: true, alcohol: false),
+            condition: RunningCondition(sleep: 7, memo: nil),
             startTime: startTime,
             endTime: endTime
         )
@@ -147,7 +147,7 @@ struct PersistencesClientTests {
                 averageHeartRate: 145,
                 averageCadence: 165,
                 runningStyle: .forefoot,
-                condition: RunningCondition(meal: true, alcohol: false),
+                condition: RunningCondition(sleep: 7, memo: nil),
                 startTime: time1Start,
                 endTime: time1End
             ),
@@ -159,7 +159,7 @@ struct PersistencesClientTests {
                 averageHeartRate: 150,
                 averageCadence: 170,
                 runningStyle: .midfoot,
-                condition: RunningCondition(meal: true, alcohol: false),
+                condition: RunningCondition(sleep: 7, memo: nil),
                 startTime: time2Start,
                 endTime: time2End
             ),
@@ -232,7 +232,7 @@ struct PersistencesClientTests {
             averageHeartRate: 160,
             averageCadence: 180,
             runningStyle: .midfoot,
-            condition: RunningCondition(meal: true, alcohol: false),
+            condition: RunningCondition(sleep: 7, memo: nil),
             startTime: startTime,
             endTime: endTime
         )
@@ -277,7 +277,7 @@ struct PersistencesClientTests {
             averageHeartRate: 150,
             averageCadence: 170,
             runningStyle: .midfoot,
-            condition: RunningCondition(meal: true, alcohol: false),
+            condition: RunningCondition(sleep: 7, memo: nil),
             startTime: startTime,
             endTime: startTime.addingTimeInterval(1500)
         )
@@ -302,7 +302,7 @@ struct PersistencesClientTests {
         var updatedCondition: RunningCondition?
 
         let client = makeTestClient(
-            update: { id, _, distance, _, _, _, _, _, _, condition, _, _, _, _, _, _, _, _, _, _, _ in
+            update: { id, _, distance, _, _, _, _, _, _, condition, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in
                 updatedRecordId = id
                 updatedDistance = distance
                 updatedCondition = condition
@@ -312,13 +312,13 @@ struct PersistencesClientTests {
         try await client.updateRecord(
             recordId: recordId,
             distance: 6.0,
-            condition: RunningCondition(meal: false, alcohol: true)
+            condition: RunningCondition(sleep: 6, memo: "updated")
         )
 
         #expect(updatedRecordId == recordId)
         #expect(updatedDistance == 6.0)
-        #expect(updatedCondition?.meal == false)
-        #expect(updatedCondition?.alcohol == true)
+        #expect(updatedCondition?.sleep == 6)
+        #expect(updatedCondition?.memo == "updated")
     }
 
     @Test("update: 에러 발생 시 throw")
@@ -329,7 +329,7 @@ struct PersistencesClientTests {
         }
 
         let client = makeTestClient(
-            update: { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in
+            update: { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in
                 throw TestError.updateFailed
             }
         )
@@ -359,7 +359,7 @@ struct PersistencesClientTests {
             averageHeartRate: 140,
             averageCadence: 160,
             runningStyle: .midfoot,
-            condition: RunningCondition(meal: true, alcohol: false),
+            condition: RunningCondition(sleep: 7, memo: nil),
             startTime: startTime,
             endTime: endTime
         )
@@ -403,7 +403,7 @@ struct PersistencesClientTests {
             averageHeartRate: 150,
             averageCadence: 170,
             runningStyle: .midfoot,
-            condition: RunningCondition(meal: true, alcohol: false),
+            condition: RunningCondition(sleep: 7, memo: nil),
             startTime: startTime,
             endTime: startTime.addingTimeInterval(1500)
         )
@@ -434,7 +434,7 @@ struct PersistencesClientTests {
                 averageHeartRate: 145,
                 averageCadence: 165,
                 runningStyle: .forefoot,
-                condition: RunningCondition(meal: true, alcohol: false),
+                condition: RunningCondition(sleep: 7, memo: nil),
                 startTime: startTime,
                 endTime: endTime
             )
@@ -448,7 +448,7 @@ struct PersistencesClientTests {
             save: { record in
                 storage[record.id] = record
             },
-            update: { recordId, date, distance, duration, averagePace, averageHeartRate, averageCadence, painAreas, runningStyle, condition, shoes, weather, difficultyLevel, routeData, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength, hasMap, startTimeParam, endTimeParam in
+            update: { recordId, date, distance, duration, averagePace, averageHeartRate, averageCadence, painAreas, runningStyle, condition, shoes, weather, difficultyLevel, routeData, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength, restingHeartRate, runningPower, runningStrideLength, heartRateRecoveryOneMinute, startTimeParam, endTimeParam in
                 guard var existingRecord = storage[recordId] else { return }
                 // Update only non-nil values
                 if let distance { existingRecord = Diary(id: existingRecord.id, yearMonthDay: existingRecord.yearMonthDay, distanceInKilometers: distance, durationInSeconds: existingRecord.durationInSeconds, averagePace: existingRecord.averagePace, averageHeartRate: existingRecord.averageHeartRate, averageCadence: existingRecord.averageCadence, runningStyle: existingRecord.runningStyle, condition: existingRecord.condition, startTime: existingRecord.startTime, endTime: existingRecord.endTime) }
@@ -504,7 +504,7 @@ struct PersistencesClientTests {
             averageHeartRate: 145,
             averageCadence: 165,
             runningStyle: .forefoot,
-            condition: RunningCondition(meal: true, alcohol: false),
+            condition: RunningCondition(sleep: 7, memo: nil),
             startTime: time1Start,
             endTime: time1End
         )
@@ -517,7 +517,7 @@ struct PersistencesClientTests {
             averageHeartRate: 150,
             averageCadence: 170,
             runningStyle: .midfoot,
-            condition: RunningCondition(meal: false, alcohol: false),
+            condition: RunningCondition(sleep: 6, memo: nil),
             startTime: time2Start,
             endTime: time2End
         )
@@ -562,7 +562,7 @@ struct PersistencesClientTests {
             averageHeartRate: 150,
             averageCadence: 170,
             runningStyle: .midfoot,
-            condition: RunningCondition(meal: true, alcohol: false),
+            condition: RunningCondition(sleep: 7, memo: nil),
             startTime: startTime,
             endTime: endTime
         )

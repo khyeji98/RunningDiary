@@ -61,6 +61,10 @@ func makeHealthKitWorkout(
         runningVerticalOscillation: 8.0,
         runningGroundContactTime: 240.0,
         walkingStepLength: 1.0,
+        restingHeartRate: 60.0,
+        runningPower: 300.0,
+        runningStrideLength: 1.0,
+        heartRateRecoveryOneMinute: 20.0,
         routeData: nil,
         startDate: startDate,
         endDate: startDate.addingTimeInterval(duration)
