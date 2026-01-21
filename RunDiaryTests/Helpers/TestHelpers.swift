@@ -5,6 +5,7 @@
 //  Created by Claude on 1/19/26.
 //
 
+import CommonFoundation
 import Foundation
 import Models
 
