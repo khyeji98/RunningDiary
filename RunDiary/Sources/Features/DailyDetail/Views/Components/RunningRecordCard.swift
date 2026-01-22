@@ -6,159 +6,418 @@
 //
 
 import CommonFoundation
+import MapKit
 import Models
 import SwiftUI
 
 struct RunningRecordCard: View {
-    @State private var isFolded: Bool = true
-
     let record: Diary
     let onEdit: () -> Void
 
-    init(record: Diary, onEdit: @escaping () -> Void) {
+    init(
+        record: Diary,
+        onEdit: @escaping () -> Void
+    ) {
         self.record = record
         self.onEdit = onEdit
     }
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            VStack(spacing: 10) {
-                HStack {
-                    Spacer()
-                    Text(record.startTime.formattedString(formatter: .hourMinutes))
-                        .font(.caption)
-                        .foregroundColor(.gray500)
-                }
+        VStack(spacing: 16) {
+            TopSection(record: record)
+            ExpandedContentView(record: record)
+        }
+        .padding(20)
+        .liquidGlass()
+    }
+}
 
-                VStack(spacing: 26) {
-                    // HealthKit 데이터
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 20) {
-                            RecordVerticalRow(
-                                title: L10n.recordFieldDistance.value,
-                                value: record.distanceInKilometers.to2f
-                            )
-                            RecordVerticalRow(
-                                title: L10n.recordFieldDuration.value,
-                                value: record.formattedDuration
-                            )
-                        }
+// MARK: - Private Subviews
 
-                        HStack(spacing: 20) {
-                            RecordVerticalRow(
-                                title: L10n.recordFieldPace.value,
-                                value: record.averagePace
-                            )
-                            RecordVerticalRow(
-                                title: L10n.recordFieldHeartRate.value,
-                                value: "\(record.averageHeartRate) bpm"
-                            )
-                        }
+private struct TopSection: View {
+    let record: Diary
 
-                        HStack(spacing: 20) {
-                            RecordVerticalRow(
-                                title: L10n.recordFieldCadence.value,
-                                value: "\(record.averageCadence) spm"
-                            )
-                        }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // 1. Header: Time
+            HStack {
+                Spacer()
+
+                Text(record.startTime.formattedString(formatter: .hourMinutes))
+                    .font(.subheadline)
+                    .foregroundStyle(.gray500)
+            }
+
+            // 2. Hero: Distance & Summary (The Title)
+            L10n.recordHeroSummary.text(
+                record.distanceInKilometers.to2f,
+                record.formattedDuration
+            )
+            .font(.system(size: 30))
+            .foregroundStyle(.primary)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.bottom, 8)
+
+
+        }
+    }
+}
+
+private struct ExpandedContentView: View {
+    let record: Diary
+
+    private let gridColumns = [
+        GridItem(.flexible(), spacing: 16),
+        GridItem(.flexible(), spacing: 16)
+    ]
+
+    private var hasEnvironmentData: Bool {
+        record.weather != nil ||
+        record.shoes != nil ||
+        record.runningStyle != nil ||
+        record.difficultyLevel != nil
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            // 1. Detailed Performance (Grid) - Moved to top
+            VStack(alignment: .leading, spacing: 12) {
+                SectionHeader(title: L10n.recordSectionPerformance.value)
+
+                LazyVGrid(columns: gridColumns, alignment: .leading, spacing: 12) {
+                    RecordVerticalRow(
+                        title: L10n.recordFieldPace.value,
+                        value: record.averagePace
+                    )
+                    RecordVerticalRow(
+                        title: L10n.recordFieldHeartRate.value,
+                        value: "\(record.averageHeartRate) bpm"
+                    )
+                    RecordVerticalRow(
+                        title: L10n.recordFieldCadence.value,
+                        value: "\(record.averageCadence) spm"
+                    )
+
+                    if let activeEnergy = record.activeEnergyBurned {
+                        RecordVerticalRow(
+                            title: L10n.recordFieldActiveEnergy.value,
+                            value: String(format: "%.0f kcal", activeEnergy)
+                        )
                     }
 
-                    if isFolded {
-                        Button {
-                            withAnimation(.linear(duration: 0.2)) {
-                                isFolded = false
-                            }
-                        } label: {
-                            HStack {
-                                Spacer()
-                                L10n.uiViewDetails.text
-                                Image(systemName: "chevron.down")
-                                Spacer()
-                            }
-                            .foregroundStyle(.gray300)
-                        }
-                        .frame(height: 20)
-                    } else {
-                        Divider()
+                    if let power = record.runningPower, power > 0 {
+                        RecordVerticalRow(
+                            title: L10n.recordFieldRunningPower.value,
+                            value: "\(Int(power))W"
+                        )
+                    }
 
-                        // 신발
-                        if let shoesId = record.shoes, let shoesName = ShoeStorage.search(id: shoesId)?.name {
-                            RecordHorizontalRow(
-                                title: L10n.recordFieldShoesLabel.value,
-                                value: shoesName
-                            )
-                        }
+                    if let vo = record.runningVerticalOscillation, vo > 0 {
+                        RecordVerticalRow(
+                            title: L10n.recordFieldVerticalOscillation.value,
+                            value: "\(String(format: "%.1f", vo)) cm"
+                        )
+                    }
 
-                        // 주법
-                        if let style = record.runningStyle {
-                            RecordHorizontalRow(
-                                title: L10n.recordFieldRunningStyleLabel.value,
-                                value: style.localizedName
-                            )
-                        }
-
-                        // 통증 부위
-                        if !record.painAreas.isEmpty {
-                            VStack(alignment: .leading, spacing: 8) {
-                                L10n.recordFieldPainAreas.text
-                                    .foregroundColor(.gray)
-
-                                DynamicGridLayout(items: record.painAreas) { item in
-                                    Text(item.localizedName)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(Color.blue700.opacity(0.1))
-                                        .foregroundColor(.blue700)
-                                        .cornerRadius(8)
-                                }
-                            }
-                        }
-
-                        // 날씨 데이터
-                        if let weather = record.weather {
-                            Divider()
-                            WeatherSectionView(weather: weather)
-                        }
-
-                        // 수면시간
-                        if let sleep = record.condition.sleep {
-                            Divider()
-                            RecordHorizontalRow(
-                                title: L10n.recordFieldSleepLabel.value,
-                                value: "\(sleep) \(L10n.unitHours.value)"
-                            )
-                        }
-
-                        // 메모
-                        if let memo = record.condition.memo {
-                            Divider()
-                            VStack(spacing: 20) {
-                                Image("quotes_leading")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 30)
-                                    .opacity(0.3)
-
-                                Text(memo)
-                                    .font(.body)
-                                    .foregroundColor(.black)
-                                    .frame(maxWidth: .infinity)
-
-                                Image("quotes_trailing")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 30)
-                                    .opacity(0.3)
-                            }
-                            .padding(.vertical)
-                        }
+                    if let gct = record.runningGroundContactTime, gct > 0 {
+                        RecordVerticalRow(
+                            title: L10n.recordFieldGroundContactTime.value,
+                            value: "\(Int(gct)) ms"
+                        )
                     }
                 }
             }
-            .padding(20)
-            .background(Color.white)
-            .cornerRadius(16)
-            .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 2)
+
+            // 3. Pain Area Stickers - Only show if pain areas exist
+            if !record.painAreas.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    SectionHeader(title: L10n.recordSectionPain.value)
+                    DynamicGridLayout(items: record.painAreas, spacing: 8) { area in
+                        StickerView(text: area.localizedName, color: .red)
+                    }
+                }
+            }
+
+            // 4. Environment - Combined Sentence
+            if hasEnvironmentData {
+                VStack(alignment: .leading, spacing: 10) {
+                    SectionHeader(title: L10n.recordSectionHowRun.value)
+
+                    // Build combined sentence
+                    EnvironmentSentenceView(record: record)
+                }
+            }
+
+            // 5. Diary Entry (Memo) - Moved to bottom
+            if let memo = record.condition.memo, !memo.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Image(systemName: "quote.opening")
+                        .foregroundStyle(.gray300)
+
+                    Text(memo)
+                        .font(.custom("Georgia", size: 17)) // Serif font for diary feel
+                        .lineSpacing(6)
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Image(systemName: "quote.closing")
+                        .foregroundStyle(.gray300)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                .padding(16)
+                .background(Color.yellow.opacity(0.05)) // Pale yellow paper look
+                .cornerRadius(12)
+            }
+
+            // 6. Route Map Section (경로 데이터가 있을 때만)
+            if let routeData = record.routeData,
+               let locations = try? JSONDecoder().decode([Location].self, from: routeData),
+               !locations.isEmpty {
+                Divider()
+                    .padding(.vertical, 8)
+
+                RouteMapSection(
+                    weather: record.weather,
+                    locations: locations
+                )
+            }
         }
     }
+}
+
+// MARK: - Route Map Section
+
+private struct RouteMapSection: View {
+    let weather: WeatherData?
+    let locations: [Location]
+
+    private var coordinates: [CLLocationCoordinate2D] {
+        locations.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // 날씨 라벨 (기온, 습도, 풍속)
+            if let weather = weather {
+                HStack(spacing: 12) {
+                    Label("\(Int(weather.temperature))°", systemImage: "thermometer.medium")
+                    Label("\(Int(weather.humidity))%", systemImage: "humidity")
+                    Label("\(Int(weather.windSpeed))m/s", systemImage: "wind")
+                }
+                .font(.subheadline)
+                .foregroundStyle(.gray500)
+            }
+
+            // 지도
+            RouteMapView(coordinates: coordinates)
+                .frame(height: 200)
+                .cornerRadius(12)
+        }
+    }
+}
+
+private struct EnvironmentSentenceView: View {
+    let record: Diary
+
+    @Environment(\.locale) private var locale
+
+    private var isEnglish: Bool {
+        locale.language.languageCode?.identifier == "en"
+    }
+
+    private var shoesName: String? {
+        record.shoes.flatMap { ShoeStorage.search(id: $0)?.name }
+    }
+
+    private var styleName: String? {
+        record.runningStyle?.localizedName
+    }
+
+    private var difficultyAdverb: String? {
+        record.difficultyLevel?.adverbText
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if let shoes = shoesName {
+                ShoesRow(shoes: shoes, isEnglish: isEnglish)
+            }
+
+            if let style = styleName {
+                StyleRow(style: style, isEnglish: isEnglish)
+            }
+
+            if let difficulty = difficultyAdverb {
+                DifficultyRow(difficulty: difficulty, isEnglish: isEnglish)
+            }
+        }
+        .font(.body)
+    }
+}
+
+// MARK: - EnvironmentSentenceView Subviews
+
+private struct ShoesRow: View {
+    let shoes: String
+    let isEnglish: Bool
+
+    var body: some View {
+        if isEnglish {
+            // English: "Wearing [shoes],"
+            HStack(spacing: 4) {
+                Text(L10n.recordSentenceWearing.value)
+                    .foregroundStyle(.primary)
+                StickerView(text: shoes, color: .green)
+            }
+        } else {
+            // Korean/Japanese: "[shoes]을 신고," / "[shoes]を履いて、"
+            HStack(spacing: 4) {
+                StickerView(text: shoes, color: .green)
+                Text(L10n.recordSentenceWearing.value)
+                    .foregroundStyle(.primary)
+            }
+        }
+    }
+}
+
+private struct StyleRow: View {
+    let style: String
+    let isEnglish: Bool
+
+    var body: some View {
+        if isEnglish {
+            // English: "with [style],"
+            HStack(spacing: 4) {
+                Text(L10n.recordSentenceStyle.value)
+                    .foregroundStyle(.primary)
+                StickerView(text: style, color: .teal)
+            }
+        } else {
+            // Korean/Japanese: "[style]으로," / "[style]で、"
+            HStack(spacing: 4) {
+                StickerView(text: style, color: .teal)
+                Text(L10n.recordSentenceStyle.value)
+                    .foregroundStyle(.primary)
+            }
+        }
+    }
+}
+
+private struct DifficultyRow: View {
+    let difficulty: String
+    let isEnglish: Bool
+
+    var body: some View {
+        if isEnglish {
+            // English: "I ran [difficulty]!"
+            HStack(spacing: 4) {
+                Text(L10n.recordSummaryEnding.value)
+                    .foregroundStyle(.primary)
+                StickerView(text: difficulty, color: .orange)
+            }
+        } else {
+            // Korean: "[difficulty] 달렸어요!" / Japanese: "[difficulty]走りました！"
+            HStack(spacing: 4) {
+                StickerView(text: difficulty, color: .orange)
+                Text(L10n.recordSummaryEnding.value)
+                    .foregroundStyle(.primary)
+            }
+        }
+    }
+}
+
+// MARK: - Sticker View
+struct StickerView: View {
+    let text: String
+    let color: Color
+
+    var body: some View {
+        Text(text)
+            .font(.subheadline)
+            .fontWeight(.medium)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(color.opacity(0.1))
+            .foregroundColor(color)
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(color.opacity(0.2), lineWidth: 1)
+            )
+    }
+}
+
+// MARK: - Extensions
+
+extension DifficultyLevel {
+    var adverbText: String {
+        switch self {
+        case .veryEasy: return L10n.difficultyAdverbVeryEasy.value
+        case .easy: return L10n.difficultyAdverbEasy.value
+        case .medium: return L10n.difficultyAdverbMedium.value
+        case .hard: return L10n.difficultyAdverbHard.value
+        case .veryHard: return L10n.difficultyAdverbVeryHard.value
+        }
+    }
+}
+
+struct SectionHeader: View {
+    let title: String
+    var body: some View {
+        Text(title)
+            .font(.headline)
+            .bold()
+            .foregroundStyle(.gray700)
+            .padding(.bottom, 2)
+    }
+}
+
+#Preview {
+    // 샘플 경로 데이터 (서울 올림픽공원 주변)
+    let sampleLocations = [
+        Location(latitude: 37.5209, longitude: 127.1230),
+        Location(latitude: 37.5215, longitude: 127.1240),
+        Location(latitude: 37.5220, longitude: 127.1255),
+        Location(latitude: 37.5225, longitude: 127.1270),
+        Location(latitude: 37.5218, longitude: 127.1285),
+        Location(latitude: 37.5210, longitude: 127.1275),
+        Location(latitude: 37.5205, longitude: 127.1260),
+        Location(latitude: 37.5209, longitude: 127.1230)
+    ]
+    let routeData = try? JSONEncoder().encode(sampleLocations)
+
+    return ScrollView(.vertical) {
+        VStack {
+            RunningRecordCard(
+                record: Diary(
+                    yearMonthDay: YearMonthDay(year: 2025, month: 10, day: 24),
+                    distanceInKilometers: 5.23,
+                    durationInSeconds: 1935,
+                    averagePace: "6'10\"",
+                    averageHeartRate: 156,
+                    averageCadence: 178,
+                    painAreas: [.knee, .ankle],
+                    runningStyle: .midfoot,
+                    condition: RunningCondition(sleep: 7, memo: "Good run!"),
+                    shoes: "nike-alphafly-3",
+                    weather: WeatherData(temperature: 18, humidity: 60, windSpeed: 32),
+                    difficultyLevel: .hard,
+                    routeData: routeData,
+                    activeEnergyBurned: 450.0,
+                    runningVerticalOscillation: 8.2,
+                    runningGroundContactTime: 240.0,
+                    walkingStepLength: 1.1,
+                    restingHeartRate: 55.0,
+                    runningPower: 280.0,
+                    runningStrideLength: 1.25,
+                    heartRateRecoveryOneMinute: 25.0,
+                    startTime: Date(),
+                    endTime: Date().addingTimeInterval(1935)
+                ),
+                onEdit: {}
+            )
+            .padding()
+        }
+    }
+    .background(Color.gray50)
 }

@@ -96,7 +96,7 @@ extension LocalizableKey where T == LocalizableParameterCount0 {
 extension LocalizableKey where T == LocalizableParameterCount1 {
     /// 1개 파라미터를 받아 SwiftUI Text 반환
     func text(_ p0: CVarArg) -> Text {
-        return Text(L10n.tr(key, p0))
+        return Text(LocalizedStringKey(L10n.tr(key, p0)))
     }
 }
 
@@ -104,7 +104,7 @@ extension LocalizableKey where T == LocalizableParameterCount1 {
 extension LocalizableKey where T == LocalizableParameterCount2 {
     /// 2개 파라미터를 받아 SwiftUI Text 반환
     func text(_ p0: CVarArg, _ p1: CVarArg) -> Text {
-        return Text(L10n.tr(key, p0, p1))
+        return Text(LocalizedStringKey(L10n.tr(key, p0, p1)))
     }
 }
 
@@ -112,7 +112,7 @@ extension LocalizableKey where T == LocalizableParameterCount2 {
 extension LocalizableKey where T == LocalizableParameterCount3 {
     /// 3개 파라미터를 받아 SwiftUI Text 반환
     func text(_ p0: CVarArg, _ p1: CVarArg, _ p2: CVarArg) -> Text {
-        return Text(L10n.tr(key, p0, p1, p2))
+        return Text(LocalizedStringKey(L10n.tr(key, p0, p1, p2)))
     }
 }
 
@@ -120,7 +120,7 @@ extension LocalizableKey where T == LocalizableParameterCount3 {
 extension LocalizableKey where T == LocalizableParameterCount4 {
     /// 4개 파라미터를 받아 SwiftUI Text 반환
     func text(_ p0: CVarArg, _ p1: CVarArg, _ p2: CVarArg, _ p3: CVarArg) -> Text {
-        return Text(L10n.tr(key, p0, p1, p2, p3))
+        return Text(LocalizedStringKey(L10n.tr(key, p0, p1, p2, p3)))
     }
 }
 
@@ -128,7 +128,7 @@ extension LocalizableKey where T == LocalizableParameterCount4 {
 extension LocalizableKey where T == LocalizableParameterCount5 {
     /// 5개 파라미터를 받아 SwiftUI Text 반환
     func text(_ p0: CVarArg, _ p1: CVarArg, _ p2: CVarArg, _ p3: CVarArg, _ p4: CVarArg) -> Text {
-        return Text(L10n.tr(key, p0, p1, p2, p3, p4))
+        return Text(LocalizedStringKey(L10n.tr(key, p0, p1, p2, p3, p4)))
     }
 }
 
@@ -167,21 +167,84 @@ enum L10n {
     /// HealthKit is not available on this device.
     static let healthkitErrorNotAvailable: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.error.not_available")
 
-    // MARK: - HealthKit (1 key)
+    // MARK: - HealthKit (2 keys)
     /// Failed to fetch fitness data
     static let healthkitFetchFailedTitle: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.fetch_failed_title")
+    /// From HealthKit
+    static let healthkitSourceLabel: LocalizableKey<LocalizableParameterCount0> = .init(key: "healthkit.source_label")
 
-    // MARK: - Record (6 keys)
+    // MARK: - Difficulty Adverb (5 keys)
+    /// 산책하듯 / like a stroll
+    static let difficultyAdverbVeryEasy: LocalizableKey<LocalizableParameterCount0> = .init(key: "difficulty_adverb.very_easy")
+    /// 가볍게 / at ease
+    static let difficultyAdverbEasy: LocalizableKey<LocalizableParameterCount0> = .init(key: "difficulty_adverb.easy")
+    /// 무리 없이 / comfortably
+    static let difficultyAdverbMedium: LocalizableKey<LocalizableParameterCount0> = .init(key: "difficulty_adverb.medium")
+    /// 힘차게 / pushing hard
+    static let difficultyAdverbHard: LocalizableKey<LocalizableParameterCount0> = .init(key: "difficulty_adverb.hard")
+    /// 전력을 다해 / with all my might
+    static let difficultyAdverbVeryHard: LocalizableKey<LocalizableParameterCount0> = .init(key: "difficulty_adverb.very_hard")
+
+    // MARK: - Record (10 keys)
     /// Add Record
     static let recordAdd: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.add")
     /// Add Record (button)
     static let recordAddButton: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.add_button")
+
+    // MARK: - Record Field (additional keys)
+    /// Active Energy
+    static let recordFieldActiveEnergy: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.active_energy")
+    /// Running Power
+    static let recordFieldRunningPower: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.running_power")
+    /// Vertical Oscillation
+    static let recordFieldVerticalOscillation: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.vertical_oscillation")
+    /// Ground Contact Time
+    static let recordFieldGroundContactTime: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.ground_contact_time")
+
+    // MARK: - Record Section (3 keys)
+    /// 🔥 퍼포먼스는 어때요?
+    static let recordSectionPerformance: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.section.performance")
+    /// 🤕 어디가 아파요?
+    static let recordSectionPain: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.section.pain")
+    /// 🏃‍♂️ 어떻게 달렸나요?
+    static let recordSectionHowRun: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.section.how_run")
+
+    // MARK: - Record Sentence (2 keys)
+    /// 을 신고,
+    static let recordSentenceWearing: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.sentence.wearing")
+    /// 으로,
+    static let recordSentenceStyle: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.sentence.style")
+
+    // MARK: - Weather (3 keys)
+    /// ☁️ 날씨는 어땠나요?
+    static let weatherSectionTitle: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.section.title")
+    /// %.0f°, 습도 %d%% (바람 없음)
+    static let weatherSentenceNoWind: LocalizableKey<LocalizableParameterCount2> = .init(key: "weather.sentence.no_wind")
+    /// %.0f°, 습도 %d%%, 바람이 센 편이에요
+    static let weatherSentenceWithWind: LocalizableKey<LocalizableParameterCount2> = .init(key: "weather.sentence.with_wind")
+
+    // MARK: - Running Style (3 keys)
+    /// Forefoot
+    static let runningStyleForefoot: LocalizableKey<LocalizableParameterCount0> = .init(key: "running_style.forefoot")
+    /// Midfoot
+    static let runningStyleMidfoot: LocalizableKey<LocalizableParameterCount0> = .init(key: "running_style.midfoot")
+    /// Heelfoot
+    static let runningStyleHeelfoot: LocalizableKey<LocalizableParameterCount0> = .init(key: "running_style.heelfoot")
+
     /// Edit Record
     static let recordEdit: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.edit")
     /// No running records
     static let recordEmpty: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.empty")
     /// Fitness Data
     static let recordFitnessData: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.fitness_data")
+    /// How did you run?
+    static let recordHowDidYouRun: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.how_did_you_run")
+    /// Summary connector 1 (을 신고,)
+    static let recordSummaryConnector1: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.summary.connector1")
+    /// Summary connector 2 (으로,)
+    static let recordSummaryConnector2: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.summary.connector2")
+    /// Summary ending (달렸어요!)
+    static let recordSummaryEnding: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.summary.ending")
     /// Write Diary
     static let recordWriteDiaryButton: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.write_diary_button")
 
@@ -242,6 +305,9 @@ enum L10n {
     static let recordFieldTime: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.time")
     /// Had Alcohol
     static let recordFieldWasDrinking: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.field.was_drinking")
+
+    /// **%@km**를\n**%@** 동안 달렸어요!
+    static let recordHeroSummary: LocalizableKey<LocalizableParameterCount2> = .init(key: "record.hero.summary")
 
     // MARK: - Repository Error (4 keys)
     /// Failed to delete record

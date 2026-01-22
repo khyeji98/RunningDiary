@@ -71,7 +71,7 @@ struct HealthKitWorkoutCard: View {
             Button(action: onCreate) {
                 ZStack {
                     Capsule()
-                        .foregroundStyle(.yellow100)
+                        .fill(.yellow100)
 
                     L10n.recordWriteDiaryButton.text
                         .fontWeight(.semibold)
@@ -86,7 +86,6 @@ struct HealthKitWorkoutCard: View {
         .padding(20)
         .liquidGlass()
     }
-
 }
 
 // MARK: - Blur Placeholder View
@@ -121,11 +120,12 @@ private struct PlaceholderItem: View {
 // MARK: - Preview
 #Preview {
     VStack {
+        Spacer()
         HealthKitWorkoutCard(
             record: HealthKitWorkout(
                 distance: 5.23,
                 duration: 1935,
-                averagePace: "6'10\"/km",
+                averagePace: "6'10\"",
                 averageHeartRate: 156,
                 averageCadence: 178,
                 activeEnergyBurned: 320.5,
@@ -143,6 +143,7 @@ private struct PlaceholderItem: View {
             onCreate: {}
         )
         .padding()
+        Spacer()
     }
     .background(Color.gray50)
 }

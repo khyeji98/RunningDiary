@@ -12,11 +12,11 @@ extension RunninStyle {
     var localizedName: String {
         switch self {
         case .forefoot:
-            return String(localized: "running_style.forefoot")
+            return L10n.runningStyleForefoot.value
         case .midfoot:
-            return String(localized: "running_style.midfoot")
+            return L10n.runningStyleMidfoot.value
         case .heelfoot:
-            return String(localized: "running_style.heelfoot")
+            return L10n.runningStyleHeelfoot.value
         }
     }
 }

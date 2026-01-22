@@ -32,7 +32,7 @@ struct AddRecordView: View {
                     selectedShoe: Binding(
                         get: { store.condition.selectedShoe },
                         set: { store.send(.condition(.updateSelectedShoe($0))) }
-                    ),
+                    )
                 )
 
                 // 주법 섹션
@@ -154,7 +154,7 @@ struct AddRecordView: View {
     }
 }
 
-#Preview("Edit Mode", traits: .sampleData) {
+#Preview(traits: .sampleData) {
     NavigationStack {
         AddRecordView(
             store: Store(
