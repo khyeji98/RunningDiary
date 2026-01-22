@@ -40,7 +40,7 @@ struct LivePersistencesRepositoryTests {
         averageCadence: Int = 170,
         painAreas: [PainArea] = [],
         runningStyle: RunninStyle? = .midfoot,
-        condition: RunningCondition = RunningCondition(),
+        memo: String? = nil,
         shoes: String? = nil,
         weather: WeatherData? = nil,
         difficultyLevel: DifficultyLevel? = nil,
@@ -63,7 +63,7 @@ struct LivePersistencesRepositoryTests {
             averageCadence: averageCadence,
             painAreas: painAreas,
             runningStyle: runningStyle,
-            condition: condition,
+            memo: memo,
             shoes: shoes,
             weather: weather,
             difficultyLevel: difficultyLevel,
@@ -207,7 +207,7 @@ struct LivePersistencesRepositoryTests {
             averageCadence: nil,
             painAreas: nil,
             runningStyle: nil,
-            condition: nil,
+            memo: nil,
             shoes: nil,
             weather: nil,
             difficultyLevel: nil,
@@ -247,7 +247,7 @@ struct LivePersistencesRepositoryTests {
                 averageCadence: nil,
                 painAreas: nil,
                 runningStyle: nil,
-                condition: nil,
+                memo: nil,
                 shoes: nil,
                 weather: nil,
                 difficultyLevel: nil,
@@ -272,7 +272,6 @@ struct LivePersistencesRepositoryTests {
         let repository = try makeTestRepository()
         let recordId = UUID()
         let testDate = makeYearMonthDay()
-        let originalCondition = RunningCondition(sleep: 7, memo: "Original memo")
         let originalDiary = makeDiary(
             id: recordId,
             yearMonthDay: testDate,
@@ -280,7 +279,7 @@ struct LivePersistencesRepositoryTests {
             duration: 1800,
             averageHeartRate: 150,
             averageCadence: 170,
-            condition: originalCondition,
+            memo: "하아아아암",
             shoes: "Nike"
         )
 
@@ -300,7 +299,7 @@ struct LivePersistencesRepositoryTests {
             averageCadence: nil,
             painAreas: nil,
             runningStyle: nil,
-            condition: nil,
+            memo: nil,
             shoes: expectedShoes,
             weather: nil,
             difficultyLevel: nil,

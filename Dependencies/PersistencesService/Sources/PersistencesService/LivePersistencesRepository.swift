@@ -112,7 +112,7 @@ public final class LivePersistencesRepository: PersistencesRepository {
         averageCadence: Int?,
         painAreas: [PainArea]?,
         runningStyle: RunninStyle?,
-        condition: RunningCondition?,
+        memo: String?,
         shoes: String?,
         weather: WeatherData?,
         difficultyLevel: DifficultyLevel?,
@@ -144,10 +144,7 @@ public final class LivePersistencesRepository: PersistencesRepository {
         if let averageCadence { existingModel.averageCadence = averageCadence }
         if let painAreas { existingModel.painAreasRawData = PainAreasMapper.encode(painAreas) }
         if let runningStyle { existingModel.runningStyleRaw = runningStyle.rawValue }
-        if let condition {
-            existingModel.sleepHours = condition.sleep
-            existingModel.memo = condition.memo
-        }
+        if let memo { existingModel.memo = memo }
         if let shoes { existingModel.shoes = shoes }
         if let weather {
             existingModel.temperature = weather.temperature

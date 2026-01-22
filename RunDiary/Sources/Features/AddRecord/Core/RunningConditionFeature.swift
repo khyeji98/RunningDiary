@@ -14,26 +14,18 @@ import Models
 struct RunningConditionFeature {
     @ObservableState
     struct State: Equatable {
-        // Pain & Style
         var selectedPainAreas: Set<PainArea> = []
         var selectedRunningStyle: RunninStyle?
-
-        // Condition
-        var sleepHours: String = ""
         var memo: String = ""
-
-        // Shoes
         var selectedShoe: ShoeModel?
 
-        // Static Options
         let painAreaOptions = PainArea.allCases
         let runningStyleOptions = RunninStyle.allCases
 
         init(existingRecord: Diary?) {
             self.selectedPainAreas = Set(existingRecord?.painAreas ?? [])
             self.selectedRunningStyle = existingRecord?.runningStyle
-            self.sleepHours = existingRecord?.condition.sleep?.toString ?? ""
-            self.memo = existingRecord?.condition.memo ?? ""
+            self.memo = existingRecord?.memo ?? ""
             self.selectedShoe = ShoeStorage.search(id: existingRecord?.shoes ?? "")
         }
     }
@@ -41,7 +33,6 @@ struct RunningConditionFeature {
     enum Action {
         case updateSelectedPainAreas(Set<PainArea>)
         case updateSelectedRunningStyle(RunninStyle?)
-        case updateSleepHours(String)
         case updateMemo(String)
         case updateSelectedShoe(ShoeModel?)
     }
@@ -55,10 +46,6 @@ struct RunningConditionFeature {
 
             case .updateSelectedRunningStyle(let style):
                 state.selectedRunningStyle = style
-                return .none
-
-            case .updateSleepHours(let hours):
-                state.sleepHours = hours
                 return .none
 
             case .updateMemo(let text):

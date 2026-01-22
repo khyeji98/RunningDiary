@@ -20,15 +20,6 @@ struct HealthKitSectionView: View {
                 L10n.recordFitnessData.text
                     .font(.headline)
                     .foregroundStyle(.blue700)
-
-                // HealthKit 출처 라벨
-                L10n.healthkitSourceLabel.text
-                    .font(.caption)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.pink)
-                    .cornerRadius(8)
             }
             .padding(.bottom, 4)
 

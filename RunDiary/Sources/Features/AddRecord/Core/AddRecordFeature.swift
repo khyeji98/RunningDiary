@@ -39,10 +39,6 @@ struct AddRecordFeature {
             guard healthKitWorkout.data != nil else { return false }
             guard condition.selectedShoe != nil else { return false }
             guard condition.selectedRunningStyle != nil else { return false }
-            guard !condition.sleepHours.isEmpty,
-                  let sleepHoursValue = Int(condition.sleepHours),
-                  sleepHoursValue >= 1 && sleepHoursValue <= 24
-            else { return false }
             guard selectedDifficultyLevel != nil else { return false }
             return true
         }
@@ -143,10 +139,7 @@ struct AddRecordFeature {
                             averageCadence: healthKitWorkout.averageCadence,
                             painAreas: Array(condition.selectedPainAreas),
                             runningStyle: condition.selectedRunningStyle,
-                            condition: RunningCondition(
-                                sleep: Int(condition.sleepHours),
-                                memo: condition.memo.isEmpty ? nil : condition.memo
-                            ),
+                            memo: condition.memo.isEmpty ? nil : condition.memo,
                             shoes: condition.selectedShoe?.id ?? "",
                             weather: weather,
                             difficultyLevel: difficultyLevel,

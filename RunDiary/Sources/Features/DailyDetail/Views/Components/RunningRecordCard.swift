@@ -149,7 +149,7 @@ private struct ExpandedContentView: View {
             }
 
             // 5. Diary Entry (Memo) - Moved to bottom
-            if let memo = record.condition.memo, !memo.isEmpty {
+            if let memo = record.memo, !memo.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Image(systemName: "quote.opening")
                         .foregroundStyle(.gray300)
@@ -398,7 +398,7 @@ struct SectionHeader: View {
                     averageCadence: 178,
                     painAreas: [.knee, .ankle],
                     runningStyle: .midfoot,
-                    condition: RunningCondition(sleep: 7, memo: "Good run!"),
+                    memo: "Good run!",
                     shoes: "nike-alphafly-3",
                     weather: WeatherData(temperature: 18, humidity: 60, windSpeed: 32),
                     difficultyLevel: .hard,

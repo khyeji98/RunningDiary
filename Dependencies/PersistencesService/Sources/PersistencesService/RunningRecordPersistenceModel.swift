@@ -21,7 +21,6 @@ public final class RunningRecordPersistenceModel {
     public var averageCadence: Int                      // 평균 케이던스 (spm)
     public var painAreasRawData: String?                // 통증 부위 (raw)
     public var runningStyleRaw: String?                 // 달리기 스타일 (raw)
-    public var sleepHours: Int?                         // 수면 시간 (hr)
     public var memo: String?                            // 메모
     public var shoes: String?                           // 신발
     public var temperature: Double?                     // 온도 (ºC)
@@ -50,7 +49,6 @@ public final class RunningRecordPersistenceModel {
         averageCadence: Int,
         painAreasRaw: [String] = [],
         runningStyleRaw: String?,
-        sleepHours: Int? = nil,
         memo: String? = nil,
         shoes: String? = nil,
         temperature: Double? = nil,
@@ -77,7 +75,6 @@ public final class RunningRecordPersistenceModel {
         self.averageHeartRate = averageHeartRate
         self.averageCadence = averageCadence
         self.runningStyleRaw = runningStyleRaw
-        self.sleepHours = sleepHours
         self.memo = memo
         self.shoes = shoes
         self.temperature = temperature
@@ -104,11 +101,6 @@ public final class RunningRecordPersistenceModel {
 
 public extension RunningRecordPersistenceModel {
     func toDomain() -> Diary {
-        let condition = RunningCondition(
-            sleep: sleepHours,
-            memo: memo
-        )
-
         let weather: WeatherData?
         if let temp = temperature, let hum = humidity, let wind = windSpeed {
             weather = WeatherData(
@@ -135,7 +127,7 @@ public extension RunningRecordPersistenceModel {
             averageCadence: averageCadence,
             painAreas: painAreas,
             runningStyle: runningStyle,
-            condition: condition,
+            memo: memo,
             shoes: shoes,
             weather: weather,
             difficultyLevel: difficultyLevel,
@@ -164,8 +156,7 @@ public extension RunningRecordPersistenceModel {
             averageCadence: record.averageCadence,
             painAreasRaw: record.painAreas.map { $0.rawValue },
             runningStyleRaw: record.runningStyle?.rawValue,
-            sleepHours: record.condition.sleep,
-            memo: record.condition.memo,
+            memo: record.memo,
             shoes: record.shoes,
             temperature: record.weather?.temperature,
             humidity: record.weather?.humidity,
@@ -210,7 +201,6 @@ public extension RunningRecordPersistenceModel {
             averageCadence: 172,
             painAreasRaw: ["무릎", "종아리"],
             runningStyleRaw: "Midfoot",
-            sleepHours: 7,
             memo: "상쾌한 아침 러닝이었음. 후반부에 약간 무릎 통증.",
             shoes: "Nike Zoom Fly 5",
             temperature: 18.5,
@@ -239,7 +229,6 @@ public extension RunningRecordPersistenceModel {
                 averageCadence: 170,
                 painAreasRaw: ["발목"],
                 runningStyleRaw: "Forefoot",
-                sleepHours: 6,
                 memo: "기온이 약간 높았지만 페이스 유지에 성공.",
                 shoes: "ASICS Metaspeed Sky",
                 temperature: 21.0,
@@ -264,7 +253,6 @@ public extension RunningRecordPersistenceModel {
                 averageCadence: 176,
                 painAreasRaw: [],
                 runningStyleRaw: "Midfoot",
-                sleepHours: 8,
                 memo: "페이스 좋았음. 마지막 1km에서 스퍼트.",
                 shoes: "Nike Pegasus 40",
                 temperature: 17.2,
@@ -288,7 +276,6 @@ public extension RunningRecordPersistenceModel {
                 averageCadence: 168,
                 painAreasRaw: ["허벅지"],
                 runningStyleRaw: "Rearfoot",
-                sleepHours: 5,
                 memo: "전날 술 때문에 컨디션이 안 좋았음.",
                 shoes: "Adidas Adizero Boston 12",
                 temperature: 19.5,
@@ -313,7 +300,6 @@ public extension RunningRecordPersistenceModel {
                 averageCadence: 165,
                 painAreasRaw: [],
                 runningStyleRaw: nil,
-                sleepHours: nil,
                 memo: nil,
                 shoes: nil,
                 temperature: nil,

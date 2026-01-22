@@ -53,18 +53,6 @@ struct AddRecordView: View {
                     painAreaOptions: store.condition.painAreaOptions
                 )
 
-                // 컨디션 섹션
-                ConditionSectionView(
-                    sleepHours: Binding(
-                        get: { store.condition.sleepHours },
-                        set: { store.send(.condition(.updateSleepHours($0))) }
-                    ),
-                    memo: Binding(
-                        get: { store.condition.memo },
-                        set: { store.send(.condition(.updateMemo($0))) }
-                    )
-                )
-
                 // 난이도 섹션
                 DifficultyLevelSectionView(
                     selectedLevel: Binding(

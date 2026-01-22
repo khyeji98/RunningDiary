@@ -69,7 +69,7 @@ extension RunningRecordClient: DependencyKey {
                 averageCadence: record.averageCadence,
                 painAreas: record.painAreas,
                 runningStyle: record.runningStyle,
-                condition: record.condition,
+                memo: record.memo,
                 shoes: record.shoes,
                 weather: record.weather,
                 difficultyLevel: record.difficultyLevel,

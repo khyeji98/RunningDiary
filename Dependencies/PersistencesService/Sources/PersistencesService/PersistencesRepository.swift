@@ -22,7 +22,7 @@ public protocol PersistencesRepository {
         averageCadence: Int?,
         painAreas: [PainArea]?,
         runningStyle: RunninStyle?,
-        condition: RunningCondition?,
+        memo: String?,
         shoes: String?,
         weather: WeatherData?,
         difficultyLevel: DifficultyLevel?,

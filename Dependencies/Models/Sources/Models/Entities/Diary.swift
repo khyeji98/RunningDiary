@@ -17,7 +17,7 @@ public struct Diary: Identifiable, Equatable, Sendable {
     public let averageCadence: Int                      // 평균 케이던스 (spm)
     public let painAreas: [PainArea]                    // 통증 부위
     public let runningStyle: RunninStyle?               // 달리기 스타일
-    public let condition: RunningCondition              // 달리기 컨디션
+    public let memo: String?                            // 메모
     public let shoes: String?                           // 신발
     public let weather: WeatherData?                    // 날씨
     public let difficultyLevel: DifficultyLevel?        // 달리기 난이도
@@ -59,7 +59,7 @@ public struct Diary: Identifiable, Equatable, Sendable {
         averageCadence: Int,
         painAreas: [PainArea] = [],
         runningStyle: RunninStyle?,
-        condition: RunningCondition = RunningCondition(),
+        memo: String? = nil,
         shoes: String? = nil,
         weather: WeatherData? = nil,
         difficultyLevel: DifficultyLevel? = nil,
@@ -84,7 +84,7 @@ public struct Diary: Identifiable, Equatable, Sendable {
         self.averageCadence = averageCadence
         self.painAreas = painAreas
         self.runningStyle = runningStyle
-        self.condition = condition
+        self.memo = memo
         self.shoes = shoes
         self.weather = weather
         self.difficultyLevel = difficultyLevel
