@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  upload-appstore:
+    name: Deploy to App Store
+    runs-on: macos-latest
+
+    steps:
+      # 1️⃣ 체크아웃
+      - name: 1️⃣ Checkout
+        uses: actions/checkout@v4
+
+      # 2️⃣ Xcode Version 설정
+      - name: 2️⃣ Setting Xcode Version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: 🧹 Clean DerivedData
+        run: rm -rf ~/Library/Developer/Xcode/DerivedData
+
+      - name: Resolve Dependencies
+        run: xcodebuild -resolvePackageDependencies -project RunDiary.xcodeproj
+
+      - name: Skip Macro Validation
+        run: |
+          defaults write com.apple.dt.Xcode IDESkipMacroFingerprintValidation -bool YES
+          defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidation -bool YES
+
+      - name: Verify Xcode & Swift
+        run: |
+          xcodebuild -version
+          swift --version
+
+      # 3️⃣ ruby 설치
+      - name: 3️⃣ Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
+      # 4️⃣ 의존성 설치
+      - name: 4️⃣ Install Dependencies
+        run: bundle install
+
+      # 5️⃣ Install SSH Key
+      - name: 5️⃣ Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.MATCH_SSH_PRIVATE_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+      # 6️⃣ Run Fastlane
+      - name: 6️⃣ Run Fastlane
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+          KEYCHAIN_NAME: ${{ secrets.KEYCHAIN_NAME }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: bundle exec fastlane release
