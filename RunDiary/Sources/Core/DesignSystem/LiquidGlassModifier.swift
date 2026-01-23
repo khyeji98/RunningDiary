@@ -32,7 +32,7 @@ struct LiquidGlassModifier: ViewModifier {
 }
 
 extension View {
-    func liquidGlass(cornerRadius: CGFloat = 16, isInteractive: Bool = true) -> some View {
+    func liquidGlass(cornerRadius: CGFloat = 16, isInteractive: Bool = false) -> some View {
         modifier(LiquidGlassModifier(cornerRadius: cornerRadius, isInteractive: isInteractive))
     }
 }

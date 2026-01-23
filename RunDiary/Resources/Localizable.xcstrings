@@ -1070,19 +1070,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Active Energy"
+            "value" : "Active Calories"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "消費エネルギー"
+            "value" : "消費カロリー"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "태운 에너지"
+            "value" : "소모 칼로리"
           }
         }
       }
