@@ -139,6 +139,10 @@ enum L10n {
     /// An error occurred
     static let errorGeneric: LocalizableKey<LocalizableParameterCount0> = .init(key: "error.generic")
 
+    // MARK: - Common
+    /// from **Apple Health**
+    static let commonFromAppleHealth: LocalizableKey<LocalizableParameterCount0> = .init(key: "common.from_apple_health")
+
     // MARK: - Format (4 keys)
     /// %@km 포맷 (1 파라미터)
     static let formatKm: LocalizableKey<LocalizableParameterCount1> = .init(key: "format.km")
@@ -207,6 +211,17 @@ enum L10n {
     /// 🏃‍♂️ 어떻게 달렸나요?
     static let recordSectionHowRun: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.section.how_run")
 
+    /// 얼마나 힘들었나요?
+    static let recordSectionDifficulty: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.section.difficulty")
+    /// 더 기록하고 싶은 경험을 입력해주세요!
+    static let recordSectionMemo: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.section.memo")
+    /// 아픈 부위가 있었나요?
+    static let recordSectionPainAreas: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.section.pain_areas")
+    /// 어떤 주법으로 달렸나요?
+    static let recordSectionRunningStyle: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.section.running_style")
+    /// 어떤 운동화를 착용했나요?
+    static let recordSectionShoes: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.section.shoes")
+
     // MARK: - Record Sentence (2 keys)
     /// 을 신고,
     static let recordSentenceWearing: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.sentence.wearing")
@@ -228,6 +243,9 @@ enum L10n {
     static let runningStyleMidfoot: LocalizableKey<LocalizableParameterCount0> = .init(key: "running_style.midfoot")
     /// Heelfoot
     static let runningStyleHeelfoot: LocalizableKey<LocalizableParameterCount0> = .init(key: "running_style.heelfoot")
+
+    /// ex) 평소보다 오버페이스로 뛰어서 조절이 필요할듯!
+    static let recordPlaceholderMemoNew: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.placeholder.memo_new")
 
     /// Edit Record
     static let recordEdit: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.edit")

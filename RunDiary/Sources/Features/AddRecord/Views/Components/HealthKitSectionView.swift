@@ -125,7 +125,7 @@ struct HealthKitSectionView: View {
             .padding(.top, 4)
         }
         .padding()
-        .background(Color.white)
+        .background(Color.gray100.opacity(0.4))
         .cornerRadius(12)
     }
 }

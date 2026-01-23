@@ -45,6 +45,7 @@ struct AddRecordFeature {
             self.selectedPainAreas = Set(existingRecord?.painAreas ?? [])
             self.selectedRunningStyle = existingRecord?.runningStyle
             self.selectedShoe = ShoeStorage.search(id: existingRecord?.shoes ?? "")
+            self.selectedDifficultyLevel = existingRecord?.difficultyLevel ?? .medium
             self.memo = existingRecord?.memo ?? ""
         }
     }

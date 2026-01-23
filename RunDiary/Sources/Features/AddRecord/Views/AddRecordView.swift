@@ -105,7 +105,7 @@ struct AddRecordView: View {
 
 // MARK: - Preview
 
-#Preview("Add Mode", traits: .sampleData) {
+#Preview(traits: .sampleData) {
     NavigationStack {
         AddRecordView(
             store: Store(
@@ -124,38 +124,6 @@ struct AddRecordView: View {
                         runningPower: 300.0,
                         runningStrideLength: 1.1,
                         heartRateRecoveryOneMinute: 20.0,
-                        routeData: nil,
-                        startDate: .now,
-                        endDate: .now
-                    )
-                )
-            ) {
-                AddRecordFeature()
-            }
-        )
-    }
-}
-
-#Preview(traits: .sampleData) {
-    NavigationStack {
-        AddRecordView(
-            store: Store(
-                initialState: AddRecordFeature.State(
-                    existingRecord: RunningRecordPersistenceModel.preview.toDomain(),
-                    healthKitWorkout: HealthKitWorkout(
-                        distance: 5.0,
-                        duration: 1800,
-                        averagePace: "6'00\"",
-                        averageHeartRate: 150,
-                        averageCadence: 175,
-                        activeEnergyBurned: 400.0,
-                        runningVerticalOscillation: 8.0,
-                        runningGroundContactTime: 250.0,
-                        walkingStepLength: 1.0,
-                        restingHeartRate: 58.0,
-                        runningPower: 280.0,
-                        runningStrideLength: 1.0,
-                        heartRateRecoveryOneMinute: 25.0,
                         routeData: nil,
                         startDate: .now,
                         endDate: .now

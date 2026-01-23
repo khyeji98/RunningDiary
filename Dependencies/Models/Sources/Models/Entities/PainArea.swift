@@ -18,4 +18,7 @@ public enum PainArea: String, CaseIterable, Sendable, Equatable {
     case neck
     case waist
     case chest
+    case calf
+    case ankle
+    case side
 }

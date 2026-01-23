@@ -23,9 +23,13 @@ struct MemoSectionView: View {
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $memo)
                     .frame(minHeight: 150)
-                    .padding(4)
+                    .padding(6)
                     .background(Color(.systemBackground))
                     .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray100, lineWidth: 1)
+                    )
 
                 if memo.isEmpty {
                     Text("record.placeholder.memo_new")

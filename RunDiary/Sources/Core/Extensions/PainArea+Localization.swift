@@ -29,6 +29,12 @@ extension PainArea {
             return String(localized: "pain_area.waist")
         case .chest:
             return String(localized: "pain_area.chest")
+        case .calf:
+            return String(localized: "pain_area.calf")
+        case .ankle:
+            return String(localized: "pain_area.ankle")
+        case .side:
+            return String(localized: "pain_area.side")
         }
     }
 }

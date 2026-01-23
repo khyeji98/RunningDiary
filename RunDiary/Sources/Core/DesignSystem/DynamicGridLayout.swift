@@ -13,8 +13,6 @@ struct DynamicGridLayout<Data: RandomAccessCollection, Content: View>: View wher
     let spacing: CGFloat
     let content: (Data.Element) -> Content
 
-    @State private var totalHeight: CGFloat = 0
-
     init(items: Data, spacing: CGFloat = 8, content: @escaping (Data.Element) -> Content) {
         self.items = items
         self.spacing = spacing
@@ -22,98 +20,93 @@ struct DynamicGridLayout<Data: RandomAccessCollection, Content: View>: View wher
     }
 
     var body: some View {
-        VStack {
-            GeometryReader { geometry in
-                GridContent(
-                    items: items,
-                    spacing: spacing,
-                    content: content,
-                    geometry: geometry,
-                    totalHeight: $totalHeight
-                )
-            }
-        }
-        .frame(height: totalHeight)
-    }
-}
-
-private struct GridContent<Data: RandomAccessCollection, Content: View>: View where Data.Element: Hashable {
-    let items: Data
-    let spacing: CGFloat
-    let content: (Data.Element) -> Content
-    let geometry: GeometryProxy
-    @Binding var totalHeight: CGFloat
-
-    init(
-        items: Data,
-        spacing: CGFloat,
-        content: @escaping (Data.Element) -> Content,
-        geometry: GeometryProxy,
-        totalHeight: Binding<CGFloat>
-    ) {
-        self.items = items
-        self.spacing = spacing
-        self.content = content
-        self.geometry = geometry
-        self._totalHeight = totalHeight
-    }
-
-    var body: some View {
-        var width = CGFloat.zero
-        var height = CGFloat.zero
-
-        return ZStack(alignment: .topLeading) {
-            ForEach(Array(items.enumerated()), id: \.element) { index, item in
+        FlowLayout(spacing: spacing) {
+            ForEach(items, id: \.self) { item in
                 content(item)
-                    .padding(.trailing, spacing)
-                    .padding(.bottom, spacing)
-                    .alignmentGuide(.leading) { dimension in
-                        if abs(width - dimension.width) > geometry.size.width {
-                            width = 0
-                            height -= dimension.height
-                        }
-                        let result = width
-                        if index == items.count - 1 {
-                            width = 0
-                        } else {
-                            width -= dimension.width
-                        }
-                        return result
-                    }
-                    .alignmentGuide(.top) { _ in
-                        let result = height
-                        if index == items.count - 1 {
-                            height = 0
-                        }
-                        return result
-                    }
             }
         }
-        .background(HeightReader(totalHeight: $totalHeight))
     }
 }
 
-private struct HeightReader: View {
-    @Binding var totalHeight: CGFloat
+private struct FlowLayout: Layout {
+    var spacing: CGFloat
 
-    init(totalHeight: Binding<CGFloat>) {
-        self._totalHeight = totalHeight
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = arrangeSubviews(proposal: proposal, subviews: subviews)
+        
+        let width = proposal.width ?? rows.map { $0.width }.max() ?? 0
+        var height: CGFloat = 0
+        
+        for row in rows {
+            height += row.height
+            if row != rows.last {
+                height += spacing
+            }
+        }
+        
+        return CGSize(width: width, height: height)
     }
 
-    var body: some View {
-        GeometryReader { geometry in
-            Color.clear
-                .preference(key: HeightPreferenceKey.self, value: geometry.size.height)
-        }
-        .onPreferenceChange(HeightPreferenceKey.self) { height in
-            totalHeight = height
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let rows = arrangeSubviews(proposal: proposal, subviews: subviews)
+        
+        var yOffset = bounds.minY
+        
+        for row in rows {
+            var xOffset = bounds.minX
+            
+            for item in row.items {
+                let itemSize = item.sizeThatFits(.unspecified)
+                item.place(at: CGPoint(x: xOffset, y: yOffset), proposal: .unspecified)
+                xOffset += itemSize.width + spacing
+            }
+            
+            yOffset += row.height + spacing
         }
     }
-}
+    
+    struct Row: Equatable {
+        var items: [LayoutSubview]
+        var width: CGFloat
+        var height: CGFloat
+        
+        static func == (lhs: Row, rhs: Row) -> Bool {
+            lhs.width == rhs.width && lhs.height == rhs.height && lhs.items.count == rhs.items.count
+        }
+    }
 
-private struct HeightPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = max(value, nextValue())
+    private func arrangeSubviews(proposal: ProposedViewSize, subviews: Subviews) -> [Row] {
+        var rows: [Row] = []
+        let maxWidth = proposal.width ?? .infinity
+        
+        var currentRowItems: [LayoutSubview] = []
+        var currentRowWidth: CGFloat = 0
+        var currentRowHeight: CGFloat = 0
+        
+        for subview in subviews {
+            let subviewSize = subview.sizeThatFits(.unspecified)
+            
+            if currentRowWidth + subviewSize.width > maxWidth && !currentRowItems.isEmpty {
+                // Move to new row
+                rows.append(Row(items: currentRowItems, width: currentRowWidth, height: currentRowHeight))
+                currentRowItems = []
+                currentRowWidth = 0
+                currentRowHeight = 0
+            }
+            
+            if !currentRowItems.isEmpty {
+                currentRowWidth += spacing
+            }
+            
+            currentRowItems.append(subview)
+            currentRowWidth += subviewSize.width
+            currentRowHeight = max(currentRowHeight, subviewSize.height)
+        }
+        
+        if !currentRowItems.isEmpty {
+            rows.append(Row(items: currentRowItems, width: currentRowWidth, height: currentRowHeight))
+        }
+        
+        return rows
     }
 }
