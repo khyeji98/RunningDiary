@@ -53,27 +53,34 @@ struct LivePersistencesRepositoryTests {
     ) -> Diary {
         let ymd = yearMonthDay ?? makeYearMonthDay()
         let startTime = ymd.toDate().addingTimeInterval(startOffset)
-        return Diary(
-            id: id,
+        let workout = HealthKitWorkout(
             yearMonthDay: ymd,
-            distanceInKilometers: distance,
-            durationInSeconds: duration,
+            distance: distance,
+            duration: duration,
             averagePace: averagePace,
             averageHeartRate: averageHeartRate,
             averageCadence: averageCadence,
+            activeEnergyBurned: activeEnergyBurned ?? 0,
+            runningVerticalOscillation: runningVerticalOscillation ?? 0,
+            runningGroundContactTime: runningGroundContactTime ?? 0,
+            walkingStepLength: walkingStepLength ?? 0,
+            restingHeartRate: 0,
+            runningPower: 0,
+            runningStrideLength: 0,
+            heartRateRecoveryOneMinute: 0,
+            routeData: routeData,
+            startDate: startTime,
+            endDate: startTime.addingTimeInterval(duration)
+        )
+        return Diary(
+            id: id,
+            workout: workout,
             painAreas: painAreas,
             runningStyle: runningStyle,
             memo: memo,
             shoes: shoes,
             weather: weather,
-            difficultyLevel: difficultyLevel,
-            routeData: routeData,
-            activeEnergyBurned: activeEnergyBurned,
-            runningVerticalOscillation: runningVerticalOscillation,
-            runningGroundContactTime: runningGroundContactTime,
-            walkingStepLength: walkingStepLength,
-            startTime: startTime,
-            endTime: startTime.addingTimeInterval(duration)
+            difficultyLevel: difficultyLevel
         )
     }
 
@@ -94,8 +101,8 @@ struct LivePersistencesRepositoryTests {
         // Then
         #expect(result != nil)
         #expect(result?.id == expectedDiary.id)
-        #expect(result?.distanceInKilometers == 7.5)
-        #expect(result?.yearMonthDay == testDate)
+        #expect(result?.workout.distance == 7.5)
+        #expect(result?.workout.yearMonthDay == testDate)
     }
 
     @Test("기록이 없는 날짜 조회 시 nil 반환")
@@ -138,7 +145,7 @@ struct LivePersistencesRepositoryTests {
 
         // Then
         #expect(results.count == 3)
-        let distances = results.map { $0.distanceInKilometers }.sorted()
+        let distances = results.map { $0.workout.distance }.sorted()
         #expect(distances == [5.0, 7.0, 10.0])
     }
 
@@ -177,9 +184,9 @@ struct LivePersistencesRepositoryTests {
         let fetched = try await repository.fetchRunningRecord(for: testDate.toDate())
         #expect(fetched != nil)
         #expect(fetched?.id == newDiary.id)
-        #expect(fetched?.distanceInKilometers == 10.0)
-        #expect(fetched?.durationInSeconds == 3600)
-        #expect(fetched?.averageHeartRate == 160)
+        #expect(fetched?.workout.distance == 10.0)
+        #expect(fetched?.workout.duration == 3600)
+        #expect(fetched?.workout.averageHeartRate == 160)
     }
 
     // MARK: - updateRunningRecord Tests
@@ -226,7 +233,7 @@ struct LivePersistencesRepositoryTests {
 
         // Then
         let fetched = try await repository.fetchRunningRecord(for: testDate.toDate())
-        #expect(fetched?.distanceInKilometers == expectedDistance)
+        #expect(fetched?.workout.distance == expectedDistance)
     }
 
     @Test("존재하지 않는 recordId로 업데이트 시 notFound 에러")
@@ -318,13 +325,13 @@ struct LivePersistencesRepositoryTests {
 
         // Then - 업데이트된 필드 확인
         let fetched = try await repository.fetchRunningRecord(for: testDate.toDate())
-        #expect(fetched?.distanceInKilometers == expectedDistance)
+        #expect(fetched?.workout.distance == expectedDistance)
         #expect(fetched?.shoes == expectedShoes)
 
         // 업데이트하지 않은 필드는 원래 값 유지
-        #expect(fetched?.durationInSeconds == 1800)
-        #expect(fetched?.averageHeartRate == 150)
-        #expect(fetched?.averageCadence == 170)
+        #expect(fetched?.workout.duration == 1800)
+        #expect(fetched?.workout.averageHeartRate == 150)
+        #expect(fetched?.workout.averageCadence == 170)
     }
 
     // MARK: - deleteRunningRecord Tests

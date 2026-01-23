@@ -54,15 +54,15 @@ struct PainAreasMapperTests {
 
     @Test("encode: 여러 PainArea 인코딩 시 올바른 rawValue 배열 생성")
     func encodeMultiplePainAreas() throws {
-        let painAreas: [PainArea] = [.knee, .ankle, .calf]
+        let painAreas: [PainArea] = [.knee, .sole, .shin]
 
         let result = PainAreasMapper.encode(painAreas)
         let parsed = parseJsonArray(result)
 
         #expect(parsed?.count == 3)
         #expect(parsed?.contains(PainArea.knee.rawValue) == true)
-        #expect(parsed?.contains(PainArea.ankle.rawValue) == true)
-        #expect(parsed?.contains(PainArea.calf.rawValue) == true)
+        #expect(parsed?.contains(PainArea.sole.rawValue) == true)
+        #expect(parsed?.contains(PainArea.shin.rawValue) == true)
     }
 
     @Test("encode: 모든 PainArea 케이스 인코딩")
@@ -82,7 +82,7 @@ struct PainAreasMapperTests {
 
     @Test("encode: 중복된 PainArea 인코딩")
     func encodeDuplicatePainAreas() throws {
-        let painAreas: [PainArea] = [.knee, .knee, .ankle]
+        let painAreas: [PainArea] = [.knee, .knee, .sole]
 
         let result = PainAreasMapper.encode(painAreas)
         let parsed = parseJsonArray(result)
@@ -136,7 +136,7 @@ struct PainAreasMapperTests {
 
     @Test("decode: encode 결과를 올바르게 디코딩")
     func decodeEncodedResult() throws {
-        let original: [PainArea] = [.knee, .ankle]
+        let original: [PainArea] = [.knee, .sole]
 
         // encode 결과를 decode의 입력으로 사용
         let encoded = PainAreasMapper.encode(original)
@@ -168,7 +168,7 @@ struct PainAreasMapperTests {
         let mixedRawValues = [
             PainArea.knee.rawValue,
             "존재하지않는통증부위",
-            PainArea.ankle.rawValue,
+            PainArea.sole.rawValue,
             "invalid",
         ]
         let encoded = PainAreasMapper.encodeRaw(mixedRawValues)
@@ -177,7 +177,7 @@ struct PainAreasMapperTests {
 
         #expect(result.count == 2)
         #expect(result.contains(.knee))
-        #expect(result.contains(.ankle))
+        #expect(result.contains(.sole))
     }
 
     @Test("decode: 모든 유효한 PainArea 디코딩")
@@ -220,10 +220,10 @@ struct PainAreasMapperTests {
     @Test("Round-trip: 여러 요소")
     func roundTripMultipleElements() throws {
         let testCases: [[PainArea]] = [
-            [.knee, .ankle],
-            [.knee, .ankle, .calf],
-            [.thigh, .hip, .sole, .achilles],
-            [.ankle, .knee, .calf, .thigh],  // 순서가 다른 경우
+            [.knee, .sole],
+            [.knee, .sole, .shin],
+            [.shoulder, .hip, .neck, .achilles],
+            [.sole, .knee, .shin, .shoulder],  // 순서가 다른 경우
         ]
 
         for original in testCases {
@@ -248,7 +248,7 @@ struct PainAreasMapperTests {
 
     @Test("Round-trip: 중복 요소")
     func roundTripDuplicateElements() throws {
-        let original: [PainArea] = [.knee, .knee, .ankle, .ankle, .knee]
+        let original: [PainArea] = [.knee, .knee, .sole, .sole, .knee]
 
         let encoded = PainAreasMapper.encode(original)
         let decoded = PainAreasMapper.decode(encoded)
@@ -271,7 +271,7 @@ struct PainAreasMapperTests {
         let testCases: [[PainArea]] = [
             [],
             [.knee],
-            [.knee, .ankle, .calf],
+            [.knee, .sole, .shin],
             PainArea.allCases,
         ]
 

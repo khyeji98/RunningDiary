@@ -208,7 +208,7 @@ struct RunningRecordClientTests {
 
         // Then
         #expect(savedRecord != nil)
-        #expect(savedRecord?.yearMonthDay == testDate)
+        #expect(savedRecord?.workout.yearMonthDay == testDate)
     }
 
     @Test("updateRecord는 의존성을 통해 업데이트")
@@ -231,7 +231,7 @@ struct RunningRecordClientTests {
 
         // Then
         #expect(updatedRecord != nil)
-        #expect(updatedRecord?.yearMonthDay == testDate)
+        #expect(updatedRecord?.workout.yearMonthDay == testDate)
     }
 }
 
@@ -283,16 +283,15 @@ private extension RunningRecordClientTests {
         startTime: Date? = nil
     ) -> Diary {
         let start = startTime ?? yearMonthDay.toDate()
-        return Diary(
+        let workout = makeHealthKitWorkout(
             yearMonthDay: yearMonthDay,
-            distanceInKilometers: distance,
-            durationInSeconds: 1800,
-            averagePace: "6'00\"",
-            averageHeartRate: 150,
-            averageCadence: 170,
+            distance: distance,
+            startTime: start
+        )
+        return Diary(
+            workout: workout,
             runningStyle: .midfoot,
-            startTime: start,
-            endTime: start.addingTimeInterval(1800)
+            memo: nil
         )
     }
 
@@ -317,12 +316,12 @@ private extension RunningRecordClientTests {
                     workout.startTime >= startOfFromDate && workout.startTime <= endOfToDate
                 }
                 let filteredRecords = savedRecords.filter { record in
-                    record.startTime >= startOfFromDate && record.startTime <= endOfToDate
+                    record.workout.startTime >= startOfFromDate && record.workout.startTime <= endOfToDate
                 }
 
                 // 날짜별 그룹핑
                 let groupedHK = Dictionary(grouping: filteredHealthKit, by: \.yearMonthDay)
-                let groupedRecords = Dictionary(grouping: filteredRecords, by: \.yearMonthDay)
+                let groupedRecords = Dictionary(grouping: filteredRecords, by: \.workout.yearMonthDay)
 
                 // 요청 범위의 모든 날짜 생성
                 var dates: [YearMonthDay] = []
@@ -341,7 +340,7 @@ private extension RunningRecordClientTests {
 
                     // 중복 제거: SwiftData에 저장된 것은 HealthKit에서 제외
                     let filteredHealthKit = healthKit.filter { workout in
-                        !saved.contains(where: { $0.startTime == workout.startTime })
+                        !saved.contains(where: { $0.workout.startTime == workout.startTime })
                     }
 
                     result[date] = DailyRecord(

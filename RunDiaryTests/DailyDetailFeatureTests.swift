@@ -48,7 +48,7 @@ struct DailyDetailFeatureTests {
 
         // Then - 최종 상태 확인
         await sut.skipReceivedActions()
-        #expect(sut.state.diaries == Dictionary(grouping: expectedDiaries, by: \.yearMonthDay))
+        #expect(sut.state.diaries == Dictionary(grouping: expectedDiaries, by: \.workout.yearMonthDay))
         #expect(sut.state.workouts == Dictionary(grouping: expectedWorkouts, by: \.yearMonthDay))
         #expect(sut.state.isLoading == false)
     }
@@ -236,7 +236,7 @@ struct DailyDetailFeatureTests {
         // Then
         await sut.receive(\.weekRecordsFetched) {
             $0.isLoading = false
-            $0.diaries = Dictionary(grouping: expectedDiaries, by: \.yearMonthDay)
+            $0.diaries = Dictionary(grouping: expectedDiaries, by: \.workout.yearMonthDay)
             $0.workouts = Dictionary(grouping: expectedWorkouts, by: \.yearMonthDay)
         }
     }
@@ -428,7 +428,7 @@ struct DailyDetailFeatureTests {
         // Then
         #expect(sut.state.addRecord != nil)
         #expect(sut.state.addRecord?.existingRecord == nil)
-        #expect(sut.state.addRecord?.healthKitWorkout.data == healthKitWorkout)
+        #expect(sut.state.addRecord?.healthKitWorkout == healthKitWorkout)
     }
 
     @Test("editRecord: AddRecord를 편집 모드로 표시")
@@ -445,7 +445,7 @@ struct DailyDetailFeatureTests {
         await sut.send(.editRecord(diary)) {
             $0.addRecord = AddRecordFeature.State(
                 existingRecord: diary,
-                healthKitWorkout: nil
+                healthKitWorkout: makeHealthKitWorkout(yearMonthDay: testDate)
             )
         }
     }
@@ -456,7 +456,7 @@ struct DailyDetailFeatureTests {
         var initialState = DailyDetailFeature.State()
         initialState.addRecord = AddRecordFeature.State(
             existingRecord: nil,
-            healthKitWorkout: nil
+            healthKitWorkout: makeHealthKitWorkout(yearMonthDay: makeTodayYearMonthDay())
         )
 
         let sut = TestStore(initialState: initialState) {
@@ -479,7 +479,7 @@ struct DailyDetailFeatureTests {
         initialState.dates = weekDates
         initialState.addRecord = AddRecordFeature.State(
             existingRecord: nil,
-            healthKitWorkout: nil
+            healthKitWorkout: makeHealthKitWorkout(yearMonthDay: testDate)
         )
 
         let sut = makeTestStore(

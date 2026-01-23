@@ -167,16 +167,28 @@ struct CalendarFeatureTests {
         startTime: Date? = nil
     ) -> Diary {
         let start = startTime ?? yearMonthDay.toDate()
-        return Diary(
-            yearMonthDay: yearMonthDay,
-            distanceInKilometers: distance,
-            durationInSeconds: 1800,
+        let workout = HealthKitWorkout(
+            distance: distance,
+            duration: 1800,
             averagePace: "6'00\"",
             averageHeartRate: 150,
             averageCadence: 170,
+            activeEnergyBurned: 0,
+            runningVerticalOscillation: 0,
+            runningGroundContactTime: 0,
+            walkingStepLength: 0,
+            restingHeartRate: 0,
+            runningPower: 0,
+            runningStrideLength: 0,
+            heartRateRecoveryOneMinute: 0,
+            routeData: nil,
+            startDate: start,
+            endDate: start.addingTimeInterval(1800)
+        )
+        return Diary(
+            workout: workout,
             runningStyle: .midfoot,
-            startTime: start,
-            endTime: start.addingTimeInterval(1800)
+            memo: nil
         )
     }
 }
