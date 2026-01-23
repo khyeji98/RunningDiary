@@ -52,6 +52,22 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
         averageCadence == 0 ? "" : averageCadence.toString
     }
 
+    public var formattedActiveEnergyBurned: String {
+        activeEnergyBurned == 0 ? "" : activeEnergyBurned.to1f
+    }
+
+    public var formattedRunningPower: String {
+        runningPower == 0 ? "" : runningPower.to0f
+    }
+
+    public var formattedVerticalOscillation: String {
+        runningVerticalOscillation == 0 ? "" : runningVerticalOscillation.to1f
+    }
+
+    public var formattedGroundContactTime: String {
+        runningGroundContactTime == 0 ? "" : runningGroundContactTime.to0f
+    }
+
     public init(
         distance: Double,
         duration: TimeInterval,

@@ -82,16 +82,17 @@ func makeDiary(
     averageCadence: Int = 170,
     startOffset: TimeInterval = 0
 ) -> Diary {
-    let startTime = yearMonthDay.toDate().addingTimeInterval(startOffset)
-    return Diary(
+    let workout = makeHealthKitWorkout(
         yearMonthDay: yearMonthDay,
-        distanceInKilometers: distance,
-        durationInSeconds: duration,
+        distance: distance,
+        duration: duration,
         averagePace: averagePace,
         averageHeartRate: averageHeartRate,
         averageCadence: averageCadence,
-        runningStyle: .midfoot,
-        startTime: startTime,
-        endTime: startTime.addingTimeInterval(duration)
+        startOffset: startOffset
+    )
+    return Diary(
+        workout: workout,
+        runningStyle: .midfoot
     )
 }

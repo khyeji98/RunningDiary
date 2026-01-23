@@ -19,50 +19,32 @@ struct AddRecordView: View {
         ScrollView {
             VStack(spacing: 16) {
                 // HealthKit 데이터 섹션
-                HealthKitSectionView(
-                    distance: store.healthKitWorkout.data?.formattedDistance ?? "",
-                    duration: store.healthKitWorkout.data?.formattedDuration ?? "",
-                    averagePace: store.healthKitWorkout.data?.averagePace ?? "",
-                    averageHeartRate: store.healthKitWorkout.data?.formattedAverageHeartRate ?? "",
-                    averageCadence: store.healthKitWorkout.data?.formattedAverageCadence ?? ""
-                )
+                HealthKitSectionView(workout: store.healthKitWorkout)
 
                 // 신발 섹션
                 ShoesSectionView(
                     selectedShoe: Binding(
-                        get: { store.condition.selectedShoe },
-                        set: { store.send(.condition(.updateSelectedShoe($0))) }
+                        get: { store.selectedShoe },
+                        set: { store.send(.updateSelectedShoe($0)) }
                     )
                 )
 
                 // 주법 섹션
                 RunningStyleSectionView(
                     selectedStyle: Binding(
-                        get: { store.condition.selectedRunningStyle },
-                        set: { store.send(.condition(.updateSelectedRunningStyle($0))) }
+                        get: { store.selectedRunningStyle },
+                        set: { store.send(.updateSelectedRunningStyle($0)) }
                     ),
-                    styleOptions: store.condition.runningStyleOptions
+                    styleOptions: RunninStyle.allCases
                 )
 
                 // 통증 부위 섹션
                 PainAreasSectionView(
                     selectedPainAreas: Binding(
-                        get: { store.condition.selectedPainAreas },
-                        set: { store.send(.condition(.updateSelectedPainAreas($0))) }
+                        get: { store.selectedPainAreas },
+                        set: { store.send(.updateSelectedPainAreas($0)) }
                     ),
-                    painAreaOptions: store.condition.painAreaOptions
-                )
-
-                // 컨디션 섹션
-                ConditionSectionView(
-                    sleepHours: Binding(
-                        get: { store.condition.sleepHours },
-                        set: { store.send(.condition(.updateSleepHours($0))) }
-                    ),
-                    memo: Binding(
-                        get: { store.condition.memo },
-                        set: { store.send(.condition(.updateMemo($0))) }
-                    )
+                    painAreaOptions: PainArea.allCases
                 )
 
                 // 난이도 섹션
@@ -76,8 +58,8 @@ struct AddRecordView: View {
                 // 메모 섹션
                 MemoSectionView(
                     memo: Binding(
-                        get: { store.condition.memo },
-                        set: { store.send(.condition(.updateMemo($0))) }
+                        get: { store.memo },
+                        set: { store.send(.updateMemo($0)) }
                     )
                 )
             }
@@ -94,7 +76,7 @@ struct AddRecordView: View {
                 }
             }
         }
-        .navigationTitle(store.mode == .add ? L10n.recordAdd.value : L10n.recordEdit.value)
+        .navigationTitle(store.existingRecord == nil ? Text("record.write_title") : Text(L10n.recordEdit.value))
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden()
         .toolbar {
@@ -123,7 +105,7 @@ struct AddRecordView: View {
 
 // MARK: - Preview
 
-#Preview("Add Mode", traits: .sampleData) {
+#Preview(traits: .sampleData) {
     NavigationStack {
         AddRecordView(
             store: Store(
@@ -146,20 +128,6 @@ struct AddRecordView: View {
                         startDate: .now,
                         endDate: .now
                     )
-                )
-            ) {
-                AddRecordFeature()
-            }
-        )
-    }
-}
-
-#Preview(traits: .sampleData) {
-    NavigationStack {
-        AddRecordView(
-            store: Store(
-                initialState: AddRecordFeature.State(
-                    existingRecord: RunningRecordPersistenceModel.preview.toDomain()
                 )
             ) {
                 AddRecordFeature()

@@ -34,7 +34,7 @@ struct PersistencesClientTests {
         fetch: @escaping @MainActor @Sendable (Date) async throws -> Diary? = { _ in nil },
         fetchRecords: @escaping @MainActor @Sendable (Date, Date) async throws -> [Diary] = { _, _ in [] },
         save: @escaping @MainActor @Sendable (Diary) async throws -> Void = { _ in },
-        update: @escaping @MainActor @Sendable (UUID, YearMonthDay?, Double?, TimeInterval?, String?, Int?, Int?, [PainArea]?, RunninStyle?, RunningCondition?, String?, WeatherData?, DifficultyLevel?, Data?, Double?, Double?, Double?, Double?, Double?, Double?, Double?, Double?, Date?, Date?) async throws -> Void = { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in },
+        update: @escaping @MainActor @Sendable (UUID, YearMonthDay?, Double?, TimeInterval?, String?, Int?, Int?, [PainArea]?, RunninStyle?, String?, String?, WeatherData?, DifficultyLevel?, Data?, Double?, Double?, Double?, Double?, Double?, Double?, Double?, Double?, Date?, Date?) async throws -> Void = { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in },
         delete: @escaping @MainActor @Sendable (Diary) async throws -> Void = { _ in }
     ) -> PersistencesClient {
         PersistencesClient(
@@ -56,16 +56,27 @@ struct PersistencesClientTests {
         let endTime = startTime.addingTimeInterval(1800)
 
         let expectedRecord = Diary(
-            yearMonthDay: testDate,
-            distanceInKilometers: 5.2,
-            durationInSeconds: 1800,
-            averagePace: "5'46\"",
-            averageHeartRate: 150,
-            averageCadence: 170,
+            workout: HealthKitWorkout(
+                distance: 5.2,
+                duration: 1800,
+                averagePace: "5'46\"",
+                averageHeartRate: 150,
+                averageCadence: 170,
+                activeEnergyBurned: 0,
+                runningVerticalOscillation: 0,
+                runningGroundContactTime: 0,
+                walkingStepLength: 0,
+                restingHeartRate: 0,
+                runningPower: 0,
+                runningStrideLength: 0,
+                heartRateRecoveryOneMinute: 0,
+                routeData: nil,
+                startDate: startTime,
+                endDate: endTime
+            ),
+            painAreas: [],
             runningStyle: .midfoot,
-            condition: RunningCondition(sleep: 7, memo: nil),
-            startTime: startTime,
-            endTime: endTime
+            memo: nil
         )
 
         let client = makeTestClient(
@@ -79,12 +90,12 @@ struct PersistencesClientTests {
 
         #expect(result != nil)
         #expect(result?.id == expectedRecord.id)
-        #expect(result?.yearMonthDay == testDate)
-        #expect(result?.distanceInKilometers == 5.2)
-        #expect(result?.durationInSeconds == 1800)
-        #expect(result?.averagePace == "5'46\"")
-        #expect(result?.averageHeartRate == 150)
-        #expect(result?.averageCadence == 170)
+        #expect(result?.workout.yearMonthDay == testDate)
+        #expect(result?.workout.distance == 5.2)
+        #expect(result?.workout.duration == 1800)
+        #expect(result?.workout.averagePace == "5'46\"")
+        #expect(result?.workout.averageHeartRate == 150)
+        #expect(result?.workout.averageCadence == 170)
         #expect(result?.runningStyle == .midfoot)
     }
 
@@ -140,28 +151,50 @@ struct PersistencesClientTests {
 
         let expectedRecords = [
             Diary(
-                yearMonthDay: day1,
-                distanceInKilometers: 5.0,
-                durationInSeconds: 1500,
-                averagePace: "5'00\"",
-                averageHeartRate: 145,
-                averageCadence: 165,
+                workout: HealthKitWorkout(
+                    distance: 5.0,
+                    duration: 1500,
+                    averagePace: "5'00\"",
+                    averageHeartRate: 145,
+                    averageCadence: 165,
+                    activeEnergyBurned: 0,
+                    runningVerticalOscillation: 0,
+                    runningGroundContactTime: 0,
+                    walkingStepLength: 0,
+                    restingHeartRate: 0,
+                    runningPower: 0,
+                    runningStrideLength: 0,
+                    heartRateRecoveryOneMinute: 0,
+                    routeData: nil,
+                    startDate: time1Start,
+                    endDate: time1End
+                ),
+                painAreas: [],
                 runningStyle: .forefoot,
-                condition: RunningCondition(sleep: 7, memo: nil),
-                startTime: time1Start,
-                endTime: time1End
+                memo: nil
             ),
             Diary(
-                yearMonthDay: day2,
-                distanceInKilometers: 7.5,
-                durationInSeconds: 2250,
-                averagePace: "5'00\"",
-                averageHeartRate: 150,
-                averageCadence: 170,
+                workout: HealthKitWorkout(
+                    distance: 7.5,
+                    duration: 2250,
+                    averagePace: "5'00\"",
+                    averageHeartRate: 150,
+                    averageCadence: 170,
+                    activeEnergyBurned: 0,
+                    runningVerticalOscillation: 0,
+                    runningGroundContactTime: 0,
+                    walkingStepLength: 0,
+                    restingHeartRate: 0,
+                    runningPower: 0,
+                    runningStrideLength: 0,
+                    heartRateRecoveryOneMinute: 0,
+                    routeData: nil,
+                    startDate: time2Start,
+                    endDate: time2End
+                ),
+                painAreas: [],
                 runningStyle: .midfoot,
-                condition: RunningCondition(sleep: 7, memo: nil),
-                startTime: time2Start,
-                endTime: time2End
+                memo: nil
             ),
         ]
 
@@ -176,9 +209,9 @@ struct PersistencesClientTests {
         let result = try await client.fetchRecords(startDate, endDate)
 
         #expect(result.count == 2)
-        #expect(result[0].distanceInKilometers == 5.0)
+        #expect(result[0].workout.distance == 5.0)
         #expect(result[0].runningStyle == .forefoot)
-        #expect(result[1].distanceInKilometers == 7.5)
+        #expect(result[1].workout.distance == 7.5)
         #expect(result[1].runningStyle == .midfoot)
     }
 
@@ -225,16 +258,27 @@ struct PersistencesClientTests {
         let endTime = startTime.addingTimeInterval(3000)
 
         let newRecord = Diary(
-            yearMonthDay: yearMonthDay,
-            distanceInKilometers: 10.0,
-            durationInSeconds: 3000,
-            averagePace: "5'00\"",
-            averageHeartRate: 160,
-            averageCadence: 180,
+            workout: HealthKitWorkout(
+                distance: 10.0,
+                duration: 3000,
+                averagePace: "5'00\"",
+                averageHeartRate: 160,
+                averageCadence: 180,
+                activeEnergyBurned: 0,
+                runningVerticalOscillation: 0,
+                runningGroundContactTime: 0,
+                walkingStepLength: 0,
+                restingHeartRate: 0,
+                runningPower: 0,
+                runningStrideLength: 0,
+                heartRateRecoveryOneMinute: 0,
+                routeData: nil,
+                startDate: startTime,
+                endDate: endTime
+            ),
+            painAreas: [],
             runningStyle: .midfoot,
-            condition: RunningCondition(sleep: 7, memo: nil),
-            startTime: startTime,
-            endTime: endTime
+            memo: nil
         )
 
         var savedRecord: Diary?
@@ -249,9 +293,9 @@ struct PersistencesClientTests {
 
         #expect(savedRecord != nil)
         #expect(savedRecord?.id == newRecord.id)
-        #expect(savedRecord?.distanceInKilometers == 10.0)
-        #expect(savedRecord?.durationInSeconds == 3000)
-        #expect(savedRecord?.averageHeartRate == 160)
+        #expect(savedRecord?.workout.distance == 10.0)
+        #expect(savedRecord?.workout.duration == 3000)
+        #expect(savedRecord?.workout.averageHeartRate == 160)
     }
 
     @Test("save: 에러 발생 시 throw")
@@ -270,16 +314,27 @@ struct PersistencesClientTests {
         let yearMonthDay = makeYearMonthDay()
         let startTime = makeDate()
         let newRecord = Diary(
-            yearMonthDay: yearMonthDay,
-            distanceInKilometers: 5.0,
-            durationInSeconds: 1500,
-            averagePace: "5'00\"",
-            averageHeartRate: 150,
-            averageCadence: 170,
+            workout: HealthKitWorkout(
+                distance: 5.0,
+                duration: 1500,
+                averagePace: "5'00\"",
+                averageHeartRate: 150,
+                averageCadence: 170,
+                activeEnergyBurned: 0,
+                runningVerticalOscillation: 0,
+                runningGroundContactTime: 0,
+                walkingStepLength: 0,
+                restingHeartRate: 0,
+                runningPower: 0,
+                runningStrideLength: 0,
+                heartRateRecoveryOneMinute: 0,
+                routeData: nil,
+                startDate: startTime,
+                endDate: startTime.addingTimeInterval(1500)
+            ),
+            painAreas: [],
             runningStyle: .midfoot,
-            condition: RunningCondition(sleep: 7, memo: nil),
-            startTime: startTime,
-            endTime: startTime.addingTimeInterval(1500)
+            memo: nil
         )
 
         await #expect(throws: TestError.saveFailed) {
@@ -299,26 +354,25 @@ struct PersistencesClientTests {
 
         var updatedRecordId: UUID?
         var updatedDistance: Double?
-        var updatedCondition: RunningCondition?
+        var updatedMemo: String?
 
         let client = makeTestClient(
-            update: { id, _, distance, _, _, _, _, _, _, condition, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in
+            update: { id, _, distance, _, _, _, _, _, _, memo, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in
                 updatedRecordId = id
                 updatedDistance = distance
-                updatedCondition = condition
+                updatedMemo = memo
             }
         )
 
         try await client.updateRecord(
             recordId: recordId,
             distance: 6.0,
-            condition: RunningCondition(sleep: 6, memo: "updated")
+            memo: "updated"
         )
 
         #expect(updatedRecordId == recordId)
         #expect(updatedDistance == 6.0)
-        #expect(updatedCondition?.sleep == 6)
-        #expect(updatedCondition?.memo == "updated")
+        #expect(updatedMemo == "updated")
     }
 
     @Test("update: 에러 발생 시 throw")
@@ -351,17 +405,27 @@ struct PersistencesClientTests {
         let endTime = startTime.addingTimeInterval(1200)
 
         let recordToDelete = Diary(
-            id: UUID(),
-            yearMonthDay: yearMonthDay,
-            distanceInKilometers: 3.0,
-            durationInSeconds: 1200,
-            averagePace: "6'40\"",
-            averageHeartRate: 140,
-            averageCadence: 160,
+            workout: HealthKitWorkout(
+                distance: 3.0,
+                duration: 1200,
+                averagePace: "6'40\"",
+                averageHeartRate: 140,
+                averageCadence: 160,
+                activeEnergyBurned: 0,
+                runningVerticalOscillation: 0,
+                runningGroundContactTime: 0,
+                walkingStepLength: 0,
+                restingHeartRate: 0,
+                runningPower: 0,
+                runningStrideLength: 0,
+                heartRateRecoveryOneMinute: 0,
+                routeData: nil,
+                startDate: startTime,
+                endDate: endTime
+            ),
+            painAreas: [],
             runningStyle: .midfoot,
-            condition: RunningCondition(sleep: 7, memo: nil),
-            startTime: startTime,
-            endTime: endTime
+            memo: nil
         )
 
         var deletedRecord: Diary?
@@ -376,7 +440,7 @@ struct PersistencesClientTests {
 
         #expect(deletedRecord != nil)
         #expect(deletedRecord?.id == recordToDelete.id)
-        #expect(deletedRecord?.distanceInKilometers == 3.0)
+        #expect(deletedRecord?.workout.distance == 3.0)
     }
 
     @Test("delete: 에러 발생 시 throw")
@@ -396,16 +460,27 @@ struct PersistencesClientTests {
         let startTime = makeDate()
         let record = Diary(
             id: UUID(),
-            yearMonthDay: yearMonthDay,
-            distanceInKilometers: 5.0,
-            durationInSeconds: 1500,
-            averagePace: "5'00\"",
-            averageHeartRate: 150,
-            averageCadence: 170,
+            workout: HealthKitWorkout(
+                distance: 5.0,
+                duration: 1500,
+                averagePace: "5'00\"",
+                averageHeartRate: 150,
+                averageCadence: 170,
+                activeEnergyBurned: 0,
+                runningVerticalOscillation: 0,
+                runningGroundContactTime: 0,
+                walkingStepLength: 0,
+                restingHeartRate: 0,
+                runningPower: 0,
+                runningStrideLength: 0,
+                heartRateRecoveryOneMinute: 0,
+                routeData: nil,
+                startDate: startTime,
+                endDate: startTime.addingTimeInterval(1500)
+            ),
+            painAreas: [],
             runningStyle: .midfoot,
-            condition: RunningCondition(sleep: 7, memo: nil),
-            startTime: startTime,
-            endTime: startTime.addingTimeInterval(1500)
+            memo: nil
         )
 
         await #expect(throws: TestError.deleteFailed) {
@@ -427,31 +502,72 @@ struct PersistencesClientTests {
         var storage: [UUID: Diary] = [
             originalId: Diary(
                 id: originalId,
-                yearMonthDay: yearMonthDay,
-                distanceInKilometers: 5.0,
-                durationInSeconds: 1500,
-                averagePace: "5'00\"",
-                averageHeartRate: 145,
-                averageCadence: 165,
+                workout: HealthKitWorkout(
+                    distance: 5.0,
+                    duration: 1500,
+                    averagePace: "5'00\"",
+                    averageHeartRate: 145,
+                    averageCadence: 165,
+                    activeEnergyBurned: 0,
+                    runningVerticalOscillation: 0,
+                    runningGroundContactTime: 0,
+                    walkingStepLength: 0,
+                    restingHeartRate: 0,
+                    runningPower: 0,
+                    runningStrideLength: 0,
+                    heartRateRecoveryOneMinute: 0,
+                    routeData: nil,
+                    startDate: startTime,
+                    endDate: endTime
+                ),
+                painAreas: [],
                 runningStyle: .forefoot,
-                condition: RunningCondition(sleep: 7, memo: nil),
-                startTime: startTime,
-                endTime: endTime
+                memo: nil
             )
         ]
 
         let client = makeTestClient(
             fetch: { date in
-                storage.values.first { Calendar.current.isDate($0.yearMonthDay.toDate(), inSameDayAs: date) }
+                storage.values.first { Calendar.current.isDate($0.workout.yearMonthDay.toDate(), inSameDayAs: date) }
             },
             fetchRecords: { _, _ in Array(storage.values) },
             save: { record in
                 storage[record.id] = record
             },
-            update: { recordId, date, distance, duration, averagePace, averageHeartRate, averageCadence, painAreas, runningStyle, condition, shoes, weather, difficultyLevel, routeData, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength, restingHeartRate, runningPower, runningStrideLength, heartRateRecoveryOneMinute, startTimeParam, endTimeParam in
+            update: { recordId, date, distance, duration, averagePace, averageHeartRate, averageCadence, painAreas, runningStyle, memo, shoes, weather, difficultyLevel, routeData, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength, restingHeartRate, runningPower, runningStrideLength, heartRateRecoveryOneMinute, startTimeParam, endTimeParam in
                 guard var existingRecord = storage[recordId] else { return }
                 // Update only non-nil values
-                if let distance { existingRecord = Diary(id: existingRecord.id, yearMonthDay: existingRecord.yearMonthDay, distanceInKilometers: distance, durationInSeconds: existingRecord.durationInSeconds, averagePace: existingRecord.averagePace, averageHeartRate: existingRecord.averageHeartRate, averageCadence: existingRecord.averageCadence, runningStyle: existingRecord.runningStyle, condition: existingRecord.condition, startTime: existingRecord.startTime, endTime: existingRecord.endTime) }
+                if let distance {
+                    let oldWorkout = existingRecord.workout
+                    let newWorkout = HealthKitWorkout(
+                        distance: distance,
+                        duration: oldWorkout.duration,
+                        averagePace: oldWorkout.averagePace,
+                        averageHeartRate: oldWorkout.averageHeartRate,
+                        averageCadence: oldWorkout.averageCadence,
+                        activeEnergyBurned: oldWorkout.activeEnergyBurned,
+                        runningVerticalOscillation: oldWorkout.runningVerticalOscillation,
+                        runningGroundContactTime: oldWorkout.runningGroundContactTime,
+                        walkingStepLength: oldWorkout.walkingStepLength,
+                        restingHeartRate: oldWorkout.restingHeartRate,
+                        runningPower: oldWorkout.runningPower,
+                        runningStrideLength: oldWorkout.runningStrideLength,
+                        heartRateRecoveryOneMinute: oldWorkout.heartRateRecoveryOneMinute,
+                        routeData: oldWorkout.routeData,
+                        startDate: oldWorkout.startTime,
+                        endDate: oldWorkout.endTime
+                    )
+                    existingRecord = Diary(
+                        id: existingRecord.id,
+                        workout: newWorkout,
+                        painAreas: existingRecord.painAreas,
+                        runningStyle: existingRecord.runningStyle,
+                        memo: existingRecord.memo,
+                        shoes: existingRecord.shoes,
+                        weather: existingRecord.weather,
+                        difficultyLevel: existingRecord.difficultyLevel
+                    )
+                }
                 storage[recordId] = existingRecord
             },
             delete: { record in
@@ -461,12 +577,12 @@ struct PersistencesClientTests {
 
         let fetched = try await client.fetch(testDate)
         #expect(fetched != nil)
-        #expect(fetched?.distanceInKilometers == 5.0)
+        #expect(fetched?.workout.distance == 5.0)
 
         try await client.updateRecord(recordId: originalId, distance: 7.5)
 
         let fetchedAgain = try await client.fetch(testDate)
-        #expect(fetchedAgain?.distanceInKilometers == 7.5)
+        #expect(fetchedAgain?.workout.distance == 7.5)
     }
 
     @Test("통합: save -> fetchRecords 흐름")
@@ -486,10 +602,10 @@ struct PersistencesClientTests {
 
         let client = makeTestClient(
             fetch: { date in
-                storage.values.first { Calendar.current.isDate($0.yearMonthDay.toDate(), inSameDayAs: date) }
+                storage.values.first { Calendar.current.isDate($0.workout.yearMonthDay.toDate(), inSameDayAs: date) }
             },
             fetchRecords: { start, end in
-                storage.values.filter { $0.startTime >= start && $0.startTime <= end }.sorted { $0.startTime < $1.startTime }
+                storage.values.filter { $0.workout.startTime >= start && $0.workout.startTime <= end }.sorted { $0.workout.startTime < $1.workout.startTime }
             },
             save: { record in
                 storage[record.id] = record
@@ -497,29 +613,51 @@ struct PersistencesClientTests {
         )
 
         let record1 = Diary(
-            yearMonthDay: day1,
-            distanceInKilometers: 5.0,
-            durationInSeconds: 1500,
-            averagePace: "5'00\"",
-            averageHeartRate: 145,
-            averageCadence: 165,
+            workout: HealthKitWorkout(
+                distance: 5.0,
+                duration: 1500,
+                averagePace: "5'00\"",
+                averageHeartRate: 145,
+                averageCadence: 165,
+                activeEnergyBurned: 0,
+                runningVerticalOscillation: 0,
+                runningGroundContactTime: 0,
+                walkingStepLength: 0,
+                restingHeartRate: 0,
+                runningPower: 0,
+                runningStrideLength: 0,
+                heartRateRecoveryOneMinute: 0,
+                routeData: nil,
+                startDate: time1Start,
+                endDate: time1End
+            ),
+            painAreas: [],
             runningStyle: .forefoot,
-            condition: RunningCondition(sleep: 7, memo: nil),
-            startTime: time1Start,
-            endTime: time1End
+            memo: nil
         )
 
         let record2 = Diary(
-            yearMonthDay: day2,
-            distanceInKilometers: 7.0,
-            durationInSeconds: 2100,
-            averagePace: "5'00\"",
-            averageHeartRate: 150,
-            averageCadence: 170,
+            workout: HealthKitWorkout(
+                distance: 7.0,
+                duration: 2100,
+                averagePace: "5'00\"",
+                averageHeartRate: 150,
+                averageCadence: 170,
+                activeEnergyBurned: 0,
+                runningVerticalOscillation: 0,
+                runningGroundContactTime: 0,
+                walkingStepLength: 0,
+                restingHeartRate: 0,
+                runningPower: 0,
+                runningStrideLength: 0,
+                heartRateRecoveryOneMinute: 0,
+                routeData: nil,
+                startDate: time2Start,
+                endDate: time2End
+            ),
+            painAreas: [],
             runningStyle: .midfoot,
-            condition: RunningCondition(sleep: 6, memo: nil),
-            startTime: time2Start,
-            endTime: time2End
+            memo: nil
         )
 
         try await client.save(record1)
@@ -527,8 +665,8 @@ struct PersistencesClientTests {
 
         let records = try await client.fetchRecords(startDate, endDate)
         #expect(records.count == 2)
-        #expect(records[0].distanceInKilometers == 5.0)
-        #expect(records[1].distanceInKilometers == 7.0)
+        #expect(records[0].workout.distance == 5.0)
+        #expect(records[1].workout.distance == 7.0)
     }
 
     @Test("통합: save -> delete -> fetch 흐름")
@@ -543,7 +681,7 @@ struct PersistencesClientTests {
 
         let client = makeTestClient(
             fetch: { date in
-                storage.values.first { Calendar.current.isDate($0.yearMonthDay.toDate(), inSameDayAs: date) }
+                storage.values.first { Calendar.current.isDate($0.workout.yearMonthDay.toDate(), inSameDayAs: date) }
             },
             fetchRecords: { _, _ in Array(storage.values) },
             save: { record in
@@ -555,16 +693,27 @@ struct PersistencesClientTests {
         )
 
         let newRecord = Diary(
-            yearMonthDay: yearMonthDay,
-            distanceInKilometers: 6.0,
-            durationInSeconds: 1800,
-            averagePace: "5'00\"",
-            averageHeartRate: 150,
-            averageCadence: 170,
+            workout: HealthKitWorkout(
+                distance: 6.0,
+                duration: 1800,
+                averagePace: "5'00\"",
+                averageHeartRate: 150,
+                averageCadence: 170,
+                activeEnergyBurned: 0,
+                runningVerticalOscillation: 0,
+                runningGroundContactTime: 0,
+                walkingStepLength: 0,
+                restingHeartRate: 0,
+                runningPower: 0,
+                runningStrideLength: 0,
+                heartRateRecoveryOneMinute: 0,
+                routeData: nil,
+                startDate: startTime,
+                endDate: endTime
+            ),
+            painAreas: [],
             runningStyle: .midfoot,
-            condition: RunningCondition(sleep: 7, memo: nil),
-            startTime: startTime,
-            endTime: endTime
+            memo: nil
         )
 
         try await client.save(newRecord)

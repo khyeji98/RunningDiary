@@ -27,7 +27,7 @@ struct PersistencesClient {
         _ averageCadence: Int?,
         _ painAreas: [PainArea]?,
         _ runningStyle: RunninStyle?,
-        _ condition: RunningCondition?,
+        _ memo: String?,
         _ shoes: String?,
         _ weather: WeatherData?,
         _ difficultyLevel: DifficultyLevel?,
@@ -58,7 +58,7 @@ extension PersistencesClient {
         averageCadence: Int? = nil,
         painAreas: [PainArea]? = nil,
         runningStyle: RunninStyle? = nil,
-        condition: RunningCondition? = nil,
+        memo: String? = nil,
         shoes: String? = nil,
         weather: WeatherData? = nil,
         difficultyLevel: DifficultyLevel? = nil,
@@ -77,7 +77,7 @@ extension PersistencesClient {
         try await self.update(
             recordId, date, distance, duration, averagePace,
             averageHeartRate, averageCadence, painAreas, runningStyle,
-            condition, shoes, weather, difficultyLevel, routeData,
+            memo, shoes, weather, difficultyLevel, routeData,
             activeEnergyBurned, runningVerticalOscillation,
             runningGroundContactTime, walkingStepLength,
             restingHeartRate, runningPower, runningStrideLength,
@@ -100,7 +100,7 @@ extension PersistencesClient {
             save: { record in
                 try await repository.saveRunningRecord(record)
             },
-            update: { recordId, date, distance, duration, averagePace, averageHeartRate, averageCadence, painAreas, runningStyle, condition, shoes, weather, difficultyLevel, routeData, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength, restingHeartRate, runningPower, runningStrideLength, heartRateRecoveryOneMinute, startTime, endTime in
+            update: { recordId, date, distance, duration, averagePace, averageHeartRate, averageCadence, painAreas, runningStyle, memo, shoes, weather, difficultyLevel, routeData, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength, restingHeartRate, runningPower, runningStrideLength, heartRateRecoveryOneMinute, startTime, endTime in
                 try await repository.updateRunningRecord(
                     recordId: recordId,
                     date: date,
@@ -111,7 +111,7 @@ extension PersistencesClient {
                     averageCadence: averageCadence,
                     painAreas: painAreas,
                     runningStyle: runningStyle,
-                    condition: condition,
+                    memo: memo,
                     shoes: shoes,
                     weather: weather,
                     difficultyLevel: difficultyLevel,

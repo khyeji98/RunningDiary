@@ -45,6 +45,7 @@ struct DailyDetailView: View {
             .task {
                 store.send(.onAppear)
             }
+            .toolbar(.hidden, for: .navigationBar)
         }
         .sheet(store: store.scope(state: \.$calendar, action: \.calendar)) { calendarStore in
             CalendarView(store: calendarStore)
@@ -141,15 +142,15 @@ struct RecordContentSection: View {
     )
 }
 
-#Preview("With Record", traits: .sampleData) {
+#Preview("With Diary", traits: .sampleData) {
     let previewRecord = RunningRecordPersistenceModel.preview.toDomain()
-    let previewDate = Calendar.current.startOfDay(for: previewRecord.startTime)
+    let previewDate = Calendar.current.startOfDay(for: previewRecord.workout.startTime)
     let previewKey = YearMonthDay(date: previewDate)
 
     DailyDetailView(
         store: Store(
             initialState: DailyDetailFeature.State(
-                selectedDate: previewRecord.yearMonthDay
+                selectedDate: previewRecord.workout.yearMonthDay
             )
         ) {
             DailyDetailFeature()

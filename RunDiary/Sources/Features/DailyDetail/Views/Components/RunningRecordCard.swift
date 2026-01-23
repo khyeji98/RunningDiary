@@ -43,15 +43,15 @@ private struct TopSection: View {
             HStack {
                 Spacer()
 
-                Text(record.startTime.formattedString(formatter: .hourMinutes))
+                Text(record.workout.startTime.formattedString(formatter: .hourMinutes))
                     .font(.subheadline)
                     .foregroundStyle(.gray500)
             }
 
             // 2. Hero: Distance & Summary (The Title)
             L10n.recordHeroSummary.text(
-                record.distanceInKilometers.to2f,
-                record.formattedDuration
+                record.workout.distance.to2f,
+                record.workout.formattedDuration
             )
             .font(.system(size: 30))
             .foregroundStyle(.primary)
@@ -87,42 +87,42 @@ private struct ExpandedContentView: View {
                 LazyVGrid(columns: gridColumns, alignment: .leading, spacing: 12) {
                     RecordVerticalRow(
                         title: L10n.recordFieldPace.value,
-                        value: record.averagePace
+                        value: record.workout.averagePace
                     )
                     RecordVerticalRow(
                         title: L10n.recordFieldHeartRate.value,
-                        value: "\(record.averageHeartRate) bpm"
+                        value: "\(record.workout.averageHeartRate) bpm"
                     )
                     RecordVerticalRow(
                         title: L10n.recordFieldCadence.value,
-                        value: "\(record.averageCadence) spm"
+                        value: "\(record.workout.averageCadence) spm"
                     )
 
-                    if let activeEnergy = record.activeEnergyBurned {
+                    if record.workout.activeEnergyBurned > 0 {
                         RecordVerticalRow(
                             title: L10n.recordFieldActiveEnergy.value,
-                            value: String(format: "%.0f kcal", activeEnergy)
+                            value: String(format: "%.0f kcal", record.workout.activeEnergyBurned)
                         )
                     }
 
-                    if let power = record.runningPower, power > 0 {
+                    if record.workout.runningPower > 0 {
                         RecordVerticalRow(
                             title: L10n.recordFieldRunningPower.value,
-                            value: "\(Int(power))W"
+                            value: "\(Int(record.workout.runningPower))W"
                         )
                     }
 
-                    if let vo = record.runningVerticalOscillation, vo > 0 {
+                    if record.workout.runningVerticalOscillation > 0 {
                         RecordVerticalRow(
                             title: L10n.recordFieldVerticalOscillation.value,
-                            value: "\(String(format: "%.1f", vo)) cm"
+                            value: "\(String(format: "%.1f", record.workout.runningVerticalOscillation)) cm"
                         )
                     }
 
-                    if let gct = record.runningGroundContactTime, gct > 0 {
+                    if record.workout.runningGroundContactTime > 0 {
                         RecordVerticalRow(
                             title: L10n.recordFieldGroundContactTime.value,
-                            value: "\(Int(gct)) ms"
+                            value: "\(Int(record.workout.runningGroundContactTime)) ms"
                         )
                     }
                 }
@@ -149,7 +149,7 @@ private struct ExpandedContentView: View {
             }
 
             // 5. Diary Entry (Memo) - Moved to bottom
-            if let memo = record.condition.memo, !memo.isEmpty {
+            if let memo = record.memo, !memo.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Image(systemName: "quote.opening")
                         .foregroundStyle(.gray300)
@@ -170,7 +170,7 @@ private struct ExpandedContentView: View {
             }
 
             // 6. Route Map Section (경로 데이터가 있을 때만)
-            if let routeData = record.routeData,
+            if let routeData = record.workout.routeData,
                let locations = try? JSONDecoder().decode([Location].self, from: routeData),
                !locations.isEmpty {
                 Divider()
@@ -390,29 +390,30 @@ struct SectionHeader: View {
         VStack {
             RunningRecordCard(
                 record: Diary(
-                    yearMonthDay: YearMonthDay(year: 2025, month: 10, day: 24),
-                    distanceInKilometers: 5.23,
-                    durationInSeconds: 1935,
-                    averagePace: "6'10\"",
-                    averageHeartRate: 156,
-                    averageCadence: 178,
-                    painAreas: [.knee, .ankle],
+                    workout: HealthKitWorkout(
+                        distance: 5.23,
+                        duration: 1935,
+                        averagePace: "6'10\"",
+                        averageHeartRate: 156,
+                        averageCadence: 178,
+                        activeEnergyBurned: 450.0,
+                        runningVerticalOscillation: 8.2,
+                        runningGroundContactTime: 240.0,
+                        walkingStepLength: 1.1,
+                        restingHeartRate: 55.0,
+                        runningPower: 280.0,
+                        runningStrideLength: 1.25,
+                        heartRateRecoveryOneMinute: 25.0,
+                        routeData: routeData,
+                        startDate: Date(),
+                        endDate: Date().addingTimeInterval(1935)
+                    ),
+                    painAreas: [.knee, .shin],
                     runningStyle: .midfoot,
-                    condition: RunningCondition(sleep: 7, memo: "Good run!"),
+                    memo: "Good run!",
                     shoes: "nike-alphafly-3",
                     weather: WeatherData(temperature: 18, humidity: 60, windSpeed: 32),
-                    difficultyLevel: .hard,
-                    routeData: routeData,
-                    activeEnergyBurned: 450.0,
-                    runningVerticalOscillation: 8.2,
-                    runningGroundContactTime: 240.0,
-                    walkingStepLength: 1.1,
-                    restingHeartRate: 55.0,
-                    runningPower: 280.0,
-                    runningStrideLength: 1.25,
-                    heartRateRecoveryOneMinute: 25.0,
-                    startTime: Date(),
-                    endTime: Date().addingTimeInterval(1935)
+                    difficultyLevel: .hard
                 ),
                 onEdit: {}
             )

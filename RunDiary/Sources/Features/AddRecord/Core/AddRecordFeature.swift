@@ -11,59 +11,54 @@ import Foundation
 import Models
 import PersistencesService
 
-nonisolated enum RecordMode: Equatable {
-    case add
-    case edit
-}
-
 @Reducer
 struct AddRecordFeature {
     @ObservableState
     struct State: Equatable {
-        var mode: RecordMode {
-            guard existingRecord == nil else { return .edit }
-            return healthKitWorkout.data != nil ? .add : .edit
-        }
-
         var existingRecord: Diary?
-        var healthKitWorkout: HealthKitWorkoutFeature.State
-        var condition: RunningConditionFeature.State
-        var selectedDifficultyLevel: DifficultyLevel?
+        var healthKitWorkout: HealthKitWorkout
 
-        var weather: WeatherData?
+        var selectedPainAreas: Set<PainArea>
+        var selectedRunningStyle: RunninStyle?
+        var selectedShoe: ShoeModel?
+        var selectedDifficultyLevel: DifficultyLevel?
+        var memo: String
+
+        var weather: WeatherData? = nil
 
         var isLoading: Bool = false
         var errorMassage: String?
 
         var isFormValid: Bool {
-            guard healthKitWorkout.data != nil else { return false }
-            guard condition.selectedShoe != nil else { return false }
-            guard condition.selectedRunningStyle != nil else { return false }
-            guard !condition.sleepHours.isEmpty,
-                  let sleepHoursValue = Int(condition.sleepHours),
-                  sleepHoursValue >= 1 && sleepHoursValue <= 24
-            else { return false }
+            guard selectedShoe != nil else { return false }
+            guard selectedRunningStyle != nil else { return false }
             guard selectedDifficultyLevel != nil else { return false }
             return true
         }
 
         init(
             existingRecord: Diary? = nil,
-            healthKitWorkout: HealthKitWorkout? = nil
+            healthKitWorkout: HealthKitWorkout
         ) {
             self.existingRecord = existingRecord
-            self.healthKitWorkout = HealthKitWorkoutFeature.State(data: healthKitWorkout)
-            self.condition = RunningConditionFeature.State(existingRecord: existingRecord)
+            self.healthKitWorkout = healthKitWorkout
+            self.selectedPainAreas = Set(existingRecord?.painAreas ?? [])
+            self.selectedRunningStyle = existingRecord?.runningStyle
+            self.selectedShoe = ShoeStorage.search(id: existingRecord?.shoes ?? "")
+            self.selectedDifficultyLevel = existingRecord?.difficultyLevel ?? .medium
+            self.memo = existingRecord?.memo ?? ""
         }
     }
 
     enum Action {
         case onAppear
-        case healthKitWorkout(HealthKitWorkoutFeature.Action)
-        case condition(RunningConditionFeature.Action)
+        case updateSelectedPainAreas(Set<PainArea>)
+        case updateSelectedRunningStyle(RunninStyle?)
+        case updateSelectedShoe(ShoeModel?)
         case updateSelectedDifficultyLevel(DifficultyLevel?)
-        case saveRecord
+        case updateMemo(String)
         case weatherFetched(WeatherData?)
+        case saveRecord
         case recordSaved
         case recordSaveFailed(String)
     }
@@ -73,14 +68,6 @@ struct AddRecordFeature {
     @Dependency(\.dismiss) var dismiss
 
     var body: some Reducer<State, Action> {
-        Scope(state: \.healthKitWorkout, action: \.healthKitWorkout) {
-            HealthKitWorkoutFeature()
-        }
-
-        Scope(state: \.condition, action: \.condition) {
-            RunningConditionFeature()
-        }
-
         Reduce { state, action in
             switch action {
             case .onAppear:
@@ -90,32 +77,50 @@ struct AddRecordFeature {
                 }
                 return .none
 
-            case .healthKitWorkout:
+            case .updateSelectedPainAreas(let areas):
+                state.selectedPainAreas = areas
                 return .none
 
-            case .condition:
+            case .updateSelectedRunningStyle(let style):
+                state.selectedRunningStyle = style
+                return .none
+
+            case .updateSelectedShoe(let shoe):
+                state.selectedShoe = shoe
                 return .none
 
             case .updateSelectedDifficultyLevel(let level):
                 state.selectedDifficultyLevel = level
                 return .none
 
+            case .updateMemo(let text):
+                state.memo = text
+                return .none
+
+            case .weatherFetched(let weather):
+                state.weather = weather
+                return .none
+
             case .saveRecord:
-                guard let healthKitWorkout = state.healthKitWorkout.data else { return .none }
                 state.isLoading = true
                 state.errorMassage = nil
 
-                let location = extractLocationFromRoute(healthKitWorkout.routeData)
-                let yearMonthDay = YearMonthDay(date: healthKitWorkout.startTime)
-                let condition = state.condition
-                let existingRecordId = state.existingRecord?.id
-                let mode = state.mode
+                let id = state.existingRecord?.id ?? UUID()
+                let workout = state.healthKitWorkout
+                let location = extractLocationFromRoute(workout.routeData)
+                let yearMonthDay = YearMonthDay(date: workout.startTime)
                 let difficultyLevel = state.selectedDifficultyLevel
 
-                let startInterval = healthKitWorkout.startTime.timeIntervalSince1970
-                let endInterval = healthKitWorkout.endTime.timeIntervalSince1970
+                let startInterval = workout.startTime.timeIntervalSince1970
+                let endInterval = workout.endTime.timeIntervalSince1970
                 let middleInterval = (startInterval + endInterval) / 2.0
                 let middleTime = Date(timeIntervalSince1970: middleInterval)
+
+                let painAreas = state.selectedPainAreas
+                let runningStyle = state.selectedRunningStyle
+                let memo = state.memo
+                let shoeId = state.selectedShoe?.id ?? ""
+                let isNewRecord = state.existingRecord == nil
 
                 return .run { send in
                     do {
@@ -133,37 +138,18 @@ struct AddRecordFeature {
                             weather = nil
                         }
 
-                        let record = await Diary(
-                            id: existingRecordId ?? UUID(),
-                            yearMonthDay: yearMonthDay,
-                            distanceInKilometers: healthKitWorkout.distance,
-                            durationInSeconds: healthKitWorkout.duration,
-                            averagePace: healthKitWorkout.averagePace,
-                            averageHeartRate: healthKitWorkout.averageHeartRate,
-                            averageCadence: healthKitWorkout.averageCadence,
-                            painAreas: Array(condition.selectedPainAreas),
-                            runningStyle: condition.selectedRunningStyle,
-                            condition: RunningCondition(
-                                sleep: Int(condition.sleepHours),
-                                memo: condition.memo.isEmpty ? nil : condition.memo
-                            ),
-                            shoes: condition.selectedShoe?.id ?? "",
+                        let record = Diary(
+                            id: id,
+                            workout: workout,
+                            painAreas: Array(painAreas),
+                            runningStyle: runningStyle,
+                            memo: memo.isEmpty ? nil : memo,
+                            shoes: shoeId,
                             weather: weather,
-                            difficultyLevel: difficultyLevel,
-                            routeData: healthKitWorkout.routeData,
-                            activeEnergyBurned: healthKitWorkout.activeEnergyBurned,
-                            runningVerticalOscillation: healthKitWorkout.runningVerticalOscillation,
-                            runningGroundContactTime: healthKitWorkout.runningGroundContactTime,
-                            walkingStepLength: healthKitWorkout.walkingStepLength,
-                            restingHeartRate: healthKitWorkout.restingHeartRate,
-                            runningPower: healthKitWorkout.runningPower,
-                            runningStrideLength: healthKitWorkout.runningStrideLength,
-                            heartRateRecoveryOneMinute: healthKitWorkout.heartRateRecoveryOneMinute,
-                            startTime: healthKitWorkout.startTime,
-                            endTime: healthKitWorkout.endTime
+                            difficultyLevel: difficultyLevel
                         )
 
-                        if mode == .add {
+                        if isNewRecord {
                             try await runningRecordClient.saveRecord(record)
                         } else {
                             try await runningRecordClient.updateRecord(record)
@@ -178,10 +164,6 @@ struct AddRecordFeature {
                         }
                     }
                 }
-
-            case .weatherFetched(let weather):
-                state.weather = weather
-                return .none
 
             case .recordSaved:
                 state.isLoading = false

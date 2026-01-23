@@ -6,29 +6,17 @@
 //
 
 import SwiftUI
+import Models
 
 struct HealthKitSectionView: View {
-    let distance: String
-    let duration: String
-    let averagePace: String
-    let averageHeartRate: String
-    let averageCadence: String
+    let workout: HealthKitWorkout
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
-                L10n.recordFitnessData.text
+                Text("record.section.workout")
                     .font(.headline)
                     .foregroundStyle(.blue700)
-
-                // HealthKit 출처 라벨
-                L10n.healthkitSourceLabel.text
-                    .font(.caption)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.pink)
-                    .cornerRadius(8)
             }
             .padding(.bottom, 4)
 
@@ -37,7 +25,7 @@ struct HealthKitSectionView: View {
                     L10n.recordFieldDistance.text
                         .foregroundColor(.gray500)
                     Spacer()
-                    Text(distance)
+                    Text(workout.formattedDistance)
                         .foregroundStyle(.blue700)
                     L10n.unitKm.text
                         .foregroundColor(.gray)
@@ -47,7 +35,7 @@ struct HealthKitSectionView: View {
                     L10n.recordFieldDuration.text
                         .foregroundColor(.gray500)
                     Spacer()
-                    Text(duration)
+                    Text(workout.formattedDuration)
                         .foregroundStyle(.blue700)
                 }
 
@@ -55,7 +43,7 @@ struct HealthKitSectionView: View {
                     L10n.recordFieldPace.text
                         .foregroundColor(.gray500)
                     Spacer()
-                    Text(averagePace)
+                    Text(workout.averagePace)
                         .foregroundStyle(.blue700)
                 }
 
@@ -63,7 +51,7 @@ struct HealthKitSectionView: View {
                     L10n.recordFieldHeartRate.text
                         .foregroundColor(.gray500)
                     Spacer()
-                    Text(averageHeartRate)
+                    Text(workout.formattedAverageHeartRate)
                         .foregroundStyle(.blue700)
                     L10n.unitBpm.text
                         .foregroundColor(.gray)
@@ -73,15 +61,72 @@ struct HealthKitSectionView: View {
                     L10n.recordFieldCadence.text
                         .foregroundColor(.gray500)
                     Spacer()
-                    Text(averageCadence)
+                    Text(workout.formattedAverageCadence)
                         .foregroundStyle(.blue700)
                     L10n.unitSpm.text
                         .foregroundColor(.gray500)
                 }
+
+                if !workout.formattedActiveEnergyBurned.isEmpty {
+                    HStack {
+                        L10n.recordFieldActiveEnergy.text
+                            .foregroundColor(.gray500)
+                        Spacer()
+                        Text(workout.formattedActiveEnergyBurned)
+                            .foregroundStyle(.blue700)
+                        L10n.unitKcal.text
+                            .foregroundColor(.gray500)
+                    }
+                }
+
+                if !workout.formattedRunningPower.isEmpty {
+                    HStack {
+                        L10n.recordFieldRunningPower.text
+                            .foregroundColor(.gray500)
+                        Spacer()
+                        Text(workout.formattedRunningPower)
+                            .foregroundStyle(.blue700)
+                        L10n.unitWatts.text
+                            .foregroundColor(.gray500)
+                    }
+                }
+
+                if !workout.formattedVerticalOscillation.isEmpty {
+                    HStack {
+                        L10n.recordFieldVerticalOscillation.text
+                            .foregroundColor(.gray500)
+                        Spacer()
+                        Text(workout.formattedVerticalOscillation)
+                            .foregroundStyle(.blue700)
+                        L10n.unitCm.text
+                            .foregroundColor(.gray500)
+                    }
+                }
+
+                if !workout.formattedGroundContactTime.isEmpty {
+                    HStack {
+                        L10n.recordFieldGroundContactTime.text
+                            .foregroundColor(.gray500)
+                        Spacer()
+                        Text(workout.formattedGroundContactTime)
+                            .foregroundStyle(.blue700)
+                        L10n.unitMs.text
+                            .foregroundColor(.gray500)
+                    }
+                }
             }
+            
+            HStack {
+                Spacer()
+                Text("common.from_apple_health")
+                    .font(.caption)
+                    .foregroundStyle(.gray)
+            }
+            .padding(.top, 4)
         }
         .padding()
-        .background(Color.white)
+        .background(Color.gray100.opacity(0.4))
         .cornerRadius(12)
     }
 }
+

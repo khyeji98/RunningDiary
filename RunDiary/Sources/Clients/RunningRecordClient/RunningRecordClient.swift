@@ -61,25 +61,25 @@ extension RunningRecordClient: DependencyKey {
             @Dependency(\.persistencesClient) var persistencesClient
             try await persistencesClient.updateRecord(
                 recordId: record.id,
-                date: record.yearMonthDay,
-                distance: record.distanceInKilometers,
-                duration: record.durationInSeconds,
-                averagePace: record.averagePace,
-                averageHeartRate: record.averageHeartRate,
-                averageCadence: record.averageCadence,
+                date: record.workout.yearMonthDay,
+                distance: record.workout.distance,
+                duration: record.workout.duration,
+                averagePace: record.workout.averagePace,
+                averageHeartRate: record.workout.averageHeartRate,
+                averageCadence: record.workout.averageCadence,
                 painAreas: record.painAreas,
                 runningStyle: record.runningStyle,
-                condition: record.condition,
+                memo: record.memo,
                 shoes: record.shoes,
                 weather: record.weather,
                 difficultyLevel: record.difficultyLevel,
-                routeData: record.routeData,
-                activeEnergyBurned: record.activeEnergyBurned,
-                runningVerticalOscillation: record.runningVerticalOscillation,
-                runningGroundContactTime: record.runningGroundContactTime,
-                walkingStepLength: record.walkingStepLength,
-                startTime: record.startTime,
-                endTime: record.endTime
+                routeData: record.workout.routeData,
+                activeEnergyBurned: record.workout.activeEnergyBurned,
+                runningVerticalOscillation: record.workout.runningVerticalOscillation,
+                runningGroundContactTime: record.workout.runningGroundContactTime,
+                walkingStepLength: record.workout.walkingStepLength,
+                startTime: record.workout.startTime,
+                endTime: record.workout.endTime
             )
         }
     )
@@ -113,7 +113,7 @@ extension RunningRecordClient: DependencyKey {
     ) -> [YearMonthDay: DailyRecord] {
         // 1. 날짜별 그룹핑
         let groupedHK = Dictionary(grouping: healthKitWorkouts, by: \.yearMonthDay)
-        let groupedRecords = Dictionary(grouping: savedRecords, by: \.yearMonthDay)
+        let groupedRecords = Dictionary(grouping: savedRecords, by: \.workout.yearMonthDay)
 
         // 2. 요청 범위의 모든 날짜 생성
         let allDates = Self.generateDateRange(from: from, to: to)
@@ -126,7 +126,7 @@ extension RunningRecordClient: DependencyKey {
 
             // 4. 중복 제거: SwiftData에 저장된 것은 HealthKit에서 제외
             let filteredHealthKit = healthKit.filter { workout in
-                !saved.contains(where: { $0.startTime == workout.startTime })
+                !saved.contains(where: { $0.workout.startTime == workout.startTime })
             }
 
             result[date] = DailyRecord(
@@ -163,16 +163,16 @@ extension RunningRecordClient: DependencyKey {
         var migrationOccurred = false
 
         for savedRecord in savedRecords {
-            // 마이그레이션이 필요한지 확인 (새 필드 중 하나라도 nil이면)
-            let needsMigration = savedRecord.activeEnergyBurned == nil
-                || savedRecord.runningVerticalOscillation == nil
-                || savedRecord.runningGroundContactTime == nil
-                || savedRecord.walkingStepLength == nil
+            // 마이그레이션이 필요한지 확인 (새 필드 중 하나라도 0이면)
+            let needsMigration = savedRecord.workout.activeEnergyBurned == 0
+                || savedRecord.workout.runningVerticalOscillation == 0
+                || savedRecord.workout.runningGroundContactTime == 0
+                || savedRecord.workout.walkingStepLength == 0
 
             guard needsMigration else { continue }
 
             // startTime으로 매칭되는 HealthKit workout 찾기
-            guard let matchingWorkout = healthKitWorkouts.first(where: { $0.startTime == savedRecord.startTime }) else {
+            guard let matchingWorkout = healthKitWorkouts.first(where: { $0.startTime == savedRecord.workout.startTime }) else {
                 continue
             }
 

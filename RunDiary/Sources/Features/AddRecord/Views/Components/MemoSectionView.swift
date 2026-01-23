@@ -16,19 +16,23 @@ struct MemoSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            L10n.recordFieldMemo.text
+            Text("record.section.memo")
                 .font(.headline)
                 .padding(.bottom, 4)
 
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $memo)
                     .frame(minHeight: 150)
-                    .padding(4)
+                    .padding(6)
                     .background(Color(.systemBackground))
                     .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray100, lineWidth: 1)
+                    )
 
                 if memo.isEmpty {
-                    Text(L10n.recordFieldMemoPlaceholder.value)
+                    Text("record.placeholder.memo_new")
                         .foregroundColor(.gray)
                         .padding(.top, 12)
                         .padding(.leading, 9)

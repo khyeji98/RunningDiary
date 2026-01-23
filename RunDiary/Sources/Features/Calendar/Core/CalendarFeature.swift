@@ -113,7 +113,7 @@ struct CalendarFeature {
                 // monthlyTotals 계산
                 for (yearMonthDay, dailyRecord) in dailyRecords {
                     let yearMonth = yearMonthDay.toYearMonth()
-                    let totalDistances = dailyRecord.savedRecords.reduce(0.0) { $0 + $1.distanceInKilometers }
+                    let totalDistances = dailyRecord.savedRecords.reduce(0.0) { $0 + $1.workout.distance }
                     state.monthlyTotals[yearMonth, default: 0] += totalDistances
                 }
 
