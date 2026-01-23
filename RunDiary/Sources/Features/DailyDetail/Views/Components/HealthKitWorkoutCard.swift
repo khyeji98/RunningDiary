@@ -38,7 +38,7 @@ struct HealthKitWorkoutCard: View {
                 }
 
                 // Main distance title (bold)
-                Text("\(workout.distance.to2f) km")
+                Text("\(workout.distance.to2f) \(L10n.unitKm.value)")
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
@@ -56,11 +56,11 @@ struct HealthKitWorkoutCard: View {
                 )
                 RecordVerticalRow(
                     title: L10n.recordFieldHeartRate.value,
-                    value: "\(workout.averageHeartRate) bpm"
+                    value: "\(workout.averageHeartRate) \(L10n.unitBpm.value)"
                 )
                 RecordVerticalRow(
                     title: L10n.recordFieldCadence.value,
-                    value: "\(workout.averageCadence) spm"
+                    value: "\(workout.averageCadence) \(L10n.unitSpm.value)"
                 )
             }
 
@@ -106,7 +106,7 @@ private struct BlurredPlaceholderView: View {
 private struct PlaceholderItem: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("More Data")
+            L10n.recordMoreData.text
                 .font(.caption)
                 .foregroundColor(.gray500)
             Text("--")

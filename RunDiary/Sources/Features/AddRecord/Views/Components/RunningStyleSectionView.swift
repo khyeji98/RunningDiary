@@ -14,9 +14,13 @@ struct RunningStyleSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            L10n.recordFieldRunningStyle.text
-                .font(.headline)
-                .padding(.bottom, 4)
+            HStack(spacing: 2) {
+                Text("record.section.running_style")
+                Text("*")
+                    .foregroundColor(.red)
+            }
+            .font(.headline)
+            .padding(.bottom, 4)
 
             Menu {
                 ForEach(styleOptions, id: \.self) { style in

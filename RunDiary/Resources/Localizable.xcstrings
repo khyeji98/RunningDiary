@@ -7,8 +7,15 @@
     "--" : {
 
     },
-    "%@ km" : {
-
+    "%@ %@" : {
+      "localizations" : {
+        "ko" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
     },
     "%lld%%" : {
 
@@ -571,9 +578,6 @@
         }
       }
     },
-    "More Data" : {
-
-    },
     "pain_area.achilles" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -597,48 +601,25 @@
         }
       }
     },
-    "pain_area.ankle" : {
+    "pain_area.chest" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ankle"
+            "value" : "Chest"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "足首"
+            "value" : "Chest"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "발목"
-          }
-        }
-      }
-    },
-    "pain_area.calf" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calf"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ふくらはぎ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "종아리"
+            "value" : "가슴"
           }
         }
       }
@@ -689,6 +670,75 @@
         }
       }
     },
+    "pain_area.neck" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nape"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nape"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "뒷목"
+          }
+        }
+      }
+    },
+    "pain_area.shin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shin"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shin"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "정강이"
+          }
+        }
+      }
+    },
+    "pain_area.shoulder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shoulder"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shoulder"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어깨"
+          }
+        }
+      }
+    },
     "pain_area.sole" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -712,25 +762,25 @@
         }
       }
     },
-    "pain_area.thigh" : {
+    "pain_area.waist" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Thigh"
+            "value" : "Waist"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "太もも"
+            "value" : "Waist"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "허벅지"
+            "value" : "허리"
           }
         }
       }
@@ -1034,29 +1084,7 @@
         }
       }
     },
-    "record.field.intensity" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exercise Intensity"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "運動強度"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "운동 강도"
-          }
-        }
-      }
-    },
+
     "record.field.intensity_placeholder" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1103,52 +1131,7 @@
         }
       }
     },
-    "record.field.memo" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Other Notes"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "その他のメモ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "기타 메모"
-          }
-        }
-      }
-    },
-    "record.field.memo_placeholder" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Leave a note!\nEx) It was hard to run because of the wind😭"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "メモを残してみましょう！\n例）風が強くて走るのが大変でした😭"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "메모를 남겨봐요!\n예) 바람이 불어서 뛰기 힘들었음😭"
-          }
-        }
-      }
-    },
+
     "record.field.pace" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1172,29 +1155,7 @@
         }
       }
     },
-    "record.field.pain_areas" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pain Areas"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "痛みのある部位"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "통증 부위"
-          }
-        }
-      }
-    },
+
     "record.field.running_power" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1218,52 +1179,7 @@
         }
       }
     },
-    "record.field.running_style" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Running Style"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "走法"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "주법"
-          }
-        }
-      }
-    },
-    "record.field.running_style_label" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Running Style"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "走法"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "주법"
-          }
-        }
-      }
-    },
+
     "record.field.running_style_placeholder" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1287,52 +1203,7 @@
         }
       }
     },
-    "record.field.shoes" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Worn Shoes"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "着用したシューズ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "착용 신발"
-          }
-        }
-      }
-    },
-    "record.field.shoes_label" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Worn Shoes"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "着用したシューズ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "착용 신발"
-          }
-        }
-      }
-    },
+
     "record.field.shoes_placeholder" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1448,6 +1319,29 @@
         }
       }
     },
+    "record.more_data" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More Data"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "その他のデータ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 많은 데이터"
+          }
+        }
+      }
+    },
     "record.section.how_run" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1513,6 +1407,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "🔥 퍼포먼스는 어때요?"
+          }
+        }
+      }
+    },
+    "record.section.difficulty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How hard was it?"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "얼마나 힘들었나요?"
+          }
+        }
+      }
+    },
+    "record.section.memo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please enter any other experiences you want to record!"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 기록하고 싶은 경험을 입력해주세요!"
+          }
+        }
+      }
+    },
+    "record.section.pain_areas" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Did you have any pain areas?"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아픈 부위가 있었나요?"
+          }
+        }
+      }
+    },
+    "record.section.running_style" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What running style did you use?"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어떤 주법으로 달렸나요?"
+          }
+        }
+      }
+    },
+    "record.section.shoes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Which shoes did you wear?"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어떤 운동화를 착용했나요?"
+          }
+        }
+      }
+    },
+    "record.placeholder.memo_new" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ex) Ran overpace, need adjustment!"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ex) 평소보다 오버페이스로 뛰어서 조절이 필요할듯!"
           }
         }
       }
@@ -2115,6 +2111,29 @@
         }
       }
     },
+    "unit.cm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cm"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cm"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cm"
+          }
+        }
+      }
+    },
     "unit.hours" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2134,6 +2153,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "시간"
+          }
+        }
+      }
+    },
+    "unit.kcal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kcal"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kcal"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kcal"
           }
         }
       }
@@ -2161,6 +2203,29 @@
         }
       }
     },
+    "unit.ms" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ms"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ms"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ms"
+          }
+        }
+      }
+    },
     "unit.spm" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2180,6 +2245,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "spm"
+          }
+        }
+      }
+    },
+    "unit.watts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "W"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "W"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "W"
           }
         }
       }
@@ -2479,6 +2567,75 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "오늘의 날씨는 기온 %.0f°, 습도 %d%%, 그리고 바람이 센 편이에요"
+          }
+        }
+      }
+    },
+    "record.section.workout" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workout data loaded!"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "運動記録を読み込みました！"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "운동 기록을 불러왔어요!"
+          }
+        }
+      }
+    },
+    "record.write_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write Diary"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日記を書く"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일기 작성"
+          }
+        }
+      }
+    },
+    "common.from_apple_health" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "from **Apple Health**"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "from **Apple Health**"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "from **Apple Health**"
           }
         }
       }

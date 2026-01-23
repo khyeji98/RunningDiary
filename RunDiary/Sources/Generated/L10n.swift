@@ -243,6 +243,8 @@ enum L10n {
     static let recordSummaryConnector2: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.summary.connector2")
     /// Summary ending (달렸어요!)
     static let recordSummaryEnding: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.summary.ending")
+    /// More Data (placeholder)
+    static let recordMoreData: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.more_data")
     /// Write Diary
     static let recordWriteDiaryButton: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.write_diary_button")
 
@@ -329,15 +331,23 @@ enum L10n {
     /// View Details
     static let uiViewDetails: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.view_details")
 
-    // MARK: - Unit (4 keys)
+    // MARK: - Unit (8 keys)
     /// bpm
     static let unitBpm: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.bpm")
+    /// cm
+    static let unitCm: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.cm")
     /// hours
     static let unitHours: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.hours")
+    /// kcal
+    static let unitKcal: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.kcal")
     /// km
     static let unitKm: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.km")
+    /// ms
+    static let unitMs: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.ms")
     /// spm
     static let unitSpm: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.spm")
+    /// W
+    static let unitWatts: LocalizableKey<LocalizableParameterCount0> = .init(key: "unit.watts")
 
     // MARK: - Weather (1 key)
     /// No weather data

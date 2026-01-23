@@ -20,7 +20,7 @@ struct DayView: View {
 
     private var totalDistance: Double? {
         guard !records.isEmpty else { return nil }
-        return records.reduce(0) { $0 + $1.distanceInKilometers }
+        return records.reduce(0) { $0 + $1.workout.distance }
     }
 
     init(

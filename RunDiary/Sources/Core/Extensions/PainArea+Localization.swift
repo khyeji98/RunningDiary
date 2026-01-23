@@ -13,18 +13,22 @@ extension PainArea {
         switch self {
         case .knee:
             return String(localized: "pain_area.knee")
-        case .ankle:
-            return String(localized: "pain_area.ankle")
-        case .calf:
-            return String(localized: "pain_area.calf")
-        case .thigh:
-            return String(localized: "pain_area.thigh")
-        case .hip:
-            return String(localized: "pain_area.hip")
         case .sole:
             return String(localized: "pain_area.sole")
+        case .shin:
+            return String(localized: "pain_area.shin")
         case .achilles:
             return String(localized: "pain_area.achilles")
+        case .hip:
+            return String(localized: "pain_area.hip")
+        case .shoulder:
+            return String(localized: "pain_area.shoulder")
+        case .neck:
+            return String(localized: "pain_area.neck")
+        case .waist:
+            return String(localized: "pain_area.waist")
+        case .chest:
+            return String(localized: "pain_area.chest")
         }
     }
 }

@@ -13,9 +13,13 @@ struct DifficultyLevelSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            L10n.recordFieldIntensity.text
-                .font(.headline)
-                .padding(.bottom, 4)
+            HStack(spacing: 2) {
+                Text("record.section.difficulty")
+                Text("*")
+                    .foregroundColor(.red)
+            }
+            .font(.headline)
+            .padding(.bottom, 4)
 
             Menu {
                 ForEach(DifficultyLevel.allCases, id: \.self) { level in

@@ -35,7 +35,7 @@ struct DailyDetailFeature {
         }
 
         var filteredWorkoutsOnSelectedDate: [HealthKitWorkout] {
-            let diaryStartTimes = Set(diariesOnSelectedDate.map { $0.startTime })
+            let diaryStartTimes = Set(diariesOnSelectedDate.map { $0.workout.startTime })
             return workoutsOnSelectedDate.filter { !diaryStartTimes.contains($0.startTime) }
         }
 
@@ -145,25 +145,25 @@ struct DailyDetailFeature {
                 }
 
             case let .weekRecordsFetched(diaries, workouts):
-                state.diaries = Dictionary(grouping: diaries, by: \.yearMonthDay)
+                state.diaries = Dictionary(grouping: diaries, by: \.workout.yearMonthDay)
                 state.workouts = Dictionary(grouping: workouts, by: \.yearMonthDay)
                 state.isLoading = false
                 return .run { [persistencesClient] _ in
                     // HealthKit -> SwiftData 데이터 동기화
                     for diary in diaries {
-                        // 8개 속성 중 하나라도 nil이면 마이그레이션 대상
-                        guard diary.activeEnergyBurned == nil
-                            || diary.runningVerticalOscillation == nil
-                            || diary.runningGroundContactTime == nil
-                            || diary.walkingStepLength == nil
-                            || diary.restingHeartRate == nil
-                            || diary.runningPower == nil
-                            || diary.runningStrideLength == nil
-                            || diary.heartRateRecoveryOneMinute == nil
+                        // 8개 속성 중 하나라도 0이면 마이그레이션 대상 (기존에는 nil 체크였으나 HealthKitWorkout에서는 0으로 처리됨)
+                        guard diary.workout.activeEnergyBurned == 0
+                            || diary.workout.runningVerticalOscillation == 0
+                            || diary.workout.runningGroundContactTime == 0
+                            || diary.workout.walkingStepLength == 0
+                            || diary.workout.restingHeartRate == 0
+                            || diary.workout.runningPower == 0
+                            || diary.workout.runningStrideLength == 0
+                            || diary.workout.heartRateRecoveryOneMinute == 0
                         else { continue }
 
                         // startTime이 일치하는 workout 찾기
-                        guard let matchingWorkout = workouts.first(where: { $0.startTime == diary.startTime }) else { continue }
+                        guard let matchingWorkout = workouts.first(where: { $0.startTime == diary.workout.startTime }) else { continue }
 
                         // persistencesClient로 업데이트 요청
                         try? await persistencesClient.updateRecord(
@@ -210,7 +210,7 @@ struct DailyDetailFeature {
                 AppLogger.dailyDetail.debug("showAddRecord - mode: 수정, date: \(state.selectedDate), runningRecord: \(runningRecord)")
                 state.addRecord = AddRecordFeature.State(
                     existingRecord: runningRecord,
-                    healthKitWorkout: nil
+                    healthKitWorkout: runningRecord.workout
                 )
                 return .none
 

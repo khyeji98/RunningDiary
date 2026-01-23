@@ -14,9 +14,13 @@ struct PainAreasSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            L10n.recordFieldPainAreas.text
-                .font(.headline)
-                .padding(.bottom, 4)
+            HStack(spacing: 2) {
+                Text("record.section.pain_areas")
+                Text("*")
+                    .foregroundColor(.red)
+            }
+            .font(.headline)
+            .padding(.bottom, 4)
 
             DynamicGridLayout(items: painAreaOptions) { area in
                 Button {

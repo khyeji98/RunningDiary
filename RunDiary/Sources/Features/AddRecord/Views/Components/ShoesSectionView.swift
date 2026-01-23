@@ -19,9 +19,13 @@ struct ShoesSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            L10n.recordFieldShoes.text
-                .font(.headline)
-                .padding(.bottom, 4)
+            HStack(spacing: 2) {
+                Text("record.section.shoes")
+                Text("*")
+                    .foregroundColor(.red)
+            }
+            .font(.headline)
+            .padding(.bottom, 4)
 
             Menu {
                 ForEach(ShoeStorage.shoes) { shoe in
