@@ -17,82 +17,126 @@ default_platform(:ios)
 
 platform :ios do
 
-  desc "Setup CI (Keychain, Match, API Key)"
-  private_lane :setup_ci do
+  desc "Push a new beta build to TestFlight"
+
+  lane :beta do
+
+    # 0️⃣ 기존 Keychain 제거
+    sh("security delete-keychain #{ENV['KEYCHAIN_NAME']} || true")
+
     # 1️⃣ Keychain 생성
     create_keychain(
-      name: ENV["KEYCHAIN_NAME"],
-      password: ENV["KEYCHAIN_PASSWORD"],
-      timeout: 3600,
-      default_keychain: true,
-      unlock: true,
-      lock_when_sleeps: false,
-      add_to_search_list: true
+    	name: ENV["KEYCHAIN_NAME"],
+    	password: ENV["KEYCHAIN_PASSWORD"],
+    	timeout: 3600,
+    	default_keychain: true,
+    	unlock: true,
+    	lock_when_sleeps: false,
+	add_to_search_list: true
     )
 
     # 2️⃣ Match 인증서/프로비저닝 설정
     match(
-      git_url: "git@github.com:khyeji98/RunningDiary-certificates.git",
-      storage_mode: "git",
-      type: "appstore",
-      readonly: true,
-      keychain_name: ENV["KEYCHAIN_NAME"],
-      keychain_password: ENV["KEYCHAIN_PASSWORD"]
+    	git_url: "git@github.com:khyeji98/RunningDiary-certificates.git",
+    	storage_mode: "git",
+    	type: "appstore",
+    	readonly: true,
+    	keychain_name: ENV["KEYCHAIN_NAME"],
+    	keychain_password: ENV["KEYCHAIN_PASSWORD"]
     )
 
-    app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
-      key_content: ENV["APP_STORE_CONNECT_API_KEY_CONTENT"]
+    api_key = app_store_connect_api_key(
+        key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+        key_content: ENV["APP_STORE_CONNECT_API_KEY_CONTENT"]
     )
-  end
 
-  desc "Build and Bump Version"
-  private_lane :build_and_bump do |options|
     current_version = get_version_number
-    api_key = options[:api_key]
 
-    latest_build_number = latest_testflight_build_number(
-      api_key: api_key,
-      version: current_version,
-      initial_build_number: 0
+    latest_build_number=latest_testflight_build_number(
+	api_key: api_key,
+	version: current_version,
+	initial_build_number: 0
     )
 
     increment_build_number(
-      build_number: latest_build_number + 1
+	build_number: latest_build_number + 1
     )
 
     build_app(
-      project: "RunDiary.xcodeproj",
-      scheme: "RunDiary",
-      export_method: "app-store",
-      destination: "generic/platform=iOS",
-      clean: true
+      	project: "RunDiary.xcodeproj",
+        scheme: "RunDiary",
+	export_method: "app-store",
+	destination: "generic/platform=iOS",
+	clean: true
     )
-  end
-
-  desc "Push a new beta build to TestFlight"
-  lane :beta do
-    api_key = setup_ci
-    build_and_bump(api_key: api_key)
 
     upload_to_testflight(
-      api_key: api_key,
-      skip_waiting_for_build_processing: true
+	api_key: api_key,
+	skip_waiting_for_build_processing: true
     )
   end
 
   desc "Deploy a new version to the App Store"
+
   lane :release do
-    api_key = setup_ci
-    build_and_bump(api_key: api_key)
+
+    # 0️⃣ 기존 Keychain 제거
+    sh("security delete-keychain #{ENV['KEYCHAIN_NAME']} || true")
+
+    # 1️⃣ Keychain 생성
+    create_keychain(
+    	name: ENV["KEYCHAIN_NAME"],
+    	password: ENV["KEYCHAIN_PASSWORD"],
+    	timeout: 3600,
+    	default_keychain: true,
+    	unlock: true,
+    	lock_when_sleeps: false,
+	add_to_search_list: true
+    )
+
+    # 2️⃣ Match 인증서/프로비저닝 설정
+    match(
+    	git_url: "git@github.com:khyeji98/RunningDiary-certificates.git",
+    	storage_mode: "git",
+    	type: "appstore",
+    	readonly: true,
+    	keychain_name: ENV["KEYCHAIN_NAME"],
+    	keychain_password: ENV["KEYCHAIN_PASSWORD"]
+    )
+
+    api_key = app_store_connect_api_key(
+        key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+        key_content: ENV["APP_STORE_CONNECT_API_KEY_CONTENT"]
+    )
+
+    current_version = get_version_number
+
+    latest_build_number = latest_testflight_build_number(
+	api_key: api_key,
+	version: current_version,
+	initial_build_number: 0
+    )
+
+    increment_build_number(
+	build_number: latest_build_number + 1
+    )
+
+    build_app(
+      	project: "RunDiary.xcodeproj",
+        scheme: "RunDiary",
+	export_method: "app-store",
+	destination: "generic/platform=iOS",
+	clean: true
+    )
 
     upload_to_app_store(
-      api_key: api_key,
-      force: true,
-      skip_metadata: true,
-      skip_screenshots: true,
-      submit_for_review: false
+	api_key: api_key,
+	force: true,
+	skip_metadata: true,
+	skip_screenshots: true,
+	submit_for_review: false
     )
   end
 end
