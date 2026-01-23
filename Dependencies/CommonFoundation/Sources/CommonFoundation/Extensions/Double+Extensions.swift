@@ -8,6 +8,14 @@
 import Foundation
 
 extension Double {
+    public var to0f: String {
+        let formatter = NumberFormatter()
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 0
+        formatter.roundingMode = .down
+        return formatter.string(from: NSNumber(value: self)) ?? ""
+    }
+
     public var to1f: String {
         let formatter = NumberFormatter()
         formatter.minimumFractionDigits = 1

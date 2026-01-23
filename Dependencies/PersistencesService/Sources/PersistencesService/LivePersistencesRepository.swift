@@ -77,7 +77,7 @@ public final class LivePersistencesRepository: PersistencesRepository {
             let fetchedRecords = models.map { $0.toDomain() }
 
             // 4. 날짜별로 그룹핑하여 캐시에 저장
-            let groupedRecords = Dictionary(grouping: fetchedRecords, by: \.yearMonthDay)
+            let groupedRecords = Dictionary(grouping: fetchedRecords, by: \.workout.yearMonthDay)
             for date in missingDates {
                 cache[date] = groupedRecords[date] ?? []
             }
@@ -96,7 +96,7 @@ public final class LivePersistencesRepository: PersistencesRepository {
         do {
             try modelContext.save()
             // 캐시 invalidate
-            cache.removeValue(forKey: record.yearMonthDay)
+            cache.removeValue(forKey: record.workout.yearMonthDay)
         } catch {
             throw PersistencesError.saveFailed
         }
@@ -190,7 +190,7 @@ public final class LivePersistencesRepository: PersistencesRepository {
             try modelContext.save()
 
             // 캐시 invalidate
-            cache.removeValue(forKey: record.yearMonthDay)
+            cache.removeValue(forKey: record.workout.yearMonthDay)
         } catch {
             throw PersistencesError.deleteFailed
         }
