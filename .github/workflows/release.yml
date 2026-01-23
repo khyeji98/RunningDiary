@@ -65,3 +65,22 @@ jobs:
           KEYCHAIN_NAME: ${{ secrets.KEYCHAIN_NAME }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: bundle exec fastlane release
+
+      # 7️⃣ Get App Version
+      - name: 7️⃣ Get App Version
+        id: get_version
+        run: |
+          VERSION=$(agvtool what-marketing-version -terse1)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      # 8️⃣ Create GitHub Release
+      - name: 8️⃣ Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get_version.outputs.VERSION }}
+          name: Release v${{ steps.get_version.outputs.VERSION }}
+          body: "App Store Release v${{ steps.get_version.outputs.VERSION }}"
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

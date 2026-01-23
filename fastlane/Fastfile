@@ -141,23 +141,6 @@ platform :ios do
 	run_precheck_before_submit: true,
 	precheck_include_in_app_purchases: false
     )
-
-    # 4️⃣ Git Tag 생성 및 푸시
-    # 4️⃣ Git Tag 생성 및 푸시
-    add_git_tag(
-      tag: "v#{current_version}"
-    )
-
-    push_to_git_remote
-
-    # 5️⃣ GitHub Release 생성
-    set_github_release(
-      repository_name: "khyeji98/RunningDiary",
-      api_token: ENV["GH_TOKEN"],
-      name: "Release v#{current_version}",
-      tag_name: "v#{current_version}",
-      description: "App Store Release v#{current_version}",
-      commitish: "main"
-    )
+  end
   end
 end
