@@ -731,7 +731,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chest"
+            "value" : "胸"
           }
         },
         "ko" : {
@@ -800,7 +800,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nape"
+            "value" : "首"
           }
         },
         "ko" : {
@@ -823,7 +823,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shin"
+            "value" : "すね"
           }
         },
         "ko" : {
@@ -846,7 +846,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shoulder"
+            "value" : "肩"
           }
         },
         "ko" : {
@@ -915,7 +915,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Waist"
+            "value" : "腰"
           }
         },
         "ko" : {
@@ -1487,6 +1487,12 @@
             "value" : "ex) Ran overpace, need adjustment!"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "例）オーバーペースだったので調整が必要かも！"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1502,6 +1508,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "How hard was it?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "どれくらいきつかったですか？"
           }
         },
         "ko" : {
@@ -1544,6 +1556,12 @@
             "value" : "Please enter any other experiences you want to record!"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "他に記録しておきたいことを入力してください！"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1582,6 +1600,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Did you have any pain areas?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "痛む部位はありましたか？"
           }
         },
         "ko" : {
@@ -1624,6 +1648,12 @@
             "value" : "What running style did you use?"
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "どんな走法で走りましたか？"
+          }
+        },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1639,6 +1669,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Which shoes did you wear?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "どの靴を履きましたか？"
           }
         },
         "ko" : {
