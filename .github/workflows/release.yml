@@ -79,8 +79,9 @@ jobs:
         with:
           tag_name: v${{ steps.get_version.outputs.VERSION }}
           name: Release v${{ steps.get_version.outputs.VERSION }}
-          body: "App Store Release v${{ steps.get_version.outputs.VERSION }}"
+          body_path: fastlane/metadata/ko/release_notes.txt
           draft: false
           prerelease: false
+          # generate_release_notes: true # 릴리즈 노트 자동 생성(다음에 PR 올리면 활성화)
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
