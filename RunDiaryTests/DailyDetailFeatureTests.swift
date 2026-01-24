@@ -445,7 +445,7 @@ struct DailyDetailFeatureTests {
         await sut.send(.editRecord(diary)) {
             $0.addRecord = AddRecordFeature.State(
                 existingRecord: diary,
-                healthKitWorkout: makeHealthKitWorkout(yearMonthDay: testDate)
+                healthKitWorkout: diary.workout
             )
         }
     }
