@@ -1,0 +1,3 @@
+• Design Revamp: Refreshed the app's look and feel for a better viewing experience.
+• Data Expansion: More diverse workout data is now available.
+• Performance Improvement: Improved app performance for a smoother experience.
