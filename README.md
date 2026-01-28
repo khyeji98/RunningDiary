@@ -29,23 +29,23 @@ HealthKit에서 러닝 데이터(거리, 페이스, 심박수, 케이던스, 경
 
 <table>
   <tr>
-    <td><img src="docs/screenshots/캘린더 (월별 기록).PNG" width="250"/></td>
-    <td><img src="docs/screenshots/일자별 러닝 기록 (1일N기록).PNG" width="250"/></td>
-    <td><img src="docs/screenshots/일자별 러닝 기록 (상세).PNG" width="250"/></td>
+    <td><img src="fastlane/screenshots/ko/1.png" width="250"/></td>
+    <td><img src="fastlane/screenshots/ko/2.png" width="250"/></td>
+    <td><img src="fastlane/screenshots/ko/3.png" width="250"/></td>
   </tr>
   <tr>
-    <td align="center">캘린더 (월별 기록)</td>
-    <td align="center">일자별 러닝 기록 (여러 기록)</td>
-    <td align="center">일자별 러닝 기록 (상세)</td>
+    <td align="center">화면 1</td>
+    <td align="center">화면 2</td>
+    <td align="center">화면 3</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/기록 추가1.PNG" width="250"/></td>
-    <td><img src="docs/screenshots/기록 추가2.PNG" width="250"/></td>
+    <td><img src="fastlane/screenshots/ko/4.png" width="250"/></td>
+    <td></td>
     <td></td>
   </tr>
   <tr>
-    <td align="center">기록 추가 (HealthKit)</td>
-    <td align="center">기록 추가 (컨디션)</td>
+    <td align="center">화면 4</td>
+    <td></td>
     <td></td>
   </tr>
 </table>
@@ -76,17 +76,17 @@ HealthKit에서 러닝 데이터(거리, 페이스, 심박수, 케이던스, 경
 ```mermaid
 graph TD
     subgraph " "
-        A("<img src='docs/screenshots/캘린더 (월별 기록).PNG' width='200' alt='캘린더 화면'><br><b>캘린더 (월별 기록)</b>")
+        A("<img src='fastlane/screenshots/ko/1.png' width='200' alt='화면 1'><br><b>캘린더/메인</b>")
     end
     subgraph " "
-        B("<img src='docs/screenshots/일자별 러닝 기록 (1일N기록).PNG' width='200' alt='일자별 러닝 기록'><br><b>일자별 러닝 기록</b>")
+        B("<img src='fastlane/screenshots/ko/2.png' width='200' alt='화면 2'><br><b>일자별 기록</b>")
     end
     subgraph " "
-        C("<img src='docs/screenshots/기록 추가1.PNG' width='200' alt='기록 추가 화면'><br><b>기록 추가/수정</b>")
+        C("<img src='fastlane/screenshots/ko/4.png' width='200' alt='화면 4'><br><b>기록 추가</b>")
     end
 
     A -- "일자 선택" --> B
-    B -- "추가하기 / 기록 선택" --> C
+    B -- "추가하기" --> C
     C -- "저장" --> B
 
     style A fill:#fff,stroke:#ddd,stroke-width:1px,rx:10,ry:10
