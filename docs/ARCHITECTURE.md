@@ -8,16 +8,16 @@ RunDiary는 **The Composable Architecture (TCA)** 를 기반으로 설계되어 
 
 ```mermaid
 graph TD
-    App(RunDiary App) --> DailyDetailFeature
+    App[RunDiary App] --> DailyDetailFeature
     
-    subgraph "Presentation Layer (TCA)"
-        DailyDetailFeature[DailyDetailFeature (Root)]
+    subgraph PresentationLayer [Presentation Layer]
+        DailyDetailFeature[DailyDetailFeature Root]
         DailyDetailFeature --> CalendarFeature
         DailyDetailFeature --> AddRecordFeature
         DailyDetailFeature --> SettingsFeature
     end
     
-    subgraph "Client Layer (Interface)"
+    subgraph ClientLayer [Client Layer Interface]
         DailyDetailFeature --> PersistencesClient
         DailyDetailFeature --> HealthKitClient
         DailyDetailFeature --> WeatherClient
@@ -27,7 +27,7 @@ graph TD
         AddRecordFeature --> HealthKitClient
     end
     
-    subgraph "Data Layer (Implementation)"
+    subgraph DataLayer [Data Layer Implementation]
         PersistencesClient --> SwiftDataService
         HealthKitClient --> HealthKitService
         WeatherClient --> WeatherKitService
