@@ -3,8 +3,22 @@ name: Build & Test
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'RunDiary/**'
+      - 'Dependencies/**'
+      - 'RunDiary.xcodeproj/**'
+      - 'RunDiary.xcworkspace/**'
+      - 'Gemfile'
+      - 'Gemfile.lock'
   pull_request:
     types: [ opened, synchronize, reopened ]
+    paths:
+      - 'RunDiary/**'
+      - 'Dependencies/**'
+      - 'RunDiary.xcodeproj/**'
+      - 'RunDiary.xcworkspace/**'
+      - 'Gemfile'
+      - 'Gemfile.lock'
 
 jobs:
   build-and-test:
