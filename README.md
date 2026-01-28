@@ -137,6 +137,7 @@ RunDiary
 ## 📚 더 자세한 문서 (Documentation)
 
 이 프로젝트의 상세한 기술 내용은 [GitHub Wiki](https://github.com/khyeji98/RunningDiary/wiki)에서 확인할 수 있습니다.
+- [📱 기능 명세 및 화면 구성](https://github.com/khyeji98/RunningDiary/wiki/Features)
 - [🏛️ 아키텍처 및 모듈 구조](https://github.com/khyeji98/RunningDiary/wiki/Architecture)
 - [🐛 트러블 슈팅 및 알게 된 점](https://github.com/khyeji98/RunningDiary/wiki/Troubleshooting)
 
