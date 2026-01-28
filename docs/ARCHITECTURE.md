@@ -8,25 +8,28 @@ RunDiary는 **The Composable Architecture (TCA)** 를 기반으로 설계되어 
 
 ```mermaid
 graph TD
-    App(RunDiary App) --> RootFeature
+    App(RunDiary App) --> DailyDetailFeature
     
     subgraph "Presentation Layer (TCA)"
-        RootFeature --> CalendarFeature
-        RootFeature --> DailyRecordFeature
-        RootFeature --> RecordFormFeature
+        DailyDetailFeature[DailyDetailFeature (Root)]
+        DailyDetailFeature --> CalendarFeature
+        DailyDetailFeature --> AddRecordFeature
+        DailyDetailFeature --> SettingsFeature
     end
     
-    subgraph "Domain Layer"
-        CalendarFeature --> RecordClient
-        DailyRecordFeature --> RecordClient
-        RecordFormFeature --> RecordClient
-        RecordFormFeature --> HealthClient
-        RecordFormFeature --> WeatherClient
+    subgraph "Client Layer (Interface)"
+        DailyDetailFeature --> PersistencesClient
+        DailyDetailFeature --> HealthKitClient
+        DailyDetailFeature --> WeatherClient
+        
+        CalendarFeature --> PersistencesClient
+        AddRecordFeature --> PersistencesClient
+        AddRecordFeature --> HealthKitClient
     end
     
-    subgraph "Data Layer"
-        RecordClient --> SwiftDataService
-        HealthClient --> HealthKitService
+    subgraph "Data Layer (Implementation)"
+        PersistencesClient --> SwiftDataService
+        HealthKitClient --> HealthKitService
         WeatherClient --> WeatherKitService
     end
 ```
@@ -37,13 +40,13 @@ SPM(Swift Package Manager)을 활용하여 기능을 모듈화했습니다.
 
 | 모듈명 | 역할 | 주요 내용 |
 |--------|------|----------|
-| **RunDiary** | 메인 앱 타겟 | `App.swift`, 최상위 뷰, Feature 조합 |
+| **RunDiary** | 메인 앱 타겟 | `App.swift`, `DailyDetail`(Root Feature), `Calendar`, `AddRecord`, `Settings` Features |
 | **Dependencies** | 모듈 컨테이너 | 기능별 하위 모듈 포함 |
-| ↳ **Models** | 도메인 모델 | `RunningRecord`, `Condition`, `WeatherInfo` 등 데이터 구조체 |
+| ↳ **Models** | 도메인 모델 | `Diary`, `Workout`, `Condition` 등 데이터 구조체 |
 | ↳ **CommonFoundation** | 공통 유틸리티 | 기본 익스텐션, 유틸리티 함수 |
-| ↳ **PersistencesService** | 로컬 저장소 | SwiftData 관련 로직 (CRUD, Container 설정) |
-| ↳ **HealthKitService** | 헬스 데이터 | HealthKit 권한 요청 및 워크아웃 데이터 fetch |
-| ↳ **WeatherKitService** | 날씨 데이터 | CoreLocation 및 WeatherKit을 이용한 날씨 조회 |
+| ↳ **PersistencesService** | 로컬 저장소 | SwiftData 관련 로직 및 `PersistencesClient` 구현 |
+| ↳ **HealthKitService** | 헬스 데이터 | HealthKit 권한 요청 및 `HealthKitClient` 구현 |
+| ↳ **WeatherKitService** | 날씨 데이터 | WeatherKit 조회 및 `WeatherClient` 구현 |
 | ↳ **DependencyProxy** | 의존성 주입 | TCA `DependencyValues` 확장 및 클라이언트 인터페이스 정의 |
 
 ## 🔄 데이터 흐름 (Data Flow)
@@ -51,11 +54,11 @@ SPM(Swift Package Manager)을 활용하여 기능을 모듈화했습니다.
 모든 상태 변경은 **Action**을 통해 시작되며, **Reducer**에서 처리된 후 **State**에 반영됩니다.
 
 1.  **User Action**: 사용자가 "기록 추가" 버튼 클릭
-2.  **Reducer**: `RecordFormFeature` Reducer가 액션 수신
-3.  **Dependency Call**: `HealthClient`를 통해 HealthKit 데이터 요청
-4.  **Effect**: 비동기 데이터 수신 후 `UpdateHealthData` 액션 반환
-5.  **State Update**: 수신된 데이터로 State 업데이트 → View 자동 갱신
-6.  **Persistence**: 저장 버튼 클릭 시 `RecordClient`를 통해 SwiftData에 영구 저장
+2.  **Reducer**: `DailyDetailFeature`에서 `AddRecordFeature`를 present (State 변경)
+3.  **User Input**: 사용자가 기록 입력 후 저장
+4.  **Effect**: `AddRecordFeature`에서 `PersistencesClient.updateRecord` 호출 (DB 저장)
+5.  **Delegate**: 저장 완료 이벤트를 `DailyDetailFeature`에 전달
+6.  **Refresh**: `DailyDetailFeature`가 `fetchWeekRecords` 액션 실행하여 최신 데이터 로드
 
 ## 🧪 테스트 전략
 
