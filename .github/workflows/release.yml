@@ -105,19 +105,15 @@ jobs:
       - name: 2️⃣ Get App Version
         id: get_version
         run: |
-          echo "📋 Checking agvtool availability..."
-          which agvtool || echo "⚠️ agvtool not found in PATH"
-          
-          echo "📋 Getting marketing version with agvtool..."
-          agvtool what-marketing-version -terse1 || echo "⚠️ agvtool command failed"
-          
-          VERSION=$(agvtool what-marketing-version -terse1)
-          echo "📋 Raw VERSION output: '$VERSION'"
+          echo "📋 Converting 'MARKETING_VERSION' from project.pbxproj..."
+          # project.pbxproj에서 MARKETING_VERSION = 1.1.0; 형태의 라인을 찾아 값만 추출
+          VERSION=$(grep -m1 'MARKETING_VERSION =' RunDiary.xcodeproj/project.pbxproj | sed 's/.*= //' | tr -d ';')
+          # 공백 제거
+          VERSION=$(echo "$VERSION" | xargs)
           
           if [ -z "$VERSION" ]; then
-            echo "⚠️ VERSION is empty, agvtool may not be configured properly"
-            echo "📋 Checking project.pbxproj for MARKETING_VERSION..."
-            grep 'MARKETING_VERSION' RunDiary.xcodeproj/project.pbxproj || echo "No MARKETING_VERSION found"
+            echo "❌ Failed to extract version from project.pbxproj"
+            exit 1
           fi
           
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
