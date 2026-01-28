@@ -1,21 +1,40 @@
 name: Release
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - main
 
+  workflow_dispatch:
+    inputs:
+      skip_deploy:
+        description: 'App Store 배포 건너뛰기 (릴리즈노트만 생성)'
+        required: false
+        type: boolean
+        default: false
+
 jobs:
+  # ========================================
+  # 1️⃣ App Store 배포
+  # ========================================
   upload-appstore:
     name: Deploy to App Store
     runs-on: macos-latest
+    # PR 머지 시: release/v* 또는 hotfix/v* 브랜치에서만 실행
+    # 수동 실행 시: skip_deploy가 false일 때만 실행
+    if: |
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.merged == true &&
+       (startsWith(github.event.pull_request.head.ref, 'release/v') ||
+        startsWith(github.event.pull_request.head.ref, 'hotfix/v'))) ||
+      (github.event_name == 'workflow_dispatch' &&
+       github.event.inputs.skip_deploy == 'false')
 
     steps:
-      # 1️⃣ 체크아웃
       - name: 1️⃣ Checkout
         uses: actions/checkout@v4
 
-      # 2️⃣ Xcode Version 설정
       - name: 2️⃣ Setting Xcode Version
         uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -37,25 +56,21 @@ jobs:
           xcodebuild -version
           swift --version
 
-      # 3️⃣ ruby 설치
       - name: 3️⃣ Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.2"
           bundler-cache: true
 
-      # 4️⃣ 의존성 설치
       - name: 4️⃣ Install Dependencies
         run: bundle install
 
-      # 5️⃣ Install SSH Key
       - name: 5️⃣ Install SSH Key
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.MATCH_SSH_PRIVATE_KEY }}
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
-      # 6️⃣ Run Fastlane
       - name: 6️⃣ Run Fastlane
         env:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
@@ -66,15 +81,49 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: bundle exec fastlane release
 
-      # 7️⃣ Get App Version
-      - name: 7️⃣ Get App Version
+  # ========================================
+  # 2️⃣ GitHub Release 생성
+  # ========================================
+  create-release:
+    name: Create GitHub Release
+    runs-on: macos-latest
+    needs: [upload-appstore]
+    # upload-appstore가 성공했거나 스킵된 경우 실행
+    if: |
+      always() &&
+      (needs.upload-appstore.result == 'success' || needs.upload-appstore.result == 'skipped') &&
+      ((github.event_name == 'pull_request' &&
+        github.event.pull_request.merged == true &&
+        (startsWith(github.event.pull_request.head.ref, 'release/v') ||
+         startsWith(github.event.pull_request.head.ref, 'hotfix/v'))) ||
+       github.event_name == 'workflow_dispatch')
+
+    steps:
+      - name: 1️⃣ Checkout
+        uses: actions/checkout@v4
+
+      - name: 2️⃣ Get App Version
         id: get_version
         run: |
+          echo "📋 Checking agvtool availability..."
+          which agvtool || echo "⚠️ agvtool not found in PATH"
+          
+          echo "📋 Getting marketing version with agvtool..."
+          agvtool what-marketing-version -terse1 || echo "⚠️ agvtool command failed"
+          
           VERSION=$(agvtool what-marketing-version -terse1)
+          echo "📋 Raw VERSION output: '$VERSION'"
+          
+          if [ -z "$VERSION" ]; then
+            echo "⚠️ VERSION is empty, agvtool may not be configured properly"
+            echo "📋 Checking project.pbxproj for MARKETING_VERSION..."
+            grep 'MARKETING_VERSION' RunDiary.xcodeproj/project.pbxproj || echo "No MARKETING_VERSION found"
+          fi
+          
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "✅ Final App Version: $VERSION"
 
-      # 8️⃣ Create GitHub Release
-      - name: 8️⃣ Create GitHub Release
+      - name: 3️⃣ Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.get_version.outputs.VERSION }}
@@ -82,6 +131,5 @@ jobs:
           body_path: fastlane/metadata/ko/release_notes.txt
           draft: false
           prerelease: false
-          # generate_release_notes: true # 릴리즈 노트 자동 생성(다음에 PR 올리면 활성화)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
