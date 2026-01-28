@@ -2,6 +2,7 @@
 [![Swift 6.2](https://img.shields.io/badge/Swift-6.2-F05138.svg?style=flat&color=F05138)](https://swift.org/download/)
 [![Xcode 26.0](https://img.shields.io/badge/Xcode-26.0-147EFB.svg?style=flat&color=147EFB)](https://apps.apple.com/kr/app/xcode/id497799835?mt=12)
 [![Build & Test](https://github.com/khyeji98/RunningDiary/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/khyeji98/RunningDiary/actions/workflows/build-and-test.yml)
+[![App Store](https://img.shields.io/badge/App_Store-Download-0D96F6?style=flat&logo=apple&logoColor=white)](https://apps.apple.com/app/id6755971012)
 
 # Running Diary 🏃‍♀️
 
@@ -94,6 +95,25 @@ graph TD
     style C fill:#fff,stroke:#ddd,stroke-width:1px,rx:10,ry:10
 ```
 
+## 프로젝트 구조 (Project Structure)
+
+```
+RunDiary
+├── RunDiary               # 메인 앱 타겟 (UI, Feature 조합)
+│   ├── Sources            # 앱 엔트리 포인트 및 메인 소스
+│   └── Resources          # 에셋, Info.plist 등
+├── Dependencies           # 기능별 모듈 (SPM)
+│   ├── CommonFoundation   # 공통 유틸리티, 익스텐션
+│   ├── Models             # 데이터 모델 (Domain Entities)
+│   ├── HealthKitService   # HealthKit 연동 서비스
+│   ├── WeatherKitService  # 날씨 정보 조회 서비스
+│   ├── PersistencesService # SwiftData 저장소
+│   └── DependencyProxy    # 모듈 간 의존성 관리
+├── .github                # GitHub Actions (CI/CD)
+│   └── workflows          
+└── fastlane               # 배포 자동화 스크립트
+```
+
 ## 기술 구현 현황
 
 ### 아키텍처 & 패턴
@@ -153,9 +173,18 @@ SwiftData (Persistence)
 - **Swift Testing**: 테스트 프레임워크
 - **SwiftLint**: 코드 스타일 검사
 - **GitHub Actions**: CI/CD
-
-### UI 라이브러리
 - **HorizonCalendar**: 캘린더 UI
+
+## 📚 더 자세한 문서 (Documentation)
+
+이 프로젝트의 상세한 기술 내용은 별도 문서로 관리됩니다.
+- [🏛️ 아키텍처 및 모듈 구조](./docs/ARCHITECTURE.md): TCA 데이터 흐름, 모듈 의존성 그래프
+- [🐛 트러블 슈팅 및 알게 된 점](./docs/TROUBLESHOOTING.md): CI/CD 이슈, 기술적 도전 과제
+
+## 👨‍💻 작성자 (Author)
+
+**Kim Hyeji**
+- GitHub: [@khyeji98](https://github.com/khyeji98)
 
 ## 협업
 
