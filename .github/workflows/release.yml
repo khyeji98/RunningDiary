@@ -1,5 +1,9 @@
 name: Release
 
+
+permissions:
+  contents: write
+
 on:
   pull_request:
     types: [closed]
@@ -105,17 +109,22 @@ jobs:
       - name: 2️⃣ Get App Version
         id: get_version
         run: |
-          echo "📋 Converting 'MARKETING_VERSION' from project.pbxproj..."
-          # project.pbxproj에서 MARKETING_VERSION = 1.1.0; 형태의 라인을 찾아 값만 추출
-          VERSION=$(grep -m1 'MARKETING_VERSION =' RunDiary.xcodeproj/project.pbxproj | sed 's/.*= //' | tr -d ';')
-          # 공백 제거
-          VERSION=$(echo "$VERSION" | xargs)
+          echo "📋 Getting app version using xcodebuild..."
+          # RunDiary 타겟의 Release 구성에서 MARKETING_VERSION 추출
+          VERSION=$(xcodebuild -project RunDiary.xcodeproj -target RunDiary -configuration Release -showBuildSettings | grep 'MARKETING_VERSION =' | head -n 1 | awk '{print $3}')
           
           if [ -z "$VERSION" ]; then
-            echo "❌ Failed to extract version from project.pbxproj"
-            exit 1
+            echo "❌ Failed to extract version using xcodebuild. Trying grep fallback..."
+            # Fallback: pbxproj 파일에서 마지막에 등장하는 MARKETING_VERSION (보통 메인 타겟이 파일 뒤쪽에 정의됨)
+            VERSION=$(grep 'MARKETING_VERSION =' RunDiary.xcodeproj/project.pbxproj | tail -n 1 | sed 's/.*= //' | tr -d ';')
+            VERSION=$(echo "$VERSION" | xargs)
           fi
           
+          if [ -z "$VERSION" ]; then
+            echo "❌ Failed to extract version."
+            exit 1
+          fi
+
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "✅ Final App Version: $VERSION"
 
