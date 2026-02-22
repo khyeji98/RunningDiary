@@ -35,6 +35,7 @@
 		3394D2472EAC74A300A46A16 /* CommonFoundation */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = CommonFoundation; path = Dependencies/CommonFoundation; sourceTree = "<group>"; };
 		339DA1572EB684340013B0E2 /* HealthKitService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = HealthKitService; path = Dependencies/HealthKitService; sourceTree = "<group>"; };
 		33B0581A2EB9FF3B00C68BFF /* DependencyProxy */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = DependencyProxy; path = Dependencies/DependencyProxy; sourceTree = "<group>"; };
+		33C225802F4AE97D005989BC /* NetworkService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = NetworkService; path = Dependencies/NetworkService; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -91,6 +92,7 @@
 		3344D6002E81CD5B00982E36 = {
 			isa = PBXGroup;
 			children = (
+				33C225802F4AE97D005989BC /* NetworkService */,
 				335FDEDA2F18BA4A006B1906 /* PersistencesService */,
 				331CB0752EBBC93600BE3F63 /* WeatherKitService */,
 				33B0581A2EB9FF3B00C68BFF /* DependencyProxy */,
