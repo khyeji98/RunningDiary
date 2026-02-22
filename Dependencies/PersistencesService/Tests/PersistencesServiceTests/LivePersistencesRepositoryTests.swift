@@ -54,7 +54,6 @@ struct LivePersistencesRepositoryTests {
         let ymd = yearMonthDay ?? makeYearMonthDay()
         let startTime = ymd.toDate().addingTimeInterval(startOffset)
         let workout = HealthKitWorkout(
-            yearMonthDay: ymd,
             distance: distance,
             duration: duration,
             averagePace: averagePace,
