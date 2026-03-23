@@ -1,5 +1,5 @@
 //
-//  AddRecordFeature.swift
+//  CreateDiaryFeature.swift
 //  RunDiary
 //
 //  Created by Claude on 10/19/25.
@@ -12,7 +12,7 @@ import Models
 import PersistencesService
 
 @Reducer
-struct AddRecordFeature {
+struct CreateDiaryFeature {
     @ObservableState
     struct State: Equatable {
         var existingRecord: Diary?
@@ -130,7 +130,7 @@ struct AddRecordFeature {
                                 weather = try await weatherClient.fetchWeather(middleTime, location)
                                 await send(.weatherFetched(weather))
                             } catch {
-                                AppLogger.addRecord.warning("날씨 조회 실패: \(error.localizedDescription)")
+                                AppLogger.createDiary.warning("날씨 조회 실패: \(error.localizedDescription)")
                                 weather = nil
                                 await send(.weatherFetched(nil))
                             }

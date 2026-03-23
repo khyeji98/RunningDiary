@@ -5,7 +5,8 @@
 //  Created by Claude on 10/19/25.
 //
 
-import ComposableArchitecture
+import Dependencies
+import DependenciesMacros
 import CoreLocation
 import Foundation
 import Models

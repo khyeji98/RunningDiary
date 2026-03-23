@@ -128,10 +128,10 @@ enum AppLogger {
         category: "DailyDetail"
     )
     
-    /// AddRecord 기능 관련 로거
-    static let addRecord = LoggerWrapper(
+    /// CreateDiary 기능 관련 로거
+    static let createDiary = LoggerWrapper(
         subsystem: subsystem,
-        category: "AddRecord"
+        category: "CreateDiary"
     )
     
     /// Calendar 기능 관련 로거

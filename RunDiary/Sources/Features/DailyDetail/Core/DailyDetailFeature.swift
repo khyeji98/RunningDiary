@@ -23,7 +23,7 @@ struct DailyDetailFeature {
         var isLoading: Bool = false
         var error: DailyDetailError? = nil
         var weatherTrademark: WeatherTrademark? = nil
-        @Presents var addRecord: AddRecordFeature.State?
+        @Presents var createDiary: CreateDiaryFeature.State?
         @Presents var calendar: CalendarFeature.State?
         @Presents var settings: SettingsFeature.State?
 
@@ -44,7 +44,7 @@ struct DailyDetailFeature {
             dates: [YearMonthDay] = [],
             diaries: [YearMonthDay: [Diary]] = [:],
             workouts: [YearMonthDay: [HealthKitWorkout]] = [:],
-            addRecord: AddRecordFeature.State? = nil,
+            createDiary: CreateDiaryFeature.State? = nil,
             calendar: CalendarFeature.State? = nil,
             settings: SettingsFeature.State? = nil
         ) {
@@ -52,7 +52,7 @@ struct DailyDetailFeature {
             self.dates = dates
             self.diaries = diaries
             self.workouts = workouts
-            self.addRecord = addRecord
+            self.createDiary = createDiary
             self.calendar = calendar
             self.settings = settings
         }
@@ -71,7 +71,7 @@ struct DailyDetailFeature {
         case weatherTrademarkFetched(WeatherTrademark)
         case createRecord(HealthKitWorkout)
         case editRecord(Diary)
-        case addRecord(PresentationAction<AddRecordFeature.Action>)
+        case createDiary(PresentationAction<CreateDiaryFeature.Action>)
         case calendarButtonTapped
         case calendar(PresentationAction<CalendarFeature.Action>)
         case settingsButtonTapped
@@ -199,32 +199,32 @@ struct DailyDetailFeature {
                 return .none
 
             case let .createRecord(healthKitWorkout):
-                AppLogger.dailyDetail.debug("showAddRecord - mode: 추가, date: \(state.selectedDate), healthKitWorkout: \(healthKitWorkout)")
-                state.addRecord = AddRecordFeature.State(
+                AppLogger.dailyDetail.debug("showCreateDiary - mode: 추가, date: \(state.selectedDate), healthKitWorkout: \(healthKitWorkout)")
+                state.createDiary = CreateDiaryFeature.State(
                     existingRecord: nil,
                     healthKitWorkout: healthKitWorkout
                 )
                 return .none
 
             case let .editRecord(runningRecord):
-                AppLogger.dailyDetail.debug("showAddRecord - mode: 수정, date: \(state.selectedDate), runningRecord: \(runningRecord)")
-                state.addRecord = AddRecordFeature.State(
+                AppLogger.dailyDetail.debug("showCreateDiary - mode: 수정, date: \(state.selectedDate), runningRecord: \(runningRecord)")
+                state.createDiary = CreateDiaryFeature.State(
                     existingRecord: runningRecord,
                     healthKitWorkout: runningRecord.workout
                 )
                 return .none
 
-            case .addRecord(.presented(.recordSaved)):
+            case .createDiary(.presented(.recordSaved)):
                 AppLogger.dailyDetail.info("recordSaved - 새로고침 시작")
-                state.addRecord = nil
+                state.createDiary = nil
                 return .send(.fetchWeekRecords)
 
-            case .addRecord(.dismiss):
-                AppLogger.dailyDetail.debug("addRecord dismiss - 기록 추가/편집 화면 닫힘")
-                state.addRecord = nil
+            case .createDiary(.dismiss):
+                AppLogger.dailyDetail.debug("createDiary dismiss - 기록 추가/편집 화면 닫힘")
+                state.createDiary = nil
                 return .none
 
-            case .addRecord:
+            case .createDiary:
                 return .none
 
             case .calendarButtonTapped:
@@ -274,8 +274,8 @@ struct DailyDetailFeature {
                 return .send(.fetchWeekRecords)
             }
         }
-        .ifLet(\.$addRecord, action: \.addRecord) {
-            AddRecordFeature()
+        .ifLet(\.$createDiary, action: \.createDiary) {
+            CreateDiaryFeature()
         }
         .ifLet(\.$calendar, action: \.calendar) {
             CalendarFeature()

@@ -408,10 +408,10 @@ struct DailyDetailFeatureTests {
         }
     }
 
-    // MARK: - AddRecord Integration Tests
+    // MARK: - CreateDiary Integration Tests
 
-    @Test("createRecord: AddRecord를 추가 모드로 표시")
-    func createRecord_opensAddRecordInAddMode() async {
+    @Test("createRecord: CreateDiary를 추가 모드로 표시")
+    func createRecord_opensCreateDiaryInAddMode() async {
         // Given
         let testDate = makeTodayYearMonthDay()
         let healthKitWorkout = makeHealthKitWorkout(yearMonthDay: testDate)
@@ -426,13 +426,13 @@ struct DailyDetailFeatureTests {
         await sut.send(.createRecord(healthKitWorkout))
 
         // Then
-        #expect(sut.state.addRecord != nil)
-        #expect(sut.state.addRecord?.existingRecord == nil)
-        #expect(sut.state.addRecord?.healthKitWorkout == healthKitWorkout)
+        #expect(sut.state.createDiary != nil)
+        #expect(sut.state.createDiary?.existingRecord == nil)
+        #expect(sut.state.createDiary?.healthKitWorkout == healthKitWorkout)
     }
 
-    @Test("editRecord: AddRecord를 편집 모드로 표시")
-    func editRecord_opensAddRecordInEditMode() async {
+    @Test("editRecord: CreateDiary를 편집 모드로 표시")
+    func editRecord_opensCreateDiaryInEditMode() async {
         // Given
         let testDate = makeTodayYearMonthDay()
         let diary = makeDiary(yearMonthDay: testDate)
@@ -443,18 +443,18 @@ struct DailyDetailFeatureTests {
 
         // When & Then
         await sut.send(.editRecord(diary)) {
-            $0.addRecord = AddRecordFeature.State(
+            $0.createDiary = CreateDiaryFeature.State(
                 existingRecord: diary,
                 healthKitWorkout: diary.workout
             )
         }
     }
 
-    @Test("addRecord dismiss: 시트 닫힘")
-    func addRecordDismiss_closesSheet() async {
+    @Test("createDiary dismiss: 시트 닫힘")
+    func createDiaryDismiss_closesSheet() async {
         // Given
         var initialState = DailyDetailFeature.State()
-        initialState.addRecord = AddRecordFeature.State(
+        initialState.createDiary = CreateDiaryFeature.State(
             existingRecord: nil,
             healthKitWorkout: makeHealthKitWorkout(yearMonthDay: makeTodayYearMonthDay())
         )
@@ -464,20 +464,20 @@ struct DailyDetailFeatureTests {
         }
 
         // When & Then
-        await sut.send(.addRecord(.dismiss)) {
-            $0.addRecord = nil
+        await sut.send(.createDiary(.dismiss)) {
+            $0.createDiary = nil
         }
     }
 
-    @Test("addRecord recordSaved: 주 단위 새로고침")
-    func addRecordSaved_refreshesWeek() async {
+    @Test("createDiary recordSaved: 주 단위 새로고침")
+    func createDiarySaved_refreshesWeek() async {
         // Given
         let testDate = makeTodayYearMonthDay()
         let weekDates = makeWeekDates(containing: testDate)
 
         var initialState = DailyDetailFeature.State(selectedDate: testDate)
         initialState.dates = weekDates
-        initialState.addRecord = AddRecordFeature.State(
+        initialState.createDiary = CreateDiaryFeature.State(
             existingRecord: nil,
             healthKitWorkout: makeHealthKitWorkout(yearMonthDay: testDate)
         )
@@ -489,8 +489,8 @@ struct DailyDetailFeatureTests {
         )
 
         // When
-        await sut.send(.addRecord(.presented(.recordSaved))) {
-            $0.addRecord = nil
+        await sut.send(.createDiary(.presented(.recordSaved))) {
+            $0.createDiary = nil
         }
 
         // Then

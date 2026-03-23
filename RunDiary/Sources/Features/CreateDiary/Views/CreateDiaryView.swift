@@ -1,5 +1,5 @@
 //
-//  AddRecordView.swift
+//  CreateDiaryView.swift
 //  RunDiary
 //
 //  Created by 김혜지 on 9/23/25.
@@ -11,8 +11,8 @@ import SwiftUI
 import Models
 import PersistencesService
 
-struct AddRecordView: View {
-    @Bindable var store: StoreOf<AddRecordFeature>
+struct CreateDiaryView: View {
+    @Bindable var store: StoreOf<CreateDiaryFeature>
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -107,9 +107,9 @@ struct AddRecordView: View {
 
 #Preview(traits: .sampleData) {
     NavigationStack {
-        AddRecordView(
+        CreateDiaryView(
             store: Store(
-                initialState: AddRecordFeature.State(
+                initialState: CreateDiaryFeature.State(
                     healthKitWorkout: HealthKitWorkout(
                         distance: 5.2,
                         duration: 3665,  // 1시간 1분 5초
@@ -130,7 +130,7 @@ struct AddRecordView: View {
                     )
                 )
             ) {
-                AddRecordFeature()
+                CreateDiaryFeature()
             }
         )
     }

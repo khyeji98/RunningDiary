@@ -36,8 +36,8 @@ struct DailyDetailView: View {
             .refreshable {
                 await store.send(.refreshCurrentWeek).finish()
             }
-            .navigationDestination(store: store.scope(state: \.$addRecord, action: \.addRecord)) { addRecordStore in
-                AddRecordView(store: addRecordStore)
+            .navigationDestination(store: store.scope(state: \.$createDiary, action: \.createDiary)) { createDiaryStore in
+                CreateDiaryView(store: createDiaryStore)
             }
             .navigationDestination(store: store.scope(state: \.$settings, action: \.settings)) { settingsStore in
                 SettingsView(store: settingsStore)
