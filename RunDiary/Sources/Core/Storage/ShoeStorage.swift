@@ -25,7 +25,7 @@ enum ShoeStorage: Sendable {
         ShoeModel(name: "Saucony Endorphin Speed 5", brand: "Saucony"),
         ShoeModel(name: "Puma Fast-R Nitro Elite 3", brand: "Puma"),
         ShoeModel(name: "On Cloudboom Echo 3", brand: "On"),
-        ShoeModel(name: "Mizuno Neo Zen", brand: "Mizuno")
+        ShoeModel(name: "Mizuno Neo Zen", brand: "Mizuno"),
     ]
 
     static func search(id: String) -> ShoeModel? {

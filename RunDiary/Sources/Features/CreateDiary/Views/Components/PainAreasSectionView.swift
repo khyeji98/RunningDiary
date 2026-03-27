@@ -50,10 +50,6 @@ struct PainAreasSectionView: View {
 struct PainAreaButtonStyle: ButtonStyle {
     let isSelected: Bool
 
-    init(isSelected: Bool) {
-        self.isSelected = isSelected
-    }
-
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundColor(isSelected ? .white : .gray500)

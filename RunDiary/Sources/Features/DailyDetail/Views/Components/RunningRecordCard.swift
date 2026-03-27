@@ -58,7 +58,6 @@ private struct TopSection: View {
             .fixedSize(horizontal: false, vertical: true)
             .padding(.bottom, 8)
 
-
         }
     }
 }
@@ -68,7 +67,7 @@ private struct ExpandedContentView: View {
 
     private let gridColumns = [
         GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16)
+        GridItem(.flexible(), spacing: 16),
     ]
 
     private var hasEnvironmentData: Bool {
@@ -382,7 +381,7 @@ struct SectionHeader: View {
         Location(latitude: 37.5218, longitude: 127.1285),
         Location(latitude: 37.5210, longitude: 127.1275),
         Location(latitude: 37.5205, longitude: 127.1260),
-        Location(latitude: 37.5209, longitude: 127.1230)
+        Location(latitude: 37.5209, longitude: 127.1230),
     ]
     let routeData = try? JSONEncoder().encode(sampleLocations)
 

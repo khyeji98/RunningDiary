@@ -5,9 +5,9 @@
 //  Created by Claude on 10/19/25.
 //
 
+import CoreLocation
 import Dependencies
 import DependenciesMacros
-import CoreLocation
 import Foundation
 import Models
 import WeatherKitService

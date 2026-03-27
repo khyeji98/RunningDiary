@@ -56,7 +56,7 @@ extension HealthKitClient: DependencyKey {
                     routeData: nil,
                     startDate: Calendar.current.date(byAdding: .second, value: -3665, to: .now)!,
                     endDate: .now
-                )
+                ),
             ]
         },
         fetchRunningDataBetweenDates: { _, _ in

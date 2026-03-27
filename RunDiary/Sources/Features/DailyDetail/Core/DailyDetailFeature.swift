@@ -21,8 +21,8 @@ struct DailyDetailFeature {
         var diaries: [YearMonthDay: [Diary]] = [:]
         var workouts: [YearMonthDay: [HealthKitWorkout]] = [:]
         var isLoading: Bool = false
-        var error: DailyDetailError? = nil
-        var weatherTrademark: WeatherTrademark? = nil
+        var error: DailyDetailError?
+        var weatherTrademark: WeatherTrademark?
         @Presents var createDiary: CreateDiaryFeature.State?
         @Presents var calendar: CalendarFeature.State?
         @Presents var settings: SettingsFeature.State?
@@ -199,7 +199,9 @@ struct DailyDetailFeature {
                 return .none
 
             case let .createRecord(healthKitWorkout):
-                AppLogger.dailyDetail.debug("showCreateDiary - mode: 추가, date: \(state.selectedDate), healthKitWorkout: \(healthKitWorkout)")
+                AppLogger.dailyDetail.debug(
+                    "showCreateDiary - mode: 추가, date: \(state.selectedDate), healthKitWorkout: \(healthKitWorkout)"
+                )
                 state.createDiary = CreateDiaryFeature.State(
                     existingRecord: nil,
                     healthKitWorkout: healthKitWorkout

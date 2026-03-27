@@ -19,7 +19,7 @@ public final class WeatherKitManager: WeatherManagerProtocol {
         guard let location = location else {
             throw WeatherKitError.missingLocation
         }
-        
+
         let clLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
         let queryStart = date.addingTimeInterval(-1800)
         let queryEnd = date.addingTimeInterval(1800)

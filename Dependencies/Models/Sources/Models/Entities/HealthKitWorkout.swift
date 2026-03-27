@@ -47,7 +47,7 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
     public var formattedAverageHeartRate: String {
         averageHeartRate == 0 ? "" : averageHeartRate.toString
     }
-    
+
     public var formattedAverageCadence: String {
         averageCadence == 0 ? "" : averageCadence.toString
     }

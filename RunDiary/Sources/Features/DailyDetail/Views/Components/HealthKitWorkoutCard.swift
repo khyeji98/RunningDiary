@@ -15,7 +15,7 @@ struct HealthKitWorkoutCard: View {
 
     private let gridColumns = [
         GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16)
+        GridItem(.flexible(), spacing: 16),
     ]
 
     init(

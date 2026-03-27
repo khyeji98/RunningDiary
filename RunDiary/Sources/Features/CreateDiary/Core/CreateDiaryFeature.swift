@@ -24,7 +24,7 @@ struct CreateDiaryFeature {
         var selectedDifficultyLevel: DifficultyLevel?
         var memo: String
 
-        var weather: WeatherData? = nil
+        var weather: WeatherData?
 
         var isLoading: Bool = false
         var errorMassage: String?

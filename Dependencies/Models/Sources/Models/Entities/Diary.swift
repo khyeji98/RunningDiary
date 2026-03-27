@@ -16,7 +16,7 @@ public struct Diary: Identifiable, Equatable, Sendable {
     public let shoes: String?                           // 신발
     public let weather: WeatherData?                    // 날씨
     public let difficultyLevel: DifficultyLevel?        // 달리기 난이도
-  
+
     public init(
         id: UUID = UUID(),
         workout: HealthKitWorkout,

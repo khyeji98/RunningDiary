@@ -61,7 +61,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
     // 단일 Date에 대한 피트니스 기록을 가져옵니다.
     public func fetchRunningData(for date: Date) async throws -> [HealthKitWorkout] {
         try await ensureAuthorizationIfNeeded()
-        
+
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         guard let endOfDay = calendar.endOfDay(for: date) else {
@@ -85,7 +85,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
                     NSSortDescriptor(
                         key: HKSampleSortIdentifierStartDate,
                         ascending: false
-                    )
+                    ),
                 ]
             ) { _, samples, error in
                 if let error = error {
@@ -104,7 +104,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
                   let averageHeartRate = await fetchAverageHeartRate(for: workout),
                   let averageCadence = await fetchAverageCadence(for: workout)
             else { continue }
-            
+
             let activeEnergyBurned = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
             let runningVerticalOscillation = await fetchAverageVerticalOscillation(for: workout) ?? 0
             let runningGroundContactTime = await fetchAverageGroundContactTime(for: workout) ?? 0
@@ -113,7 +113,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
             let runningPower = await fetchAverageRunningPower(for: workout) ?? 0
             let runningStrideLength = await fetchAverageRunningStrideLength(for: workout) ?? 0
             let heartRateRecoveryOneMinute = await fetchHeartRateRecoveryOneMinute(for: workout) ?? 0
-            
+
             let routeData = try? await fetchRouteData(for: workout)
 
             let healthKitWorkout = HealthKitWorkout(
@@ -157,15 +157,16 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
 
     private func fetchAverageHeartRate(for workout: HKWorkout) async -> Int? {
         guard let type = HKQuantityType.quantityType(forIdentifier: .heartRate) else { return nil }
-        guard let average = await fetchAverageQuantity(for: workout, type: type, unit: HKUnit.count().unitDivided(by: .minute())) else { return nil }
+        let unit = HKUnit.count().unitDivided(by: .minute())
+        guard let average = await fetchAverageQuantity(for: workout, type: type, unit: unit) else { return nil }
         return Int(average)
     }
 
     private func fetchAverageCadence(for workout: HKWorkout) async -> Int? {
         guard let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else { return nil }
-        
+
         let predicate = HKQuery.predicateForSamples(withStart: workout.startDate, end: workout.endDate, options: .strictStartDate)
-        
+
         let totalSteps = await withCheckedContinuation { (continuation: CheckedContinuation<Double, Never>) in
             let query = HKStatisticsQuery(
                 quantityType: stepType,
@@ -181,13 +182,13 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
             }
             healthStore.execute(query)
         }
-        
+
         let durationInMinutes = workout.duration / 60.0
-        
+
         guard durationInMinutes > 0 && totalSteps > 0 else {
             return nil
         }
-        
+
         return Int(totalSteps / durationInMinutes)
     }
 
@@ -209,12 +210,13 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
     /// 휴식 심박수는 하루 단위로 기록되므로 workout 날짜의 전체 하루를 조회
     private func fetchAverageRestingHeartRate(for workout: HKWorkout) async -> Double? {
         guard let type = HKQuantityType.quantityType(forIdentifier: .restingHeartRate) else { return nil }
-        
+
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: workout.startDate)
         guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return nil }
-        
-        return await fetchAverageQuantityForDateRange(from: startOfDay, to: endOfDay, type: type, unit: HKUnit.count().unitDivided(by: .minute()))
+
+        let unit = HKUnit.count().unitDivided(by: .minute())
+        return await fetchAverageQuantityForDateRange(from: startOfDay, to: endOfDay, type: type, unit: unit)
     }
 
     private func fetchAverageRunningPower(for workout: HKWorkout) async -> Double? {
@@ -230,17 +232,20 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
     /// 1분 심박수 회복은 운동 종료 후 측정되므로 종료 시간부터 5분까지 확장 조회
     private func fetchHeartRateRecoveryOneMinute(for workout: HKWorkout) async -> Double? {
         guard let type = HKQuantityType.quantityType(forIdentifier: .heartRateRecoveryOneMinute) else { return nil }
-        
+
         let extendedEnd = workout.endDate.addingTimeInterval(5 * 60) // 운동 종료 후 5분
-        return await fetchAverageQuantityForDateRange(from: workout.endDate, to: extendedEnd, type: type, unit: HKUnit.count().unitDivided(by: .minute()))
+        let unit = HKUnit.count().unitDivided(by: .minute())
+        return await fetchAverageQuantityForDateRange(from: workout.endDate, to: extendedEnd, type: type, unit: unit)
     }
 
     private func fetchAverageQuantity(for workout: HKWorkout, type: HKQuantityType, unit: HKUnit) async -> Double? {
         return await fetchAverageQuantityForDateRange(from: workout.startDate, to: workout.endDate, type: type, unit: unit)
     }
-    
+
     /// 특정 날짜 범위에 대해 평균값을 조회하는 공통 헬퍼
-    private func fetchAverageQuantityForDateRange(from startDate: Date, to endDate: Date, type: HKQuantityType, unit: HKUnit) async -> Double? {
+    private func fetchAverageQuantityForDateRange(
+        from startDate: Date, to endDate: Date, type: HKQuantityType, unit: HKUnit
+    ) async -> Double? {
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
 
         return await withCheckedContinuation { (continuation: CheckedContinuation<Double?, Never>) in
@@ -254,7 +259,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
                     continuation.resume(returning: nil)
                     return
                 }
-                
+
                 let average = statistics?.averageQuantity()?.doubleValue(for: unit)
                 continuation.resume(returning: average)
             }
@@ -322,7 +327,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
     // startDate ~ endDate 기간에 대한 피트니스 기록을 가져옵니다.
     public func fetchWeeklyRunningData(from startDate: Date, to endDate: Date) async throws -> [HealthKitWorkout] {
         try await ensureAuthorizationIfNeeded()
-        
+
         let calendar = Calendar.current
 
         // 시작일부터 종료일까지의 날짜 배열 생성
