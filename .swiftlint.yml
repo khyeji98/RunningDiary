@@ -31,6 +31,15 @@ line_length:
   ignores_comments: true
   ignores_urls: true
 
+# Repository 업데이트(전 컬럼 옵셔널 patch) 패턴 허용
+function_parameter_count:
+  warning: 8
+  error: 30
+
+cyclomatic_complexity:
+  warning: 15
+  error: 30
+
 # Force 규칙
 force_cast: error
 force_unwrapping:
@@ -50,6 +59,8 @@ opt_in_rules:
   - private_outlet
   - sorted_imports
   - vertical_parameter_alignment_on_call
+  - unneeded_parentheses_in_closure_argument
+  - trailing_closure
 
 # Trailing comma 설정
 trailing_comma:
