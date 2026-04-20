@@ -12,17 +12,10 @@ let package = Package(
             targets: ["CoreNetwork"]
         ),
     ],
-    dependencies: [
-        .package(url: "https://github.com/khyeji98/SimpleNetwork.git", exact: "1.0.0")
-    ],
+    dependencies: [],
     targets: [
         .target(
-            name: "CoreNetwork",
-            dependencies: ["SimpleNetwork"]
-        ),
-        .testTarget(
-            name: "CoreNetworkTests",
-            dependencies: ["CoreNetwork"]
+            name: "CoreNetwork"
         ),
     ]
 )

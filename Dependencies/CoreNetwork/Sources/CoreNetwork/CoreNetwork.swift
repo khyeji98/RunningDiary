@@ -1,10 +1,17 @@
-import SimpleNetwork
+//
+//  CoreNetwork.swift
+//  CoreNetwork
+//
+//  Created by 김혜지 on 3/31/26.
+//
 
-public final class CoreNetwork {
+import Foundation
+
+public final class CoreNetwork: Sendable {
 
     public static let shared = CoreNetwork()
 
-    public lazy var session: URLSessionService = URLSessionService()
+    private let session: NetworkService = URLSessionService()
 
     private init() {}
 }
