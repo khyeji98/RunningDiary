@@ -48,3 +48,7 @@ gha-creds-*.json
 ### Data Analysis ###
 
 .superset/
+
+### Secrets ###
+
+Config/Secrets.xcconfig

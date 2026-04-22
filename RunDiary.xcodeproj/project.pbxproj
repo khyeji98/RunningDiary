@@ -37,6 +37,9 @@
 		339DA1572EB684340013B0E2 /* HealthKitService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = HealthKitService; path = Dependencies/HealthKitService; sourceTree = "<group>"; };
 		33B0581A2EB9FF3B00C68BFF /* DependencyProxy */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = DependencyProxy; path = Dependencies/DependencyProxy; sourceTree = "<group>"; };
 		33C225802F4AE97D005989BC /* CoreNetwork */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = CoreNetwork; path = Dependencies/CoreNetwork; sourceTree = "<group>"; };
+		33CFG00012F00000000000001 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		33CFG00022F00000000000002 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		33CFG00042F00000000000004 /* Secrets.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig.example; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -94,6 +97,7 @@
 		3344D6002E81CD5B00982E36 = {
 			isa = PBXGroup;
 			children = (
+				33CFG00032F00000000000003 /* Config */,
 				33C225802F4AE97D005989BC /* CoreNetwork */,
 				335FDEDA2F18BA4A006B1906 /* PersistencesService */,
 				331CB0752EBBC93600BE3F63 /* WeatherKitService */,
@@ -106,6 +110,16 @@
 				3367BB422E9D05250027F8B1 /* RunDiary */,
 				3317C6152EA774D900525269 /* RunDiaryTests */,
 			);
+			sourceTree = "<group>";
+		};
+		33CFG00032F00000000000003 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				33CFG00012F00000000000001 /* Debug.xcconfig */,
+				33CFG00022F00000000000002 /* Release.xcconfig */,
+				33CFG00042F00000000000004 /* Secrets.xcconfig.example */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		3344D60A2E81CD5B00982E36 /* Products */ = {
@@ -339,6 +353,7 @@
 		};
 		3344D6122E81CD5C00982E36 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 33CFG00012F00000000000001 /* Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -404,6 +419,7 @@
 		};
 		3344D6132E81CD5C00982E36 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 33CFG00022F00000000000002 /* Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
