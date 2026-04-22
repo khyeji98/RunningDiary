@@ -14,4 +14,8 @@ public final class CoreNetwork: Sendable {
     private let session: NetworkService = URLSessionService()
 
     private init() {}
+
+    public func request<API: RequestAPI>(_ api: API) async throws -> API.Response {
+        try await session.request(api)
+    }
 }
