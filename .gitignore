@@ -36,7 +36,10 @@ fastlane/.env
 
 ### Claude Code ###
 
-.claude/
+.claude/settings.local.json
+
+.DS_Store
+
 .serena/
 
 .gemini/
