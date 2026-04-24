@@ -13,11 +13,8 @@ import Testing
 
 @testable import RunDiary
 
-// swiftlint:disable file_length
-
 @MainActor
 @Suite("DailyDetailFeature")
-// swiftlint:disable:next type_body_length
 struct DailyDetailFeatureTests {
 
     // MARK: - Initialization Tests
@@ -635,5 +632,3 @@ private extension DailyDetailFeatureTests {
         }
     }
 }
-
-// swiftlint:enable file_length

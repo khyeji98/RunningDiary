@@ -8,6 +8,7 @@ included:
 excluded:
   - RunDiary/Sources/Generated
   - Dependencies/*/Tests
+  - RunDiaryTests
   - "**/.build"
 
 # --- Rule Adjustments ---
