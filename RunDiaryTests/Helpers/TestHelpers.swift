@@ -111,10 +111,10 @@ func makeShoe(
         category: [:],
         subcategory: [:],
         tags: [],
-        imageUrl: "",
-        reviewSummary: "",
+        imageUrl: nil,
+        reviewSummary: nil,
         pros: [],
         cons: [],
-        description: ""
+        description: nil
     )
 }

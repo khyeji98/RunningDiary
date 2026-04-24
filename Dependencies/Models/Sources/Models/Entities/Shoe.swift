@@ -13,11 +13,11 @@ public struct Shoe: Identifiable, Equatable, Hashable, Sendable, Decodable {
     public let category: [String: String]
     public let subcategory: [String: String]
     public let tags: [String]
-    public let imageUrl: String
-    public let reviewSummary: String
+    public let imageUrl: String?
+    public let reviewSummary: String?
     public let pros: [String]
     public let cons: [String]
-    public let description: String
+    public let description: String?
 
     public init(
         id: String,
@@ -27,11 +27,11 @@ public struct Shoe: Identifiable, Equatable, Hashable, Sendable, Decodable {
         category: [String: String],
         subcategory: [String: String],
         tags: [String],
-        imageUrl: String,
-        reviewSummary: String,
+        imageUrl: String?,
+        reviewSummary: String?,
         pros: [String],
         cons: [String],
-        description: String
+        description: String?
     ) {
         self.id = id
         self.brandName = brandName
