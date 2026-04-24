@@ -6,5 +6,5 @@
 //
 
 enum Endpoint: String {
-    case shoes = "/v1/shoes"
+    case shoes = "/api/v1/shoes"
 }
