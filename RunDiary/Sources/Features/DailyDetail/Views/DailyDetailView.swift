@@ -43,6 +43,9 @@ struct DailyDetailView: View {
                 SettingsView(store: settingsStore)
             }
             .task {
+                store.send(.preloadRequested)
+            }
+            .onAppear {
                 store.send(.onAppear)
             }
             .toolbar(.hidden, for: .navigationBar)

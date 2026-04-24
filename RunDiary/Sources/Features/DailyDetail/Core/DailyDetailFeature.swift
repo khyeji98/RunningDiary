@@ -77,6 +77,8 @@ struct DailyDetailFeature {
         case settingsButtonTapped
         case settings(PresentationAction<SettingsFeature.Action>)
         case refreshCurrentWeek
+        case preloadRequested
+        case preloadShoes
     }
 
     // MARK: - Dependency
@@ -84,6 +86,7 @@ struct DailyDetailFeature {
     @Dependency(\.healthKitClient) var healthKitClient
     @Dependency(\.persistencesClient) var persistencesClient
     @Dependency(\.weatherClient) var weatherClient
+    @Dependency(\.shoeClient) var shoeClient
 
     // MARK: - Reducer
 
@@ -95,9 +98,12 @@ struct DailyDetailFeature {
                     state.dates = DateHelper.getWeekDates(for: state.selectedDate.toDate()).map { YearMonthDay(date: $0) }
                 }
 
+                return .send(.fetchWeekRecords)
+
+            case .preloadRequested:
                 return .merge(
-                    .send(.fetchWeekRecords),
-                    .send(.fetchWeatherTrademark)
+                    .send(.fetchWeatherTrademark),
+                    .send(.preloadShoes)
                 )
 
             case let .dateSelected(date):
@@ -274,6 +280,17 @@ struct DailyDetailFeature {
 
             case .refreshCurrentWeek:
                 return .send(.fetchWeekRecords)
+
+            case .preloadShoes:
+                return .run { [shoeClient] _ in
+                    guard await !ShoeCache.shared.isLoaded else { return }
+                    do {
+                        let shoes = try await shoeClient.fetchAllShoes()
+                        await ShoeCache.shared.store(shoes)
+                    } catch {
+                        AppLogger.network.error("Shoe preload failed: \(error.localizedDescription)")
+                    }
+                }
             }
         }
         .ifLet(\.$createDiary, action: \.createDiary) {
