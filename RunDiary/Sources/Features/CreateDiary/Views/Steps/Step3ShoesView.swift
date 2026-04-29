@@ -9,45 +9,51 @@ import SwiftUI
 
 struct Step3ShoesView: View {
     @Bindable var store: StoreOf<CreateDiaryFeature>
-    @State private var selectedBrand: String
-
-    init(store: StoreOf<CreateDiaryFeature>) {
-        self.store = store
-        let initialBrand = store.selectedShoe?.brand ?? Self.brands.first ?? ""
-        self._selectedBrand = State(initialValue: initialBrand)
-    }
+    @State private var selectedBrand: String = ""
 
     var body: some View {
         VStack(spacing: 0) {
             StepTitleLabel(L10n.recordStepTitleShoes)
 
-            HStack(spacing: 0) {
-                BrandList(
-                    brands: Self.brands,
-                    selected: selectedBrand
-                ) { selectedBrand = $0 }
-                .frame(width: 130)
+            if store.isShoesLoading && store.shoes.isEmpty {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                HStack(spacing: 0) {
+                    BrandList(
+                        brands: brands,
+                        selected: selectedBrand
+                    ) { selectedBrand = $0 }
+                    .frame(width: 130)
 
-                Divider()
+                    Divider()
 
-                ShoeList(
-                    shoes: shoesOfSelectedBrand,
-                    selectedShoeId: store.selectedShoe?.id
-                ) { store.send(.updateSelectedShoe($0)) }
+                    ShoeList(
+                        shoes: shoesOfSelectedBrand,
+                        selectedShoeId: store.selectedShoe?.id
+                    ) { store.send(.updateSelectedShoe($0)) }
+                }
+                .frame(maxHeight: .infinity)
             }
-            .frame(maxHeight: .infinity)
+        }
+        .onAppear { syncSelectedBrand() }
+        .onChange(of: store.shoes) { _, _ in syncSelectedBrand() }
+    }
+
+    private var brands: [String] {
+        var seen: Set<String> = []
+        return store.shoes.compactMap { shoe in
+            seen.insert(shoe.brandName).inserted ? shoe.brandName : nil
         }
     }
 
-    private static let brands: [String] = {
-        var seen: Set<String> = []
-        return ShoeStorage.shoes.compactMap { shoe in
-            seen.insert(shoe.brand).inserted ? shoe.brand : nil
-        }
-    }()
+    private var shoesOfSelectedBrand: [Shoe] {
+        store.shoes.filter { $0.brandName == selectedBrand }
+    }
 
-    private var shoesOfSelectedBrand: [ShoeModel] {
-        ShoeStorage.shoes.filter { $0.brand == selectedBrand }
+    private func syncSelectedBrand() {
+        guard selectedBrand.isEmpty else { return }
+        selectedBrand = store.selectedShoe?.brandName ?? store.shoes.first?.brandName ?? ""
     }
 }
 
@@ -63,7 +69,9 @@ private struct BrandList: View {
                     BrandRow(
                         brand: brand,
                         isSelected: brand == selected
-                    ) { onSelect(brand) }
+                    ) {
+                        onSelect(brand)
+                    }
                 }
             }
         }
@@ -93,9 +101,9 @@ private struct BrandRow: View {
 }
 
 private struct ShoeList: View {
-    let shoes: [ShoeModel]
+    let shoes: [Shoe]
     let selectedShoeId: String?
-    let onSelect: (ShoeModel) -> Void
+    let onSelect: (Shoe) -> Void
 
     var body: some View {
         ScrollView {
@@ -104,7 +112,9 @@ private struct ShoeList: View {
                     ShoeRow(
                         shoe: shoe,
                         isSelected: shoe.id == selectedShoeId
-                    ) { onSelect(shoe) }
+                    ) {
+                        onSelect(shoe)
+                    }
                     Divider()
                 }
             }
@@ -113,7 +123,7 @@ private struct ShoeList: View {
 }
 
 private struct ShoeRow: View {
-    let shoe: ShoeModel
+    let shoe: Shoe
     let isSelected: Bool
     let onTap: () -> Void
 

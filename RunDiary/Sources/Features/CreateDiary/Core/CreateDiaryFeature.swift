@@ -47,9 +47,12 @@ struct CreateDiaryFeature {
 
         var selectedPainAreas: Set<PainArea>
         var selectedRunningStyle: RunninStyle?
-        var selectedShoe: ShoeModel?
+        var selectedShoe: Shoe?
         var selectedDifficultyLevel: DifficultyLevel?
         var memo: String
+
+        var shoes: [Shoe] = []
+        var isShoesLoading: Bool = false
 
         var weather: WeatherData?
 
@@ -76,7 +79,7 @@ struct CreateDiaryFeature {
             self.healthKitWorkout = healthKitWorkout
             self.selectedPainAreas = Set(existingRecord?.painAreas ?? [])
             self.selectedRunningStyle = existingRecord?.runningStyle
-            self.selectedShoe = ShoeStorage.search(id: existingRecord?.shoes ?? "")
+            self.selectedShoe = nil
             self.selectedDifficultyLevel = existingRecord?.difficultyLevel ?? .medium
             self.memo = existingRecord?.memo ?? ""
 
@@ -96,7 +99,9 @@ struct CreateDiaryFeature {
         case previousStepTapped
         case updateSelectedPainAreas(Set<PainArea>)
         case updateSelectedRunningStyle(RunninStyle?)
-        case updateSelectedShoe(ShoeModel?)
+        case updateSelectedShoe(Shoe?)
+        case shoesLoaded([Shoe])
+        case shoesLoadFailed
         case updateSelectedDifficultyLevel(DifficultyLevel?)
         case updateMemo(String)
         case updateSkyCondition(SkyCondition)
@@ -111,24 +116,27 @@ struct CreateDiaryFeature {
 
     @Dependency(\.runningRecordClient) var runningRecordClient
     @Dependency(\.weatherClient) var weatherClient
+    @Dependency(\.shoeClient) var shoeClient
     @Dependency(\.dismiss) var dismiss
 
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
             case .onAppear:
+                let shoesEffect = loadShoesEffect(state: &state)
+
                 if state.existingRecord != nil {
-                    return .none
+                    return shoesEffect
                 }
 
                 let workout = state.healthKitWorkout
                 let location = extractLocationFromRoute(workout.routeData)
 
-                guard let location else { return .none }
+                guard let location else { return shoesEffect }
 
                 let middleTime = workoutMiddleTime(workout)
 
-                return .run { send in
+                let weatherEffect: Effect<Action> = .run { send in
                     do {
                         let weather = try await weatherClient.fetchWeather(middleTime, location)
                         await send(.weatherFetched(weather))
@@ -137,6 +145,8 @@ struct CreateDiaryFeature {
                         await send(.weatherFetched(nil))
                     }
                 }
+
+                return .merge(shoesEffect, weatherEffect)
 
             case .nextStepTapped:
                 if let next = state.currentStep.next {
@@ -160,6 +170,18 @@ struct CreateDiaryFeature {
 
             case .updateSelectedShoe(let shoe):
                 state.selectedShoe = shoe
+                return .none
+
+            case .shoesLoaded(let shoes):
+                state.shoes = shoes
+                state.isShoesLoading = false
+                if state.selectedShoe == nil, let id = state.existingRecord?.shoes {
+                    state.selectedShoe = shoes.first { $0.id == id }
+                }
+                return .none
+
+            case .shoesLoadFailed:
+                state.isShoesLoading = false
                 return .none
 
             case .updateSelectedDifficultyLevel(let level):
@@ -279,6 +301,29 @@ struct CreateDiaryFeature {
         let endInterval = workout.endTime.timeIntervalSince1970
         let middleInterval = (startInterval + endInterval) / 2.0
         return Date(timeIntervalSince1970: middleInterval)
+    }
+
+    private func loadShoesEffect(state: inout State) -> Effect<Action> {
+        if !state.shoes.isEmpty { return .none }
+
+        state.isShoesLoading = true
+
+        return .run { [shoeClient] send in
+            if await ShoeCache.shared.isLoaded {
+                let shoes = await ShoeCache.shared.allShoes()
+                await send(.shoesLoaded(shoes))
+                return
+            }
+
+            do {
+                let shoes = try await shoeClient.fetchAllShoes()
+                await ShoeCache.shared.store(shoes)
+                await send(.shoesLoaded(shoes))
+            } catch {
+                AppLogger.createDiary.warning("신발 조회 실패: \(error.localizedDescription)")
+                await send(.shoesLoadFailed)
+            }
+        }
     }
 
     private func mergeWeather(

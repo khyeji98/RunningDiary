@@ -125,6 +125,8 @@ struct CreateDiaryFeatureSaveTests {
 
         var capturedRecord: Diary?
 
+        let shoe = makeShoe()
+
         let store = TestStore(
             initialState: CreateDiaryFeature.State(healthKitWorkout: workout)
         ) {
@@ -136,11 +138,11 @@ struct CreateDiaryFeatureSaveTests {
             $0.runningRecordClient.fetchData = { _, _ in [:] }
             $0.runningRecordClient.updateRecord = { _ in }
             $0.weatherClient.fetchWeather = { _, _ in baseWeather }
+            $0.shoeClient.fetchAllShoes = { [shoe] }
             $0.dismiss = DismissEffect { }
         }
         store.exhaustivity = .off
 
-        let shoe = ShoeStorage.shoes.first!
         await store.send(.updateSelectedShoe(shoe))
         await store.send(.updateSelectedRunningStyle(.midfoot))
         await store.send(.weatherFetched(baseWeather))
@@ -221,7 +223,29 @@ private func makeStore(
         $0.weatherClient.fetchWeather = { _, _ in
             WeatherData(temperature: 20, humidity: 50, windSpeed: 1)
         }
+        $0.shoeClient.fetchAllShoes = { [] }
     }
+}
+
+private func makeShoe(
+    id: String = "test-shoe-id",
+    brandName: String = "TestBrand",
+    name: String = "Test Shoe"
+) -> Shoe {
+    Shoe(
+        id: id,
+        brandName: brandName,
+        name: name,
+        nameKo: name,
+        category: [:],
+        subcategory: [:],
+        tags: [],
+        imageUrl: nil,
+        reviewSummary: nil,
+        pros: [],
+        cons: [],
+        description: nil
+    )
 }
 
 private func makeWorkout() -> HealthKitWorkout {

@@ -219,13 +219,10 @@ private struct EnvironmentSentenceView: View {
     let record: Diary
 
     @Environment(\.locale) private var locale
+    @State private var shoesName: String?
 
     private var isEnglish: Bool {
         locale.language.languageCode?.identifier == "en"
-    }
-
-    private var shoesName: String? {
-        record.shoes.flatMap { ShoeStorage.search(id: $0)?.name }
     }
 
     private var styleName: String? {
@@ -251,6 +248,13 @@ private struct EnvironmentSentenceView: View {
             }
         }
         .font(.body)
+        .task(id: record.shoes) {
+            guard let id = record.shoes, !id.isEmpty else {
+                shoesName = nil
+                return
+            }
+            shoesName = await ShoeCache.shared.shoe(id: id)?.name
+        }
     }
 }
 
@@ -413,9 +417,8 @@ struct SectionHeader: View {
                     shoes: "nike-alphafly-3",
                     weather: WeatherData(temperature: 18, humidity: 60, windSpeed: 32),
                     difficultyLevel: .hard
-                ),
-                onEdit: {}
-            )
+                )
+            ) {}
             .padding()
         }
     }
