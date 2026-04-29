@@ -112,16 +112,6 @@
 			);
 			sourceTree = "<group>";
 		};
-		33CFG00032F00000000000003 /* Config */ = {
-			isa = PBXGroup;
-			children = (
-				33CFG00012F00000000000001 /* Debug.xcconfig */,
-				33CFG00022F00000000000002 /* Release.xcconfig */,
-				33CFG00042F00000000000004 /* Secrets.xcconfig.example */,
-			);
-			path = Config;
-			sourceTree = "<group>";
-		};
 		3344D60A2E81CD5B00982E36 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -136,6 +126,16 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		33CFG00032F00000000000003 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				33CFG00012F00000000000001 /* Debug.xcconfig */,
+				33CFG00022F00000000000002 /* Release.xcconfig */,
+				33CFG00042F00000000000004 /* Secrets.xcconfig.example */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

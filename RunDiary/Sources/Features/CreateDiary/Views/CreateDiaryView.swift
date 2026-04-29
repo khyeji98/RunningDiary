@@ -16,54 +16,11 @@ struct CreateDiaryView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // HealthKit 데이터 섹션
-                HealthKitSectionView(workout: store.healthKitWorkout)
+        VStack(spacing: 0) {
+            StepContent(store: store)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                // 신발 섹션
-                ShoesSectionView(
-                    selectedShoe: Binding(
-                        get: { store.selectedShoe },
-                        set: { store.send(.updateSelectedShoe($0)) }
-                    )
-                )
-
-                // 주법 섹션
-                RunningStyleSectionView(
-                    selectedStyle: Binding(
-                        get: { store.selectedRunningStyle },
-                        set: { store.send(.updateSelectedRunningStyle($0)) }
-                    ),
-                    styleOptions: RunninStyle.allCases
-                )
-
-                // 통증 부위 섹션
-                PainAreasSectionView(
-                    selectedPainAreas: Binding(
-                        get: { store.selectedPainAreas },
-                        set: { store.send(.updateSelectedPainAreas($0)) }
-                    ),
-                    painAreaOptions: PainArea.allCases
-                )
-
-                // 난이도 섹션
-                DifficultyLevelSectionView(
-                    selectedLevel: Binding(
-                        get: { store.selectedDifficultyLevel },
-                        set: { store.send(.updateSelectedDifficultyLevel($0)) }
-                    )
-                )
-
-                // 메모 섹션
-                MemoSectionView(
-                    memo: Binding(
-                        get: { store.memo },
-                        set: { store.send(.updateMemo($0)) }
-                    )
-                )
-            }
-            .padding()
+            StepNavigationBar(store: store)
         }
         .background(Color.gray50)
         .scrollDismissesKeyboard(.interactively)
@@ -86,20 +43,45 @@ struct CreateDiaryView: View {
                 }
                 .foregroundStyle(.gray500)
             }
-
-            ToolbarItem(placement: .confirmationAction) {
-                Button(L10n.uiSave.value) {
-                    hideKeyboard()
-                    store.send(.saveRecord)
-                }
-                .foregroundStyle(store.isLoading || !store.isFormValid ? .blue300.opacity(0.3) : .blue300)
-                .disabled(store.isLoading || !store.isFormValid)
-            }
         }
         .task {
             store.send(.onAppear)
         }
         .loadingIndicatorIfNeeded(store.isLoading)
+    }
+}
+
+private struct StepContent: View {
+    @Bindable var store: StoreOf<CreateDiaryFeature>
+
+    var body: some View {
+        Group {
+            switch store.currentStep {
+            case .fitness:
+                Step1FitnessView(workout: store.healthKitWorkout)
+
+            case .weather:
+                Step2WeatherView(store: store)
+
+            case .shoes:
+                Step3ShoesView(store: store)
+
+            case .runningStyle:
+                Step4RunningStyleView(store: store)
+
+            case .painAreas:
+                Step5PainAreasView(store: store)
+
+            case .difficulty:
+                Step6DifficultyView(store: store)
+
+            case .memo:
+                Step7MemoView(store: store)
+            }
+        }
+        .id(store.currentStep)
+        .transition(.opacity)
+        .animation(.easeInOut(duration: 0.25), value: store.currentStep)
     }
 }
 
@@ -112,7 +94,7 @@ struct CreateDiaryView: View {
                 initialState: CreateDiaryFeature.State(
                     healthKitWorkout: HealthKitWorkout(
                         distance: 5.2,
-                        duration: 3665,  // 1시간 1분 5초
+                        duration: 3665,
                         averagePace: "5'30\"",
                         averageHeartRate: 155,
                         averageCadence: 180,

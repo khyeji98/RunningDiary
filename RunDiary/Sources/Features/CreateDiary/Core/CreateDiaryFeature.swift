@@ -13,10 +13,37 @@ import PersistencesService
 
 @Reducer
 struct CreateDiaryFeature {
+    enum Step: Int, CaseIterable, Equatable {
+        case fitness
+        case weather
+        case shoes
+        case runningStyle
+        case painAreas
+        case difficulty
+        case memo
+
+        var isFirst: Bool { self == Self.allCases.first }
+        var isLast: Bool { self == Self.allCases.last }
+
+        var next: Step? {
+            guard let index = Self.allCases.firstIndex(of: self) else { return nil }
+            let nextIndex = Self.allCases.index(after: index)
+            return nextIndex < Self.allCases.endIndex ? Self.allCases[nextIndex] : nil
+        }
+
+        var previous: Step? {
+            guard let index = Self.allCases.firstIndex(of: self) else { return nil }
+            let previousIndex = Self.allCases.index(before: index)
+            return previousIndex >= Self.allCases.startIndex ? Self.allCases[previousIndex] : nil
+        }
+    }
+
     @ObservableState
     struct State: Equatable {
         var existingRecord: Diary?
         var healthKitWorkout: HealthKitWorkout
+
+        var currentStep: Step = .fitness
 
         var selectedPainAreas: Set<PainArea>
         var selectedRunningStyle: RunninStyle?
@@ -25,6 +52,11 @@ struct CreateDiaryFeature {
         var memo: String
 
         var weather: WeatherData?
+
+        var skyCondition: SkyCondition?
+        var windLevel: WindLevel?
+        var feelsLike: FeelsLikeLevel?
+        var humidityLevel: HumidityLevel?
 
         var isLoading: Bool = false
         var errorMassage: String?
@@ -47,16 +79,30 @@ struct CreateDiaryFeature {
             self.selectedShoe = ShoeStorage.search(id: existingRecord?.shoes ?? "")
             self.selectedDifficultyLevel = existingRecord?.difficultyLevel ?? .medium
             self.memo = existingRecord?.memo ?? ""
+
+            if let weather = existingRecord?.weather {
+                self.weather = weather
+                self.skyCondition = weather.skyCondition
+                self.windLevel = weather.windLevel
+                self.feelsLike = weather.feelsLike
+                self.humidityLevel = weather.humidityLevel
+            }
         }
     }
 
     enum Action {
         case onAppear
+        case nextStepTapped
+        case previousStepTapped
         case updateSelectedPainAreas(Set<PainArea>)
         case updateSelectedRunningStyle(RunninStyle?)
         case updateSelectedShoe(ShoeModel?)
         case updateSelectedDifficultyLevel(DifficultyLevel?)
         case updateMemo(String)
+        case updateSkyCondition(SkyCondition)
+        case updateWindLevel(WindLevel)
+        case updateFeelsLike(FeelsLikeLevel)
+        case updateHumidityLevel(HumidityLevel)
         case weatherFetched(WeatherData?)
         case saveRecord
         case recordSaved
@@ -71,9 +117,36 @@ struct CreateDiaryFeature {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                if let record = state.existingRecord {
-                    state.weather = record.weather
-                    state.selectedDifficultyLevel = record.difficultyLevel
+                if state.existingRecord != nil {
+                    return .none
+                }
+
+                let workout = state.healthKitWorkout
+                let location = extractLocationFromRoute(workout.routeData)
+
+                guard let location else { return .none }
+
+                let middleTime = workoutMiddleTime(workout)
+
+                return .run { send in
+                    do {
+                        let weather = try await weatherClient.fetchWeather(middleTime, location)
+                        await send(.weatherFetched(weather))
+                    } catch {
+                        AppLogger.createDiary.warning("날씨 조회 실패: \(error.localizedDescription)")
+                        await send(.weatherFetched(nil))
+                    }
+                }
+
+            case .nextStepTapped:
+                if let next = state.currentStep.next {
+                    state.currentStep = next
+                }
+                return .none
+
+            case .previousStepTapped:
+                if let previous = state.currentStep.previous {
+                    state.currentStep = previous
                 }
                 return .none
 
@@ -97,8 +170,30 @@ struct CreateDiaryFeature {
                 state.memo = text
                 return .none
 
+            case .updateSkyCondition(let value):
+                state.skyCondition = value
+                return .none
+
+            case .updateWindLevel(let value):
+                state.windLevel = value
+                return .none
+
+            case .updateFeelsLike(let value):
+                state.feelsLike = value
+                return .none
+
+            case .updateHumidityLevel(let value):
+                state.humidityLevel = value
+                return .none
+
             case .weatherFetched(let weather):
                 state.weather = weather
+                if let weather {
+                    state.skyCondition = weather.skyCondition
+                    state.windLevel = weather.windLevel
+                    state.feelsLike = weather.feelsLike
+                    state.humidityLevel = weather.humidityLevel
+                }
                 return .none
 
             case .saveRecord:
@@ -107,37 +202,22 @@ struct CreateDiaryFeature {
 
                 let id = state.existingRecord?.id ?? UUID()
                 let workout = state.healthKitWorkout
-                let location = extractLocationFromRoute(workout.routeData)
-                let yearMonthDay = YearMonthDay(date: workout.startTime)
-                let difficultyLevel = state.selectedDifficultyLevel
-
-                let startInterval = workout.startTime.timeIntervalSince1970
-                let endInterval = workout.endTime.timeIntervalSince1970
-                let middleInterval = (startInterval + endInterval) / 2.0
-                let middleTime = Date(timeIntervalSince1970: middleInterval)
-
                 let painAreas = state.selectedPainAreas
                 let runningStyle = state.selectedRunningStyle
                 let memo = state.memo
                 let shoeId = state.selectedShoe?.id ?? ""
+                let difficultyLevel = state.selectedDifficultyLevel
+                let weather = mergeWeather(
+                    base: state.weather,
+                    sky: state.skyCondition,
+                    wind: state.windLevel,
+                    feels: state.feelsLike,
+                    humid: state.humidityLevel
+                )
                 let isNewRecord = state.existingRecord == nil
 
                 return .run { send in
                     do {
-                        let weather: WeatherData?
-                        if let location = location {
-                            do {
-                                weather = try await weatherClient.fetchWeather(middleTime, location)
-                                await send(.weatherFetched(weather))
-                            } catch {
-                                AppLogger.createDiary.warning("날씨 조회 실패: \(error.localizedDescription)")
-                                weather = nil
-                                await send(.weatherFetched(nil))
-                            }
-                        } else {
-                            weather = nil
-                        }
-
                         let record = Diary(
                             id: id,
                             workout: workout,
@@ -192,5 +272,32 @@ struct CreateDiaryFeature {
         let midLongitude = (first.longitude + last.longitude) / 2.0
 
         return CLLocationCoordinate2D(latitude: midLatitude, longitude: midLongitude)
+    }
+
+    private func workoutMiddleTime(_ workout: HealthKitWorkout) -> Date {
+        let startInterval = workout.startTime.timeIntervalSince1970
+        let endInterval = workout.endTime.timeIntervalSince1970
+        let middleInterval = (startInterval + endInterval) / 2.0
+        return Date(timeIntervalSince1970: middleInterval)
+    }
+
+    private func mergeWeather(
+        base: WeatherData?,
+        sky: SkyCondition?,
+        wind: WindLevel?,
+        feels: FeelsLikeLevel?,
+        humid: HumidityLevel?
+    ) -> WeatherData? {
+        guard let base else { return nil }
+
+        return WeatherData(
+            temperature: base.temperature,
+            humidity: base.humidity,
+            windSpeed: base.windSpeed,
+            skyCondition: sky ?? base.skyCondition,
+            windLevel: wind ?? base.windLevel,
+            feelsLike: feels ?? base.feelsLike,
+            humidityLevel: humid ?? base.humidityLevel
+        )
     }
 }

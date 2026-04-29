@@ -331,7 +331,7 @@ enum L10n {
     /// Failed to fetch shoes
     static let shoeErrorFetchFailed: LocalizableKey<LocalizableParameterCount0> = .init(key: "shoe.error.fetch_failed")
 
-    // MARK: - UI (8 keys)
+    // MARK: - UI (10 keys)
     /// Back
     static let uiBack: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.back")
     /// Cancel
@@ -342,6 +342,10 @@ enum L10n {
     static let uiEdit: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.edit")
     /// Go to Settings
     static let uiGoToSettings: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.go_to_settings")
+    /// Next
+    static let uiNext: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.next")
+    /// Previous
+    static let uiPrevious: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.previous")
     /// Save
     static let uiSave: LocalizableKey<LocalizableParameterCount0> = .init(key: "ui.save")
     /// Today
@@ -390,6 +394,44 @@ enum L10n {
     static let weatherFieldTemperature: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.field.temperature")
     /// Wind Speed
     static let weatherFieldWindSpeed: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.field.wind_speed")
+
+    // MARK: - Weather Sky / Wind / Feels / Humid (11 keys)
+    /// Sunny
+    static let weatherSkySunny: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.sky.sunny")
+    /// Cloudy
+    static let weatherSkyCloudy: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.sky.cloudy")
+    /// Calm wind
+    static let weatherWindWeak: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.wind.weak")
+    /// Moderate wind
+    static let weatherWindModerate: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.wind.moderate")
+    /// Strong wind
+    static let weatherWindStrong: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.wind.strong")
+    /// Cold
+    static let weatherFeelsCold: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.feels.cold")
+    /// Just right
+    static let weatherFeelsNeutral: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.feels.neutral")
+    /// Hot
+    static let weatherFeelsHot: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.feels.hot")
+    /// Dry
+    static let weatherHumidDry: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.humid.dry")
+    /// Humid
+    static let weatherHumidHumid: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.humid.humid")
+
+    // MARK: - Record Step Title (7 keys)
+    /// 오늘 이렇게 달렸어요!
+    static let recordStepTitleFitness: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.step.title.fitness")
+    /// 오늘 날씨는 어땠나요?
+    static let recordStepTitleWeather: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.step.title.weather")
+    /// 어떤 신발을 신었나요?
+    static let recordStepTitleShoes: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.step.title.shoes")
+    /// 어떻게 달렸나요?
+    static let recordStepTitleStyle: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.step.title.style")
+    /// 혹시 아픈 곳이 있었나요?
+    static let recordStepTitlePain: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.step.title.pain")
+    /// 오늘 얼마나 힘들었나요?
+    static let recordStepTitleDifficulty: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.step.title.difficulty")
+    /// 더 남기고 싶은 이야기가 있나요?
+    static let recordStepTitleMemo: LocalizableKey<LocalizableParameterCount0> = .init(key: "record.step.title.memo")
 
     // MARK: - Settings
 

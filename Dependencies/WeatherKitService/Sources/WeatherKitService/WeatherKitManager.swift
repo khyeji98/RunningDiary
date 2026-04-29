@@ -39,7 +39,9 @@ public final class WeatherKitManager: WeatherManagerProtocol {
         return WeatherData(
             temperature: weather.temperature.value,
             humidity: Int(weather.humidity * 100),
-            windSpeed: weather.wind.speed.value
+            windSpeed: weather.wind.speed.value,
+            cloudCover: weather.cloudCover,
+            apparentTemperature: weather.apparentTemperature.value
         )
     }
 
