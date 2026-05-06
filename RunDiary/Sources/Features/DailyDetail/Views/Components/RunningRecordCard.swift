@@ -253,7 +253,7 @@ private struct EnvironmentSentenceView: View {
                 shoesName = nil
                 return
             }
-            shoesName = await ShoeCache.shared.shoe(id: id)?.name
+            shoesName = await ShoeCache.shared.displayName(for: id)
         }
     }
 }

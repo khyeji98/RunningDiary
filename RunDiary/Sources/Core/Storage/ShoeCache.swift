@@ -28,6 +28,12 @@ public actor ShoeCache {
     public func groupedShoes() -> [String: [Shoe]] { grouped }
     public func shoes(for brand: String) -> [Shoe] { grouped[brand] ?? [] }
     public func shoe(id: String) -> Shoe? { byID[id] }
+
+    public func displayName(for id: String) -> String? {
+        if let shoe = byID[id] { return shoe.name }
+        return LegacyShoeMapper.decodeName(from: id)
+    }
+
     public var isLoaded: Bool { loaded }
 
     public func reset() {
