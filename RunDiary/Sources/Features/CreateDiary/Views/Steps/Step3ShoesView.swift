@@ -41,10 +41,7 @@ struct Step3ShoesView: View {
     }
 
     private var brands: [String] {
-        var seen: Set<String> = []
-        return store.shoes.compactMap { shoe in
-            seen.insert(shoe.brandName).inserted ? shoe.brandName : nil
-        }
+        Array(Set(store.shoes.map(\.brandName))).sorted()
     }
 
     private var shoesOfSelectedBrand: [Shoe] {

@@ -18,9 +18,11 @@ public actor ShoeCache {
     private init() {}
 
     public func store(_ shoes: [Shoe]) {
-        flat = shoes
-        grouped = Dictionary(grouping: shoes) { $0.brandName }
-        byID = Dictionary(uniqueKeysWithValues: shoes.map { ($0.id, $0) })
+        let sorted = shoes.sorted { $0.nameKo < $1.nameKo }
+        flat = sorted
+        grouped = Dictionary(grouping: sorted) { $0.brandName }
+            .mapValues { $0.sorted { $0.nameKo < $1.nameKo } }
+        byID = Dictionary(uniqueKeysWithValues: sorted.map { ($0.id, $0) })
         loaded = true
     }
 
@@ -30,7 +32,7 @@ public actor ShoeCache {
     public func shoe(id: String) -> Shoe? { byID[id] }
 
     public func displayName(for id: String) -> String? {
-        if let shoe = byID[id] { return shoe.name }
+        if let shoe = byID[id] { return shoe.nameKo }
         return LegacyShoeMapper.decodeName(from: id)
     }
 
