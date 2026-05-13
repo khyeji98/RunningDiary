@@ -42,4 +42,11 @@
 ## Conventions
 - **Code**: `~/.claude/rules/code-convention.md` (auto-loaded)
 - **Commit**: `.claude/rules/commit-convention.md` (auto-loaded, 이모지 미사용)
+- **TCA**: `.claude/rules/tca-convention.md` (auto-loaded)
+- **Preview**: `.claude/rules/preview-convention.md` (auto-loaded)
 - **Git workflow**: [CONTRIBUTING.md](./CONTRIBUTING.md)
+
+## Preview Rules
+- 모든 View 파일은 `#Preview` 블록을 반드시 포함한다.
+- `#Preview` 블록은 파일의 **가장 마지막**에 위치하고 `// MARK: - Preview` 로 구분한다.
+- 공용 더미 데이터는 `Core/Extensions/*+Preview.swift` 패턴으로 작성한다 (예: `HealthKitWorkout.preview`).
