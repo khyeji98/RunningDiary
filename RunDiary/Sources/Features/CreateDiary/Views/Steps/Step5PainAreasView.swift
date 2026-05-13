@@ -38,8 +38,18 @@ private struct BodyPainCanvas: View {
 
     var body: some View {
         GeometryReader { geo in
+            // SVG는 1:1 비율이므로 컨테이너 너비에 맞춰 정사각형으로 렌더
+            let imageSize = geo.size.width
+            let yOffset = (geo.size.height - imageSize) / 2
+
             ZStack(alignment: .topLeading) {
-                BodyPlaceholder()
+                Image("img_body")
+                    .resizable()
+                    .renderingMode(.template)
+                    .scaledToFit()
+                    .foregroundStyle(Color.gray300)
+                    .frame(width: imageSize, height: imageSize)
+                    .offset(y: yOffset)
 
                 ForEach(PainArea.allCases, id: \.self) { area in
                     PainPointButton(
@@ -49,25 +59,12 @@ private struct BodyPainCanvas: View {
                         onToggle(area)
                     }
                     .position(
-                        x: geo.size.width * area.anchor.x,
-                        y: geo.size.height * area.anchor.y
+                        x: imageSize * area.anchor.x,
+                        y: yOffset + imageSize * area.anchor.y
                     )
                 }
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
-    }
-}
-
-private struct BodyPlaceholder: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 24)
-            .fill(Color.gray100.opacity(0.5))
-            .overlay(
-                Text("Body Placeholder")
-                    .font(.caption)
-                    .foregroundStyle(.gray500)
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
