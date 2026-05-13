@@ -32,6 +32,29 @@ struct Step5PainAreasView: View {
     }
 }
 
+// MARK: - Preview
+
+#Preview("선택 없음") {
+    Step5PainAreasView(
+        store: Store(
+            initialState: CreateDiaryFeature.State(healthKitWorkout: .preview)
+        ) {
+            CreateDiaryFeature()
+        }
+    )
+}
+
+#Preview("무릎·종아리·발목 선택됨") {
+    var state = CreateDiaryFeature.State(healthKitWorkout: .preview)
+    state.selectedPainAreas = [.knee, .calf, .ankle]
+
+    return Step5PainAreasView(
+        store: Store(initialState: state) {
+            CreateDiaryFeature()
+        }
+    )
+}
+
 private struct BodyPainCanvas: View {
     let selected: Set<PainArea>
     let onToggle: (PainArea) -> Void
