@@ -61,9 +61,6 @@
         }
       }
     },
-    "Body Placeholder" : {
-
-    },
     "common.from_apple_health" : {
       "extractionState" : "manual",
       "localizations" : {

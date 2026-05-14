@@ -16,7 +16,7 @@ struct PainPointRippleEffect: View {
             .onAppear {
                 withAnimation(
                     .easeOut(duration: 0.8)
-                        .repeatForever(autoreverses: false)
+                        .repeatCount(3, autoreverses: false)
                 ) {
                     isAnimating = true
                 }
