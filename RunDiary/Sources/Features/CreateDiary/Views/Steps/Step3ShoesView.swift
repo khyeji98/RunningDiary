@@ -23,7 +23,10 @@ struct Step3ShoesView: View {
                     BrandList(
                         brands: brands,
                         selected: selectedBrand
-                    ) { selectedBrand = $0 }
+                    ) { brand in
+                        selectedBrand = brand
+                        selectFirstShoe(in: brand)
+                    }
                     .frame(width: 130)
 
                     Divider()
@@ -45,12 +48,27 @@ struct Step3ShoesView: View {
     }
 
     private var shoesOfSelectedBrand: [Shoe] {
-        store.shoes.filter { $0.brandName == selectedBrand }
+        store.shoes
+            .filter { $0.brandName == selectedBrand }
+            .sorted { $0.nameKo < $1.nameKo }
     }
 
     private func syncSelectedBrand() {
         guard selectedBrand.isEmpty else { return }
-        selectedBrand = store.selectedShoe?.brandName ?? store.shoes.first?.brandName ?? ""
+        let brand = store.selectedShoe?.brandName ?? brands.first ?? ""
+        selectedBrand = brand
+        if store.selectedShoe == nil {
+            selectFirstShoe(in: brand)
+        }
+    }
+
+    private func selectFirstShoe(in brand: String) {
+        let first = store.shoes
+            .filter { $0.brandName == brand }
+            .sorted { $0.nameKo < $1.nameKo }
+            .first
+        guard let first else { return }
+        store.send(.updateSelectedShoe(first))
     }
 }
 
@@ -91,6 +109,8 @@ private struct BrandRow: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
             .background(isSelected ? Color(.systemBackground) : Color.clear)
         }
         .buttonStyle(.plain)
