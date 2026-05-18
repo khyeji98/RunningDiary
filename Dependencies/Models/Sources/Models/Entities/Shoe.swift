@@ -5,11 +5,18 @@
 //  Created by 김혜지 on 4/22/26.
 //
 
+import Foundation
+
 public struct Shoe: Identifiable, Equatable, Hashable, Sendable, Decodable {
     public let id: String
     public let brandName: String
-    public let name: String
-    public let nameKo: String
+    public let name: String     // 영어 이름
+    public let nameKo: String   // 한국어 이름
+
+    /// 언어 설정이 한국어면 `nameKo`, 그 외에는 `name` 반환
+    public var displayName: String {
+        Locale.current.language.languageCode?.identifier == "ko" ? nameKo : name
+    }
     public let category: [String: String]
     public let subcategory: [String: String]
     public let tags: [String]
