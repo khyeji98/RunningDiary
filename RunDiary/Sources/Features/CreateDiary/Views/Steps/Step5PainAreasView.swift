@@ -8,7 +8,8 @@ import SwiftUI
 
 struct Step5PainAreasView: View {
     @Bindable var store: StoreOf<CreateDiaryFeature>
-    @State private var rippleTriggers: [PainArea: UUID] = [:]
+    @State private var lastRippleArea: PainArea?
+    @State private var rippleTriggerID: UUID?
 
     var body: some View {
         GeometryReader { geo in
@@ -18,7 +19,8 @@ struct Step5PainAreasView: View {
 
                     BodyPainCanvas(
                         selected: store.selectedPainAreas,
-                        rippleTriggers: rippleTriggers
+                        lastRippleArea: lastRippleArea,
+                        rippleTriggerID: rippleTriggerID
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, 20)
@@ -48,32 +50,40 @@ struct Step5PainAreasView: View {
         var next = store.selectedPainAreas
         if next.contains(area) {
             next.remove(area)
-            rippleTriggers.removeValue(forKey: area)
         } else {
             next.insert(area)
-            rippleTriggers[area] = UUID()
         }
+        lastRippleArea = area
+        rippleTriggerID = UUID()
         store.send(.updateSelectedPainAreas(next))
     }
 }
 
 private struct BodyPainCanvas: View {
     let selected: Set<PainArea>
-    let rippleTriggers: [PainArea: UUID]
+    let lastRippleArea: PainArea?
+    let rippleTriggerID: UUID?
+
+    // img_body.png 비율: 1504 × 2800
+    private static let imageAspect: CGFloat = 1504.0 / 2800.0
 
     var body: some View {
         GeometryReader { geo in
-            let imageSize = geo.size.width
-            let yOffset = (geo.size.height - imageSize) / 2
+            let containerWidth = geo.size.width
+            let containerHeight = geo.size.height
+            let isWidthLimited = containerWidth / containerHeight <= Self.imageAspect
+            let renderWidth: CGFloat = isWidthLimited ? containerWidth : containerHeight * Self.imageAspect
+            let renderHeight: CGFloat = isWidthLimited ? containerWidth / Self.imageAspect : containerHeight
+            let xOff = (containerWidth - renderWidth) / 2
+            let yOff = (containerHeight - renderHeight) / 2
 
-            ZStack(alignment: .topLeading) {
+            ZStack {
                 Image("img_body")
                     .resizable()
                     .renderingMode(.template)
                     .scaledToFit()
                     .foregroundStyle(Color.gray300)
-                    .frame(width: imageSize, height: imageSize)
-                    .offset(y: yOffset)
+                    .frame(width: containerWidth, height: containerHeight)
 
                 ForEach(PainArea.allCases, id: \.self) { area in
                     if selected.contains(area) {
@@ -81,23 +91,22 @@ private struct BodyPainCanvas: View {
                             .fill(Color.coral)
                             .frame(width: 10, height: 10)
                             .position(
-                                x: imageSize * area.anchor.x,
-                                y: yOffset + imageSize * area.anchor.y
+                                x: xOff + renderWidth * area.anchor.x,
+                                y: yOff + renderHeight * area.anchor.y
                             )
-
-                        if let trigger = rippleTriggers[area] {
-                            PainPointRippleEffect()
-                                .id(trigger)
-                                .position(
-                                    x: imageSize * area.anchor.x,
-                                    y: yOffset + imageSize * area.anchor.y
-                                )
-                        }
                     }
                 }
+
+                if let area = lastRippleArea, let id = rippleTriggerID {
+                    PainBurstEffect()
+                        .id(id)
+                        .position(
+                            x: xOff + renderWidth * area.anchor.x,
+                            y: yOff + renderHeight * area.anchor.y
+                        )
+                }
             }
-            .frame(width: geo.size.width, height: geo.size.height)
-            .clipped()
+            .frame(width: containerWidth, height: containerHeight)
         }
     }
 }
