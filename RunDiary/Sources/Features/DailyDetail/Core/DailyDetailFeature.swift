@@ -212,7 +212,7 @@ struct DailyDetailFeature {
                     existingRecord: nil,
                     healthKitWorkout: healthKitWorkout
                 )
-                return .none
+                return loadShoesForCreation()
 
             case let .editRecord(runningRecord):
                 AppLogger.dailyDetail.debug("showCreateDiary - mode: 수정, date: \(state.selectedDate), runningRecord: \(runningRecord)")
@@ -220,7 +220,7 @@ struct DailyDetailFeature {
                     existingRecord: runningRecord,
                     healthKitWorkout: runningRecord.workout
                 )
-                return .none
+                return loadShoesForCreation(existingShoeId: runningRecord.shoes)
 
             case .createDiary(.presented(.recordSaved)):
                 AppLogger.dailyDetail.info("recordSaved - 새로고침 시작")
@@ -301,6 +301,24 @@ struct DailyDetailFeature {
         }
         .ifLet(\.$settings, action: \.settings) {
             SettingsFeature()
+        }
+    }
+
+    private func loadShoesForCreation(existingShoeId: String? = nil) -> Effect<Action> {
+        .run { [shoeClient] send in
+            do {
+                let shoes: [Shoe]
+                if await ShoeCache.shared.isLoaded {
+                    shoes = await ShoeCache.shared.allShoes()
+                } else {
+                    shoes = try await shoeClient.fetchAllShoes()
+                    await ShoeCache.shared.store(shoes)
+                }
+                await send(.createDiary(.presented(.shoesLoaded(shoes))))
+            } catch {
+                AppLogger.network.error("Shoe load for diary creation failed: \(error.localizedDescription)")
+                await send(.createDiary(.presented(.shoesLoadFailed)))
+            }
         }
     }
 }

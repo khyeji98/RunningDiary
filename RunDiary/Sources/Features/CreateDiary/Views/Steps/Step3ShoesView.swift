@@ -25,7 +25,6 @@ struct Step3ShoesView: View {
                         selected: selectedBrand
                     ) { brand in
                         selectedBrand = brand
-                        selectFirstShoe(in: brand)
                     }
                     .frame(width: 130)
 
@@ -50,25 +49,12 @@ struct Step3ShoesView: View {
     private var shoesOfSelectedBrand: [Shoe] {
         store.shoes
             .filter { $0.brandName == selectedBrand }
-            .sorted { $0.nameKo < $1.nameKo }
+            .sorted { $0.displayName.localizedCompare($1.displayName) == .orderedAscending }
     }
 
     private func syncSelectedBrand() {
         guard selectedBrand.isEmpty else { return }
-        let brand = store.selectedShoe?.brandName ?? brands.first ?? ""
-        selectedBrand = brand
-        if store.selectedShoe == nil {
-            selectFirstShoe(in: brand)
-        }
-    }
-
-    private func selectFirstShoe(in brand: String) {
-        let first = store.shoes
-            .filter { $0.brandName == brand }
-            .sorted { $0.nameKo < $1.nameKo }
-            .first
-        guard let first else { return }
-        store.send(.updateSelectedShoe(first))
+        selectedBrand = store.selectedShoe?.brandName ?? brands.first ?? ""
     }
 }
 
@@ -147,7 +133,7 @@ private struct ShoeRow: View {
     var body: some View {
         Button(action: onTap) {
             HStack {
-                Text(shoe.name)
+                Text(shoe.displayName)
                     .font(.subheadline.weight(isSelected ? .semibold : .regular))
                     .foregroundStyle(isSelected ? Color.blue700 : Color.gray700)
                     .multilineTextAlignment(.leading)
