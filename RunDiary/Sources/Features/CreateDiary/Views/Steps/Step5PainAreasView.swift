@@ -48,13 +48,20 @@ struct Step5PainAreasView: View {
 
     private func toggle(_ area: PainArea) {
         var next = store.selectedPainAreas
-        if next.contains(area) {
-            next.remove(area)
-        } else {
+        let isSelecting = !next.contains(area)
+        if isSelecting {
             next.insert(area)
+            lastRippleArea = area
+            let newID = UUID()
+            rippleTriggerID = newID
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                guard rippleTriggerID == newID else { return }
+                lastRippleArea = nil
+                rippleTriggerID = nil
+            }
+        } else {
+            next.remove(area)
         }
-        lastRippleArea = area
-        rippleTriggerID = UUID()
         store.send(.updateSelectedPainAreas(next))
     }
 }
@@ -80,25 +87,11 @@ private struct BodyPainCanvas: View {
             ZStack {
                 Image("img_body")
                     .resizable()
-                    .renderingMode(.template)
                     .scaledToFit()
-                    .foregroundStyle(Color.gray300)
                     .frame(width: containerWidth, height: containerHeight)
 
-                ForEach(PainArea.allCases, id: \.self) { area in
-                    if selected.contains(area) {
-                        Circle()
-                            .fill(Color.coral)
-                            .frame(width: 10, height: 10)
-                            .position(
-                                x: xOff + renderWidth * area.anchor.x,
-                                y: yOff + renderHeight * area.anchor.y
-                            )
-                    }
-                }
-
                 if let area = lastRippleArea, let id = rippleTriggerID {
-                    PainBurstEffect()
+                    PainRippleEffect()
                         .id(id)
                         .position(
                             x: xOff + renderWidth * area.anchor.x,
