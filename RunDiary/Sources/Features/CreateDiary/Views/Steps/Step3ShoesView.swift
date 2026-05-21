@@ -151,3 +151,69 @@ private struct ShoeRow: View {
         .buttonStyle(.plain)
     }
 }
+
+// MARK: - Preview
+
+#Preview("신발 목록") {
+    var state = CreateDiaryFeature.State(healthKitWorkout: .preview)
+    state.shoes = [
+        Shoe(
+            id: "1",
+            brandName: "Nike",
+            name: "Pegasus 41",
+            nameKo: "페가수스 41",
+            category: [:],
+            subcategory: [:],
+            tags: [],
+            imageUrl: nil,
+            reviewSummary: nil,
+            pros: [],
+            cons: [],
+            description: nil
+        ),
+        Shoe(
+            id: "2",
+            brandName: "Nike",
+            name: "Vaporfly 3",
+            nameKo: "베이퍼플라이 3",
+            category: [:],
+            subcategory: [:],
+            tags: [],
+            imageUrl: nil,
+            reviewSummary: nil,
+            pros: [],
+            cons: [],
+            description: nil
+        ),
+        Shoe(
+            id: "3",
+            brandName: "Adidas",
+            name: "Boston 12",
+            nameKo: "보스턴 12",
+            category: [:],
+            subcategory: [:],
+            tags: [],
+            imageUrl: nil,
+            reviewSummary: nil,
+            pros: [],
+            cons: [],
+            description: nil
+        ),
+    ]
+
+    return Step3ShoesView(
+        store: Store(initialState: state) {
+            CreateDiaryFeature()
+        }
+    )
+}
+
+#Preview("신발 없음") {
+    Step3ShoesView(
+        store: Store(
+            initialState: CreateDiaryFeature.State(healthKitWorkout: .preview)
+        ) {
+            CreateDiaryFeature()
+        }
+    )
+}

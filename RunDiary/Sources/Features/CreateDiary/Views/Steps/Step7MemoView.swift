@@ -44,3 +44,26 @@ struct Step7MemoView: View {
         }
     }
 }
+
+// MARK: - Preview
+
+#Preview("메모 없음") {
+    Step7MemoView(
+        store: Store(
+            initialState: CreateDiaryFeature.State(healthKitWorkout: .preview)
+        ) {
+            CreateDiaryFeature()
+        }
+    )
+}
+
+#Preview("메모 있음") {
+    var state = CreateDiaryFeature.State(healthKitWorkout: .preview)
+    state.memo = "오늘 한강변 10km 러닝. 날씨가 좋아 기분이 좋았다."
+
+    return Step7MemoView(
+        store: Store(initialState: state) {
+            CreateDiaryFeature()
+        }
+    )
+}

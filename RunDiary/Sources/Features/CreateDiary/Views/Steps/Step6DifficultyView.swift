@@ -86,3 +86,26 @@ private struct DifficultyBar: View {
         }
     }
 }
+
+// MARK: - Preview
+
+#Preview {
+    Step6DifficultyView(
+        store: Store(
+            initialState: CreateDiaryFeature.State(healthKitWorkout: .preview)
+        ) {
+            CreateDiaryFeature()
+        }
+    )
+}
+
+#Preview("어려움 선택됨") {
+    var state = CreateDiaryFeature.State(healthKitWorkout: .preview)
+    state.selectedDifficultyLevel = .hard
+
+    return Step6DifficultyView(
+        store: Store(initialState: state) {
+            CreateDiaryFeature()
+        }
+    )
+}

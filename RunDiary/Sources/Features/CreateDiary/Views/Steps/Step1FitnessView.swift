@@ -25,3 +25,9 @@ struct Step1FitnessView: View {
         }
     }
 }
+
+// MARK: - Preview
+
+#Preview {
+    Step1FitnessView(workout: .preview)
+}

@@ -98,3 +98,26 @@ private struct FootIcon: View {
         }
     }
 }
+
+// MARK: - Preview
+
+#Preview {
+    Step4RunningStyleView(
+        store: Store(
+            initialState: CreateDiaryFeature.State(healthKitWorkout: .preview)
+        ) {
+            CreateDiaryFeature()
+        }
+    )
+}
+
+#Preview("미드풋 선택됨") {
+    var state = CreateDiaryFeature.State(healthKitWorkout: .preview)
+    state.selectedRunningStyle = .midfoot
+
+    return Step4RunningStyleView(
+        store: Store(initialState: state) {
+            CreateDiaryFeature()
+        }
+    )
+}

@@ -171,3 +171,31 @@ private struct HumidityChipGroup: View {
         }
     }
 }
+
+// MARK: - Preview
+
+#Preview("날씨 없음") {
+    Step2WeatherView(
+        store: Store(
+            initialState: CreateDiaryFeature.State(healthKitWorkout: .preview)
+        ) {
+            CreateDiaryFeature()
+        }
+    )
+}
+
+#Preview("날씨 있음") {
+    var state = CreateDiaryFeature.State(healthKitWorkout: .preview)
+    let weather = WeatherData(temperature: 18, humidity: 60, windSpeed: 2)
+    state.weather = weather
+    state.skyCondition = weather.skyCondition
+    state.windLevel = weather.windLevel
+    state.feelsLike = weather.feelsLike
+    state.humidityLevel = weather.humidityLevel
+
+    return Step2WeatherView(
+        store: Store(initialState: state) {
+            CreateDiaryFeature()
+        }
+    )
+}
