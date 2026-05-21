@@ -84,14 +84,27 @@ private struct WeatherRawItem: View {
     }
 }
 
+private struct ChipGroupLabel: View {
+    let emoji: String
+    let title: String
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(emoji)
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.gray700)
+        }
+    }
+}
+
 private struct SkyChipGroup: View {
     let selected: SkyCondition?
     let onSelect: (SkyCondition) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("☁️")
-                .font(.subheadline)
+            ChipGroupLabel(emoji: "☁️", title: L10n.weatherCategorySky.value)
             HStack(spacing: 8) {
                 ForEach(SkyCondition.allCases, id: \.self) { condition in
                     SelectableChip(
@@ -112,8 +125,7 @@ private struct WindChipGroup: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("💨")
-                .font(.subheadline)
+            ChipGroupLabel(emoji: "💨", title: L10n.weatherCategoryWind.value)
             HStack(spacing: 8) {
                 ForEach(WindLevel.allCases, id: \.self) { level in
                     SelectableChip(
@@ -134,8 +146,7 @@ private struct FeelsChipGroup: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("🌡️")
-                .font(.subheadline)
+            ChipGroupLabel(emoji: "🌡️", title: L10n.weatherCategoryFeelsLike.value)
             HStack(spacing: 8) {
                 ForEach(FeelsLikeLevel.allCases, id: \.self) { level in
                     SelectableChip(
@@ -156,8 +167,7 @@ private struct HumidityChipGroup: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("💧")
-                .font(.subheadline)
+            ChipGroupLabel(emoji: "💧", title: L10n.weatherCategoryHumidity.value)
             HStack(spacing: 8) {
                 ForEach(HumidityLevel.allCases, id: \.self) { level in
                     SelectableChip(

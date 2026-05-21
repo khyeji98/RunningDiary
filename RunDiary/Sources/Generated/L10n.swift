@@ -395,6 +395,16 @@ enum L10n {
     /// Wind Speed
     static let weatherFieldWindSpeed: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.field.wind_speed")
 
+    // MARK: - Weather Category Labels (4 keys)
+    /// Sky
+    static let weatherCategorySky: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.category.sky")
+    /// Wind
+    static let weatherCategoryWind: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.category.wind")
+    /// Feels Like
+    static let weatherCategoryFeelsLike: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.category.feels_like")
+    /// Humidity
+    static let weatherCategoryHumidity: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.category.humidity")
+
     // MARK: - Weather Sky / Wind / Feels / Humid (11 keys)
     /// Sunny
     static let weatherSkySunny: LocalizableKey<LocalizableParameterCount0> = .init(key: "weather.sky.sunny")
