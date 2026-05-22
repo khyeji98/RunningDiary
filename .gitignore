@@ -36,7 +36,10 @@ fastlane/.env
 
 ### Claude Code ###
 
-.claude/
+.claude/settings.local.json
+
+.DS_Store
+
 .serena/
 
 .gemini/
@@ -44,3 +47,11 @@ gha-creds-*.json
 
 # Agent
 .agent/
+
+### Data Analysis ###
+
+.superset/
+
+### Secrets ###
+
+Config/Secrets.xcconfig

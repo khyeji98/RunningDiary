@@ -26,6 +26,10 @@ public final class RunningRecordPersistenceModel {
     public var temperature: Double?                     // 온도 (ºC)
     public var humidity: Int?                           // 습도 (%)
     public var windSpeed: Double?                       // 풍속 (m/s)
+    public var skyConditionRaw: String?                 // 하늘 상태 (raw)
+    public var windLevelRaw: String?                    // 바람 세기 (raw)
+    public var feelsLikeRaw: String?                    // 체감 온도 (raw)
+    public var humidityLevelRaw: String?                // 습도 분류 (raw)
     public var difficultyLevelRaw: Int?                 // 달리기 난이도 (raw)
     public var routeData: Data?                         // 달리기 경로 데이터
     public var activeEnergyBurned: Double?              // 활동 에너지 소모량 (kcal)
@@ -54,6 +58,10 @@ public final class RunningRecordPersistenceModel {
         temperature: Double? = nil,
         humidity: Int? = nil,
         windSpeed: Double? = nil,
+        skyConditionRaw: String? = nil,
+        windLevelRaw: String? = nil,
+        feelsLikeRaw: String? = nil,
+        humidityLevelRaw: String? = nil,
         difficultyLevelRaw: Int? = nil,
         routeData: Data? = nil,
         activeEnergyBurned: Double? = nil,
@@ -80,6 +88,10 @@ public final class RunningRecordPersistenceModel {
         self.temperature = temperature
         self.humidity = humidity
         self.windSpeed = windSpeed
+        self.skyConditionRaw = skyConditionRaw
+        self.windLevelRaw = windLevelRaw
+        self.feelsLikeRaw = feelsLikeRaw
+        self.humidityLevelRaw = humidityLevelRaw
         self.difficultyLevelRaw = difficultyLevelRaw
         self.routeData = routeData
         self.activeEnergyBurned = activeEnergyBurned
@@ -103,10 +115,22 @@ public extension RunningRecordPersistenceModel {
     func toDomain() -> Diary {
         let weather: WeatherData?
         if let temp = temperature, let hum = humidity, let wind = windSpeed {
+            let classified = WeatherData.classify(
+                temperature: temp, humidity: hum, windSpeed: wind
+            )
+            let sky = skyConditionRaw.flatMap { SkyCondition(rawValue: $0) } ?? classified.sky
+            let windLv = windLevelRaw.flatMap { WindLevel(rawValue: $0) } ?? classified.wind
+            let feels = feelsLikeRaw.flatMap { FeelsLikeLevel(rawValue: $0) } ?? classified.feels
+            let humid = humidityLevelRaw.flatMap { HumidityLevel(rawValue: $0) } ?? classified.humid
+
             weather = WeatherData(
                 temperature: temp,
                 humidity: hum,
-                windSpeed: wind
+                windSpeed: wind,
+                skyCondition: sky,
+                windLevel: windLv,
+                feelsLike: feels,
+                humidityLevel: humid
             )
         } else {
             weather = nil
@@ -162,6 +186,10 @@ public extension RunningRecordPersistenceModel {
             temperature: record.weather?.temperature,
             humidity: record.weather?.humidity,
             windSpeed: record.weather?.windSpeed,
+            skyConditionRaw: record.weather?.skyCondition.rawValue,
+            windLevelRaw: record.weather?.windLevel.rawValue,
+            feelsLikeRaw: record.weather?.feelsLike.rawValue,
+            humidityLevelRaw: record.weather?.humidityLevel.rawValue,
             difficultyLevelRaw: record.difficultyLevel?.rawValue,
             routeData: record.workout.routeData,
             activeEnergyBurned: record.workout.activeEnergyBurned,
@@ -314,7 +342,7 @@ public extension RunningRecordPersistenceModel {
                 walkingStepLength: nil,
                 startTime: date(year: 2025, month: 11, day: 1),
                 endTime: Calendar.current.date(byAdding: .second, value: 3600, to: date(year: 2025, month: 11, day: 1))!
-            )
+            ),
         ]
     }
 }

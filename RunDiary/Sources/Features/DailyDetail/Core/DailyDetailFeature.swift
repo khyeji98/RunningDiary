@@ -21,9 +21,9 @@ struct DailyDetailFeature {
         var diaries: [YearMonthDay: [Diary]] = [:]
         var workouts: [YearMonthDay: [HealthKitWorkout]] = [:]
         var isLoading: Bool = false
-        var error: DailyDetailError? = nil
-        var weatherTrademark: WeatherTrademark? = nil
-        @Presents var addRecord: AddRecordFeature.State?
+        var error: DailyDetailError?
+        var weatherTrademark: WeatherTrademark?
+        @Presents var createDiary: CreateDiaryFeature.State?
         @Presents var calendar: CalendarFeature.State?
         @Presents var settings: SettingsFeature.State?
 
@@ -44,7 +44,7 @@ struct DailyDetailFeature {
             dates: [YearMonthDay] = [],
             diaries: [YearMonthDay: [Diary]] = [:],
             workouts: [YearMonthDay: [HealthKitWorkout]] = [:],
-            addRecord: AddRecordFeature.State? = nil,
+            createDiary: CreateDiaryFeature.State? = nil,
             calendar: CalendarFeature.State? = nil,
             settings: SettingsFeature.State? = nil
         ) {
@@ -52,7 +52,7 @@ struct DailyDetailFeature {
             self.dates = dates
             self.diaries = diaries
             self.workouts = workouts
-            self.addRecord = addRecord
+            self.createDiary = createDiary
             self.calendar = calendar
             self.settings = settings
         }
@@ -71,12 +71,14 @@ struct DailyDetailFeature {
         case weatherTrademarkFetched(WeatherTrademark)
         case createRecord(HealthKitWorkout)
         case editRecord(Diary)
-        case addRecord(PresentationAction<AddRecordFeature.Action>)
+        case createDiary(PresentationAction<CreateDiaryFeature.Action>)
         case calendarButtonTapped
         case calendar(PresentationAction<CalendarFeature.Action>)
         case settingsButtonTapped
         case settings(PresentationAction<SettingsFeature.Action>)
         case refreshCurrentWeek
+        case preloadRequested
+        case preloadShoes
     }
 
     // MARK: - Dependency
@@ -84,6 +86,7 @@ struct DailyDetailFeature {
     @Dependency(\.healthKitClient) var healthKitClient
     @Dependency(\.persistencesClient) var persistencesClient
     @Dependency(\.weatherClient) var weatherClient
+    @Dependency(\.shoeClient) var shoeClient
 
     // MARK: - Reducer
 
@@ -95,9 +98,12 @@ struct DailyDetailFeature {
                     state.dates = DateHelper.getWeekDates(for: state.selectedDate.toDate()).map { YearMonthDay(date: $0) }
                 }
 
+                return .send(.fetchWeekRecords)
+
+            case .preloadRequested:
                 return .merge(
-                    .send(.fetchWeekRecords),
-                    .send(.fetchWeatherTrademark)
+                    .send(.fetchWeatherTrademark),
+                    .send(.preloadShoes)
                 )
 
             case let .dateSelected(date):
@@ -199,32 +205,34 @@ struct DailyDetailFeature {
                 return .none
 
             case let .createRecord(healthKitWorkout):
-                AppLogger.dailyDetail.debug("showAddRecord - mode: 추가, date: \(state.selectedDate), healthKitWorkout: \(healthKitWorkout)")
-                state.addRecord = AddRecordFeature.State(
+                AppLogger.dailyDetail.debug(
+                    "showCreateDiary - mode: 추가, date: \(state.selectedDate), healthKitWorkout: \(healthKitWorkout)"
+                )
+                state.createDiary = CreateDiaryFeature.State(
                     existingRecord: nil,
                     healthKitWorkout: healthKitWorkout
                 )
-                return .none
+                return loadShoesForCreation()
 
             case let .editRecord(runningRecord):
-                AppLogger.dailyDetail.debug("showAddRecord - mode: 수정, date: \(state.selectedDate), runningRecord: \(runningRecord)")
-                state.addRecord = AddRecordFeature.State(
+                AppLogger.dailyDetail.debug("showCreateDiary - mode: 수정, date: \(state.selectedDate), runningRecord: \(runningRecord)")
+                state.createDiary = CreateDiaryFeature.State(
                     existingRecord: runningRecord,
                     healthKitWorkout: runningRecord.workout
                 )
-                return .none
+                return loadShoesForCreation(existingShoeId: runningRecord.shoes)
 
-            case .addRecord(.presented(.recordSaved)):
+            case .createDiary(.presented(.recordSaved)):
                 AppLogger.dailyDetail.info("recordSaved - 새로고침 시작")
-                state.addRecord = nil
+                state.createDiary = nil
                 return .send(.fetchWeekRecords)
 
-            case .addRecord(.dismiss):
-                AppLogger.dailyDetail.debug("addRecord dismiss - 기록 추가/편집 화면 닫힘")
-                state.addRecord = nil
+            case .createDiary(.dismiss):
+                AppLogger.dailyDetail.debug("createDiary dismiss - 기록 추가/편집 화면 닫힘")
+                state.createDiary = nil
                 return .none
 
-            case .addRecord:
+            case .createDiary:
                 return .none
 
             case .calendarButtonTapped:
@@ -272,16 +280,45 @@ struct DailyDetailFeature {
 
             case .refreshCurrentWeek:
                 return .send(.fetchWeekRecords)
+
+            case .preloadShoes:
+                return .run { [shoeClient] _ in
+                    guard await !ShoeCache.shared.isLoaded else { return }
+                    do {
+                        let shoes = try await shoeClient.fetchAllShoes()
+                        await ShoeCache.shared.store(shoes)
+                    } catch {
+                        AppLogger.network.error("Shoe preload failed: \(error.localizedDescription)")
+                    }
+                }
             }
         }
-        .ifLet(\.$addRecord, action: \.addRecord) {
-            AddRecordFeature()
+        .ifLet(\.$createDiary, action: \.createDiary) {
+            CreateDiaryFeature()
         }
         .ifLet(\.$calendar, action: \.calendar) {
             CalendarFeature()
         }
         .ifLet(\.$settings, action: \.settings) {
             SettingsFeature()
+        }
+    }
+
+    private func loadShoesForCreation(existingShoeId: String? = nil) -> Effect<Action> {
+        .run { [shoeClient] send in
+            do {
+                let shoes: [Shoe]
+                if await ShoeCache.shared.isLoaded {
+                    shoes = await ShoeCache.shared.allShoes()
+                } else {
+                    shoes = try await shoeClient.fetchAllShoes()
+                    await ShoeCache.shared.store(shoes)
+                }
+                await send(.createDiary(.presented(.shoesLoaded(shoes))))
+            } catch {
+                AppLogger.network.error("Shoe load for diary creation failed: \(error.localizedDescription)")
+                await send(.createDiary(.presented(.shoesLoadFailed)))
+            }
         }
     }
 }

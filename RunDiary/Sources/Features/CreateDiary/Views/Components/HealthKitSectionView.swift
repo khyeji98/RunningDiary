@@ -5,8 +5,8 @@
 //  Created by 김혜지 on 12/5/25.
 //
 
-import SwiftUI
 import Models
+import SwiftUI
 
 struct HealthKitSectionView: View {
     let workout: HealthKitWorkout
@@ -115,7 +115,7 @@ struct HealthKitSectionView: View {
                     }
                 }
             }
-            
+
             HStack {
                 Spacer()
                 Text("common.from_apple_health")
@@ -129,4 +129,3 @@ struct HealthKitSectionView: View {
         .cornerRadius(12)
     }
 }
-

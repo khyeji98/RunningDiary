@@ -1,0 +1,219 @@
+//
+//  Step3ShoesView.swift
+//  RunDiary
+//
+
+import ComposableArchitecture
+import Models
+import SwiftUI
+
+struct Step3ShoesView: View {
+    @Bindable var store: StoreOf<CreateDiaryFeature>
+    @State private var selectedBrand: String = ""
+
+    var body: some View {
+        VStack(spacing: 0) {
+            StepTitleLabel(L10n.recordStepTitleShoes)
+
+            if store.isShoesLoading && store.shoes.isEmpty {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                HStack(spacing: 0) {
+                    BrandList(
+                        brands: brands,
+                        selected: selectedBrand
+                    ) { brand in
+                        selectedBrand = brand
+                    }
+                    .frame(width: 130)
+
+                    Divider()
+
+                    ShoeList(
+                        shoes: shoesOfSelectedBrand,
+                        selectedShoeId: store.selectedShoe?.id
+                    ) { store.send(.updateSelectedShoe($0)) }
+                }
+                .frame(maxHeight: .infinity)
+            }
+        }
+        .onAppear { syncSelectedBrand() }
+        .onChange(of: store.shoes) { _, _ in syncSelectedBrand() }
+    }
+
+    private var brands: [String] {
+        Array(Set(store.shoes.map(\.brandName))).sorted()
+    }
+
+    private var shoesOfSelectedBrand: [Shoe] {
+        store.shoes
+            .filter { $0.brandName == selectedBrand }
+            .sorted { $0.displayName.localizedCompare($1.displayName) == .orderedAscending }
+    }
+
+    private func syncSelectedBrand() {
+        guard selectedBrand.isEmpty else { return }
+        selectedBrand = store.selectedShoe?.brandName ?? brands.first ?? ""
+    }
+}
+
+private struct BrandList: View {
+    let brands: [String]
+    let selected: String
+    let onSelect: (String) -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                ForEach(brands, id: \.self) { brand in
+                    BrandRow(
+                        brand: brand,
+                        isSelected: brand == selected
+                    ) {
+                        onSelect(brand)
+                    }
+                }
+            }
+        }
+        .background(Color.gray100.opacity(0.3))
+    }
+}
+
+private struct BrandRow: View {
+    let brand: String
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack {
+                Text(brand)
+                    .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                    .foregroundStyle(isSelected ? Color.blue700 : Color.gray500)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+            .background(isSelected ? Color(.systemBackground) : Color.clear)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct ShoeList: View {
+    let shoes: [Shoe]
+    let selectedShoeId: String?
+    let onSelect: (Shoe) -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                ForEach(shoes) { shoe in
+                    ShoeRow(
+                        shoe: shoe,
+                        isSelected: shoe.id == selectedShoeId
+                    ) {
+                        onSelect(shoe)
+                    }
+                    Divider()
+                }
+            }
+        }
+    }
+}
+
+private struct ShoeRow: View {
+    let shoe: Shoe
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack {
+                Text(shoe.displayName)
+                    .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                    .foregroundStyle(isSelected ? Color.blue700 : Color.gray700)
+                    .multilineTextAlignment(.leading)
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(Color.blue300)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Preview
+
+#Preview("신발 목록") {
+    var state = CreateDiaryFeature.State(healthKitWorkout: .preview)
+    state.shoes = [
+        Shoe(
+            id: "1",
+            brandName: "Nike",
+            name: "Pegasus 41",
+            nameKo: "페가수스 41",
+            category: [:],
+            subcategory: [:],
+            tags: [],
+            imageUrl: nil,
+            reviewSummary: nil,
+            pros: [],
+            cons: [],
+            description: nil
+        ),
+        Shoe(
+            id: "2",
+            brandName: "Nike",
+            name: "Vaporfly 3",
+            nameKo: "베이퍼플라이 3",
+            category: [:],
+            subcategory: [:],
+            tags: [],
+            imageUrl: nil,
+            reviewSummary: nil,
+            pros: [],
+            cons: [],
+            description: nil
+        ),
+        Shoe(
+            id: "3",
+            brandName: "Adidas",
+            name: "Boston 12",
+            nameKo: "보스턴 12",
+            category: [:],
+            subcategory: [:],
+            tags: [],
+            imageUrl: nil,
+            reviewSummary: nil,
+            pros: [],
+            cons: [],
+            description: nil
+        ),
+    ]
+
+    return Step3ShoesView(
+        store: Store(initialState: state) {
+            CreateDiaryFeature()
+        }
+    )
+}
+
+#Preview("신발 없음") {
+    Step3ShoesView(
+        store: Store(
+            initialState: CreateDiaryFeature.State(healthKitWorkout: .preview)
+        ) {
+            CreateDiaryFeature()
+        }
+    )
+}

@@ -8,9 +8,9 @@
 import Dependencies
 import DependenciesMacros
 import Foundation
-import SwiftData
 import Models
 import PersistencesService
+import SwiftData
 
 @DependencyClient
 struct PersistencesClient {
@@ -75,13 +75,30 @@ extension PersistencesClient {
         endTime: Date? = nil
     ) async throws {
         try await self.update(
-            recordId, date, distance, duration, averagePace,
-            averageHeartRate, averageCadence, painAreas, runningStyle,
-            memo, shoes, weather, difficultyLevel, routeData,
-            activeEnergyBurned, runningVerticalOscillation,
-            runningGroundContactTime, walkingStepLength,
-            restingHeartRate, runningPower, runningStrideLength,
-            heartRateRecoveryOneMinute, startTime, endTime
+            recordId,
+            date,
+            distance,
+            duration,
+            averagePace,
+            averageHeartRate,
+            averageCadence,
+            painAreas,
+            runningStyle,
+            memo,
+            shoes,
+            weather,
+            difficultyLevel,
+            routeData,
+            activeEnergyBurned,
+            runningVerticalOscillation,
+            runningGroundContactTime,
+            walkingStepLength,
+            restingHeartRate,
+            runningPower,
+            runningStrideLength,
+            heartRateRecoveryOneMinute,
+            startTime,
+            endTime
         )
     }
 }
@@ -100,7 +117,15 @@ extension PersistencesClient {
             save: { record in
                 try await repository.saveRunningRecord(record)
             },
-            update: { recordId, date, distance, duration, averagePace, averageHeartRate, averageCadence, painAreas, runningStyle, memo, shoes, weather, difficultyLevel, routeData, activeEnergyBurned, runningVerticalOscillation, runningGroundContactTime, walkingStepLength, restingHeartRate, runningPower, runningStrideLength, heartRateRecoveryOneMinute, startTime, endTime in
+            update: {
+                recordId, date, distance, duration, averagePace,
+                averageHeartRate, averageCadence, painAreas, runningStyle,
+                memo, shoes, weather, difficultyLevel, routeData,
+                activeEnergyBurned, runningVerticalOscillation,
+                runningGroundContactTime, walkingStepLength,
+                restingHeartRate, runningPower, runningStrideLength,
+                heartRateRecoveryOneMinute, startTime, endTime
+            in
                 try await repository.updateRunningRecord(
                     recordId: recordId,
                     date: date,

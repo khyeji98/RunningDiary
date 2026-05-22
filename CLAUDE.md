@@ -1,67 +1,52 @@
 # Running Log Diary
 
 ## Overview
-- **Goal**: Manage daily running logs and condition tracking
-- **Core Design**: Built with predictable state management and modularized features based on TCA.
-- **Key Concept**: Focused on clear state–action boundaries and data-driven UI updates.
+- **Goal**: 러닝 일지와 컨디션을 기록·관리하는 iOS 앱
+- **Core Design**: TCA 기반 예측 가능한 상태 관리와 모듈화된 Feature 구조
+- **Key Concept**: 명확한 State–Action 경계, 데이터 주도 UI 업데이트
 
 ## Tech Stack
 - **Architecture**: TCA (@Reducer, State, Action, Dependency)
 - **Storage**: SwiftData (Repository pattern)
-- **Integration**: HealthKit (distance/heart rate/cadence/route), Shoes API, Weather API
+- **Integration**: HealthKit (distance/heart rate/cadence/route), WeatherKit
+- **Min Target**: iOS 18.0
 
-## Main Screens
-1. **Daily Logs** (Main): Date carousel, HealthKit data, pain/stride/condition, shoes, weather, route
-2. **Calendar View**: Satisfaction visualization
-3. **Add/Edit Log**: Import from HealthKit or manual entry
+## Project Structure
+- `RunDiary/Sources/Features/` — Feature 모듈 (Calendar, CreateDiary, DailyDetail, Settings)
+- `RunDiary/Sources/Clients/` — TCA Dependency 클라이언트 (HealthKit, Persistences, RunningRecord, Weather)
+- `RunDiary/Sources/Core/` — DesignSystem, Extensions, Storage, Utils
+- `RunDiary/Sources/App/` — App Entry Point
+- `Dependencies/` — 로컬 Swift 패키지 (CoreNetwork, HealthKitService, Models, PersistencesService 등)
+- `RunDiaryTests/` — 테스트
 
-## Priorities
-1. ✅ Setup
-2. 🔄 Basic UI structure (date carousel, mock data)
-3. ⏳ HealthKit integration
-4. ⏳ Log entry screen
-5. ⏳ Calendar view
-6. ⏳ SwiftData + Repository
-7. ⏳ External API integration
+## Build & Run
+- **빌드**: `xcodebuild -scheme RunDiary -destination 'platform=iOS Simulator,name=iPhone 16'`
+- **테스트**: `xcodebuild test -scheme RunDiaryTests -destination 'platform=iOS Simulator,name=iPhone 16'`
 
-## Coding Guidelines
-- **Naming**: SwiftLint + Swift API Guidelines
-  - Types: UpperCamelCase (`~View`, `~Feature`)
-  - Variables/functions: lowerCamelCase
-- **TCA**: `@Reducer` macro, separate State/Action, `@Dependency` injection
-- **Access Control**: default internal, private when unnecessary
-
-## Testing Strategy (Swift Testing + TCA)
-- **Testing**: Reducers must use TestStore, Dependencies require mock implementations
+## Testing
 - **Framework**: Swift Testing (`@Test`, `#expect`)
+- **TCA**: Reducer 테스트는 반드시 TestStore 사용, Dependency는 mock 구현 필수
 - **Naming**: `test_trigger_result`
 
-### AI Rules (Strict)
-1. **Korean Descriptions**: `@Test` macro MUST have a descriptive **Korean** name. (e.g., `@Test("버튼 클릭 시 카운트 증가")`).
-2. **Helper `make*`**: MUST encapsulate `TestStore` or SUT creation in `make*` private helpers (e.g., `makeTestStore`).
-3. **Expected Constants**: Define expected values as constants (`let expected...`) *before* assertions/actions for clarity.
-4. **TCA Pattern**: Use `await store.send(...)` and `await store.receive(...)` with `withDependencies` for mocking.
+## Workflow
+- 코드 수정 완료 후 `xcodebuild` 빌드 실행
+- 빌드 성공 시 `/commit` skill 실행
+- 빌드 실패 시 에러 수정 후 재빌드
+- 새 기능 구현 시 `@tdd` 파이프라인 실행 (PRD → TC → Test → Impl → Review)
 
-### Compact Template
-```swift
-@Test("테스트 시나리오 설명(한글)")
-func action_result() async {
-    // Given
-    let expectedVal = ...
-    let store = makeTestStore(initialState: ...)
-    
-    // When
-    await store.send(.action) {
-        // Then
-        $0.state = expectedVal
-    }
-}
+## Key Decisions
+- Navigation은 TCA tree-based (`@Reducer enum`) 사용
+- CoreNetwork는 싱글톤 패키지로 분리
+- TCA Dependency는 struct 기반 Client 패턴 (protocol 아님)
 
-// Helper (in private extension)
-func makeTestStore(...) -> TestStore<State, Action> { ... }
-```
+## Conventions
+- **Code**: `~/.claude/rules/code-convention.md` (auto-loaded)
+- **Commit**: `.claude/rules/commit-convention.md` (auto-loaded, 이모지 미사용)
+- **TCA**: `.claude/rules/tca-convention.md` (auto-loaded)
+- **Preview**: `.claude/rules/preview-convention.md` (auto-loaded)
+- **Git workflow**: [CONTRIBUTING.md](./CONTRIBUTING.md)
 
-See existing feature files for detailed examples
-
-## Collaboration
-Git workflow, commit/PR conventions: [CONTRIBUTING.md](./CONTRIBUTING.md)
+## Preview Rules
+- 모든 View 파일은 `#Preview` 블록을 반드시 포함한다.
+- `#Preview` 블록은 파일의 **가장 마지막**에 위치하고 `// MARK: - Preview` 로 구분한다.
+- 공용 더미 데이터는 `Core/Extensions/*+Preview.swift` 패턴으로 작성한다 (예: `HealthKitWorkout.preview`).

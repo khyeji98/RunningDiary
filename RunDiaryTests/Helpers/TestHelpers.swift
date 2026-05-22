@@ -96,3 +96,25 @@ func makeDiary(
         runningStyle: .midfoot
     )
 }
+
+/// Shoe 생성 헬퍼
+func makeShoe(
+    id: String,
+    brand: String,
+    name: String? = nil
+) -> Shoe {
+    Shoe(
+        id: id,
+        brandName: brand,
+        name: name ?? id,
+        nameKo: name ?? id,
+        category: [:],
+        subcategory: [:],
+        tags: [],
+        imageUrl: nil,
+        reviewSummary: nil,
+        pros: [],
+        cons: [],
+        description: nil
+    )
+}

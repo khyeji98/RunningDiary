@@ -26,10 +26,8 @@ struct DailyDetailFeatureTests {
         let expectedWeekDates = makeWeekDates(containing: testDate)
         let expectedDiaries = [makeDiary(yearMonthDay: testDate)]
         let expectedWorkouts = [makeHealthKitWorkout(yearMonthDay: testDate)]
-        let mockTrademark = WeatherTrademark(imageURL: nil, legalPageURL: nil)
 
-        var initialState = DailyDetailFeature.State(selectedDate: testDate)
-        initialState.weatherTrademark = mockTrademark
+        let initialState = DailyDetailFeature.State(selectedDate: testDate)
 
         let sut = makeTestStore(
             initialState: initialState,
@@ -37,7 +35,7 @@ struct DailyDetailFeatureTests {
             workouts: expectedWorkouts
         )
 
-        // .merge로 전송되는 액션들의 순서가 비결정적이므로 exhaustivity off
+        // fetchWeekRecords → weekRecordsFetched 연쇄 이후의 in-flight effect는 skip
         sut.exhaustivity = .off
 
         // When
@@ -53,15 +51,13 @@ struct DailyDetailFeatureTests {
         #expect(sut.state.isLoading == false)
     }
 
-    @Test("onAppear: dates가 이미 있으면 dates 유지")
+    @Test("onAppear: dates가 이미 있으면 dates 유지 및 fetchWeekRecords 트리거")
     func onAppear_existingDates_preservesDates() async {
         // Given
         let testDate = makeTodayYearMonthDay()
         let existingDates = makeWeekDates(containing: testDate)
-        let mockTrademark = WeatherTrademark(imageURL: nil, legalPageURL: nil)
 
-        var initialState = DailyDetailFeature.State(selectedDate: testDate, dates: existingDates)
-        initialState.weatherTrademark = mockTrademark
+        let initialState = DailyDetailFeature.State(selectedDate: testDate, dates: existingDates)
 
         let sut = makeTestStore(
             initialState: initialState,
@@ -69,10 +65,9 @@ struct DailyDetailFeatureTests {
             workouts: []
         )
 
-        // .merge로 전송되는 액션들의 순서가 비결정적이므로 exhaustivity off
         sut.exhaustivity = .off
 
-        // When - dates가 이미 있으므로 state 변화 없음
+        // When - dates는 유지되고 fetchWeekRecords만 트리거
         await sut.send(.onAppear)
 
         // Then - 최종 상태 확인 (dates는 변경되지 않음)
@@ -342,7 +337,6 @@ struct DailyDetailFeatureTests {
         }
     }
 
-
     // MARK: - Computed Properties Tests
 
     @Test("diariesOnSelectedDate: 선택 날짜의 diaries 반환")
@@ -408,16 +402,18 @@ struct DailyDetailFeatureTests {
         }
     }
 
-    // MARK: - AddRecord Integration Tests
+    // MARK: - CreateDiary Integration Tests
 
-    @Test("createRecord: AddRecord를 추가 모드로 표시")
-    func createRecord_opensAddRecordInAddMode() async {
+    @Test("createRecord: CreateDiary를 추가 모드로 표시")
+    func createRecord_opensCreateDiaryInAddMode() async {
         // Given
         let testDate = makeTodayYearMonthDay()
         let healthKitWorkout = makeHealthKitWorkout(yearMonthDay: testDate)
 
         let sut = TestStore(initialState: DailyDetailFeature.State(selectedDate: testDate)) {
             DailyDetailFeature()
+        } withDependencies: {
+            $0.shoeClient.fetchAllShoes = { [] }
         }
 
         sut.exhaustivity = .off
@@ -426,35 +422,39 @@ struct DailyDetailFeatureTests {
         await sut.send(.createRecord(healthKitWorkout))
 
         // Then
-        #expect(sut.state.addRecord != nil)
-        #expect(sut.state.addRecord?.existingRecord == nil)
-        #expect(sut.state.addRecord?.healthKitWorkout == healthKitWorkout)
+        #expect(sut.state.createDiary != nil)
+        #expect(sut.state.createDiary?.existingRecord == nil)
+        #expect(sut.state.createDiary?.healthKitWorkout == healthKitWorkout)
     }
 
-    @Test("editRecord: AddRecord를 편집 모드로 표시")
-    func editRecord_opensAddRecordInEditMode() async {
+    @Test("editRecord: CreateDiary를 편집 모드로 표시")
+    func editRecord_opensCreateDiaryInEditMode() async {
         // Given
         let testDate = makeTodayYearMonthDay()
         let diary = makeDiary(yearMonthDay: testDate)
 
         let sut = TestStore(initialState: DailyDetailFeature.State(selectedDate: testDate)) {
             DailyDetailFeature()
+        } withDependencies: {
+            $0.shoeClient.fetchAllShoes = { [] }
         }
+
+        sut.exhaustivity = .off
 
         // When & Then
         await sut.send(.editRecord(diary)) {
-            $0.addRecord = AddRecordFeature.State(
+            $0.createDiary = CreateDiaryFeature.State(
                 existingRecord: diary,
                 healthKitWorkout: diary.workout
             )
         }
     }
 
-    @Test("addRecord dismiss: 시트 닫힘")
-    func addRecordDismiss_closesSheet() async {
+    @Test("createDiary dismiss: 시트 닫힘")
+    func createDiaryDismiss_closesSheet() async {
         // Given
         var initialState = DailyDetailFeature.State()
-        initialState.addRecord = AddRecordFeature.State(
+        initialState.createDiary = CreateDiaryFeature.State(
             existingRecord: nil,
             healthKitWorkout: makeHealthKitWorkout(yearMonthDay: makeTodayYearMonthDay())
         )
@@ -464,20 +464,20 @@ struct DailyDetailFeatureTests {
         }
 
         // When & Then
-        await sut.send(.addRecord(.dismiss)) {
-            $0.addRecord = nil
+        await sut.send(.createDiary(.dismiss)) {
+            $0.createDiary = nil
         }
     }
 
-    @Test("addRecord recordSaved: 주 단위 새로고침")
-    func addRecordSaved_refreshesWeek() async {
+    @Test("createDiary recordSaved: 주 단위 새로고침")
+    func createDiarySaved_refreshesWeek() async {
         // Given
         let testDate = makeTodayYearMonthDay()
         let weekDates = makeWeekDates(containing: testDate)
 
         var initialState = DailyDetailFeature.State(selectedDate: testDate)
         initialState.dates = weekDates
-        initialState.addRecord = AddRecordFeature.State(
+        initialState.createDiary = CreateDiaryFeature.State(
             existingRecord: nil,
             healthKitWorkout: makeHealthKitWorkout(yearMonthDay: testDate)
         )
@@ -489,8 +489,8 @@ struct DailyDetailFeatureTests {
         )
 
         // When
-        await sut.send(.addRecord(.presented(.recordSaved))) {
-            $0.addRecord = nil
+        await sut.send(.createDiary(.presented(.recordSaved))) {
+            $0.createDiary = nil
         }
 
         // Then
@@ -541,10 +541,10 @@ struct DailyDetailFeatureTests {
         }
     }
 
-    // MARK: - Weather Attribution Tests
+    // MARK: - Preload Tests
 
-    @Test("onAppear: weatherTrademark이 nil이면 fetch 트리거")
-    func onAppear_noTrademark_fetchesTrademark() async {
+    @Test("preloadRequested: weatherTrademark이 nil이면 fetch 트리거")
+    func preloadRequested_noTrademark_fetchesTrademark() async {
         // Given
         let testDate = makeTodayYearMonthDay()
         let expectedTrademark = WeatherTrademark(
@@ -555,27 +555,23 @@ struct DailyDetailFeatureTests {
         let sut = TestStore(initialState: DailyDetailFeature.State(selectedDate: testDate)) {
             DailyDetailFeature()
         } withDependencies: {
-            $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [] }
-            $0.persistencesClient.fetchRecords = { _, _ in [] }
             $0.weatherClient.fetchTrademark = { expectedTrademark }
+            $0.shoeClient.fetchAllShoes = { [] }
         }
 
         // .merge로 전송되는 액션들의 순서가 비결정적이므로 exhaustivity off
         sut.exhaustivity = .off
 
         // When
-        await sut.send(.onAppear) {
-            $0.dates = makeWeekDates(containing: testDate)
-        }
+        await sut.send(.preloadRequested)
 
-        // Then - 최종 상태 확인
+        // Then
         await sut.skipReceivedActions()
         #expect(sut.state.weatherTrademark == expectedTrademark)
-        #expect(sut.state.isLoading == false)
     }
 
-    @Test("onAppear: weatherTrademark이 이미 있으면 fetch 생략")
-    func onAppear_existingTrademark_skipsFetch() async {
+    @Test("preloadRequested: weatherTrademark이 이미 있으면 fetch 생략")
+    func preloadRequested_existingTrademark_skipsFetch() async {
         // Given
         let testDate = makeTodayYearMonthDay()
         let existingTrademark = WeatherTrademark(
@@ -592,18 +588,14 @@ struct DailyDetailFeatureTests {
             workouts: []
         )
 
-        // .merge로 전송되는 액션들의 순서가 비결정적이므로 exhaustivity off
         sut.exhaustivity = .off
 
         // When
-        await sut.send(.onAppear) {
-            $0.dates = makeWeekDates(containing: testDate)
-        }
+        await sut.send(.preloadRequested)
 
         // Then - 최종 상태 확인 (weatherTrademark은 변경되지 않음)
         await sut.skipReceivedActions()
         #expect(sut.state.weatherTrademark == existingTrademark)
-        #expect(sut.state.isLoading == false)
     }
 
     // MARK: - Error Handling Tests
@@ -642,6 +634,7 @@ private extension DailyDetailFeatureTests {
             $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in workouts }
             $0.persistencesClient.fetchRecords = { _, _ in diaries }
             $0.persistencesClient.update = { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ in }
+            $0.shoeClient.fetchAllShoes = { [] }
         }
     }
 }
