@@ -43,14 +43,21 @@ private struct DifficultyBarRow: View {
     let onSelect: (DifficultyLevel) -> Void
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: 12) {
-            ForEach(DifficultyLevel.allCases, id: \.self) { level in
-                DifficultyBar(
-                    level: level,
-                    isSelected: shouldFill(level)
-                ) {
-                    onSelect(level)
+        GeometryReader { geometry in
+            HStack(alignment: .bottom, spacing: 12) {
+                ForEach(DifficultyLevel.allCases, id: \.self) { level in
+                    DifficultyBar(level: level, isSelected: shouldFill(level))
                 }
+            }
+            .overlay {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                onSelect(levelAt(x: value.location.x, width: geometry.size.width))
+                            }
+                    )
             }
         }
     }
@@ -59,21 +66,24 @@ private struct DifficultyBarRow: View {
         guard let selected else { return false }
         return level.rawValue <= selected.rawValue
     }
+
+    private func levelAt(x: CGFloat, width: CGFloat) -> DifficultyLevel {
+        let fraction = max(0, min(x / width, 1))
+        let count = DifficultyLevel.allCases.count
+        let index = min(Int(fraction * CGFloat(count)), count - 1)
+        return DifficultyLevel.allCases[index]
+    }
 }
 
 private struct DifficultyBar: View {
     let level: DifficultyLevel
     let isSelected: Bool
-    let onTap: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(isSelected ? Color.blue300 : Color.gray100)
-                .frame(maxWidth: .infinity)
-                .frame(height: barHeight)
-        }
-        .buttonStyle(.plain)
+        RoundedRectangle(cornerRadius: 10)
+            .fill(isSelected ? Color.blue300 : Color.gray100)
+            .frame(maxWidth: .infinity)
+            .frame(height: barHeight)
     }
 
     private var barHeight: CGFloat {
