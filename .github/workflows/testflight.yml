@@ -21,6 +21,18 @@ jobs:
         with:
           xcode-version: latest-stable
 
+      - name: Checkout Secrets
+        uses: actions/checkout@v4
+        with:
+          repository: KimBaebae/rundiary-secrets
+          token: ${{ secrets.SECRETS_REPO_TOKEN }}
+          path: .secrets
+
+      - name: Inject Secrets.xcconfig
+        run: |
+          cp .secrets/Secrets.xcconfig Config/Secrets.xcconfig
+          rm -rf .secrets
+
       - name: 🧹 Clean DerivedData
         run: rm -rf ~/Library/Developer/Xcode/DerivedData
 
