@@ -73,6 +73,8 @@ private struct BodyPainCanvas: View {
 
     // img_body.png 비율: 1504 × 2800
     private static let imageAspect: CGFloat = 1504.0 / 2800.0
+    // 이미지 내 신체 중심선이 이미지 중앙보다 43px 오른쪽에 위치 → 보정값
+    private static let figureCenterOffsetX: CGFloat = 43.0 / 1504.0
 
     var body: some View {
         GeometryReader { geo in
@@ -83,20 +85,24 @@ private struct BodyPainCanvas: View {
             let renderHeight: CGFloat = isWidthLimited ? containerWidth / Self.imageAspect : containerHeight
             let xOff = (containerWidth - renderWidth) / 2
             let yOff = (containerHeight - renderHeight) / 2
+            let imageShift = renderWidth * Self.figureCenterOffsetX
 
             ZStack {
                 Image("img_body")
                     .resizable()
                     .scaledToFit()
                     .frame(width: containerWidth, height: containerHeight)
+                    .offset(x: -imageShift)
 
                 if let area = lastRippleArea, let id = rippleTriggerID {
-                    PainRippleEffect()
-                        .id(id)
-                        .position(
-                            x: xOff + renderWidth * area.anchor.x,
-                            y: yOff + renderHeight * area.anchor.y
-                        )
+                    ForEach(area.anchors.indices, id: \.self) { index in
+                        PainRippleEffect()
+                            .id("\(id)-\(index)")
+                            .position(
+                                x: xOff + renderWidth * area.anchors[index].x,
+                                y: yOff + renderHeight * area.anchors[index].y
+                            )
+                    }
                 }
             }
             .frame(width: containerWidth, height: containerHeight)
