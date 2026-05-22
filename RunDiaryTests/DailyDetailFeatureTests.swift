@@ -412,6 +412,8 @@ struct DailyDetailFeatureTests {
 
         let sut = TestStore(initialState: DailyDetailFeature.State(selectedDate: testDate)) {
             DailyDetailFeature()
+        } withDependencies: {
+            $0.shoeClient.fetchAllShoes = { [] }
         }
 
         sut.exhaustivity = .off
@@ -433,7 +435,11 @@ struct DailyDetailFeatureTests {
 
         let sut = TestStore(initialState: DailyDetailFeature.State(selectedDate: testDate)) {
             DailyDetailFeature()
+        } withDependencies: {
+            $0.shoeClient.fetchAllShoes = { [] }
         }
+
+        sut.exhaustivity = .off
 
         // When & Then
         await sut.send(.editRecord(diary)) {
