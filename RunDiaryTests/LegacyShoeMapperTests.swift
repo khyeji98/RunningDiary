@@ -80,7 +80,7 @@ struct ShoeCacheDisplayNameTests {
 
         let result = await cache.displayName(for: "srv-001")
 
-        #expect(result == "Pegasus 41")
+        #expect(result == "페가수스 41")
         await cache.reset()
     }
 }
