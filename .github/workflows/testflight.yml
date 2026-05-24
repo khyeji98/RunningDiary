@@ -21,18 +21,6 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: Checkout Secrets
-        uses: actions/checkout@v4
-        with:
-          repository: KimBaebae/rundiary-secrets
-          token: ${{ secrets.SECRETS_REPO_TOKEN }}
-          path: .secrets
-
-      - name: Inject Secrets.xcconfig
-        run: |
-          cp .secrets/Secrets.xcconfig Config/Secrets.xcconfig
-          rm -rf .secrets
-
       - name: 🧹 Clean DerivedData
         run: rm -rf ~/Library/Developer/Xcode/DerivedData
 
@@ -76,4 +64,5 @@ jobs:
           APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
           KEYCHAIN_NAME: ${{ secrets.KEYCHAIN_NAME }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          SECRETS_REPO_TOKEN: ${{ secrets.SECRETS_REPO_TOKEN }}
         run: bundle exec fastlane beta

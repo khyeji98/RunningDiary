@@ -6,11 +6,17 @@
 //
 
 import Foundation
+#if DEBUG || ADHOC
+import OSLog
+#endif
 
 /// URLSession을 사용하여 네트워크 요청을 수행하는 구현체입니다.
 public final class URLSessionService: NetworkService, @unchecked Sendable {
     private let session: URLSession
     private let decoder: JSONDecoder
+    #if DEBUG || ADHOC
+    private let logger = Logger(subsystem: "com.kimhyeji.RunDiary", category: "Network")
+    #endif
 
     /// URLSessionService를 초기화합니다.
     /// - Parameters:
@@ -30,6 +36,20 @@ public final class URLSessionService: NetworkService, @unchecked Sendable {
             self.decoder = defaultDecoder
         }
     }
+
+    #if DEBUG || ADHOC
+    private func logResponse(method: String, url: URL, statusCode: Int, data: Data) {
+        let body: String
+        if let json = try? JSONSerialization.jsonObject(with: data),
+           let pretty = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted),
+           let string = String(data: pretty, encoding: .utf8) {
+            body = string
+        } else {
+            body = String(data: data, encoding: .utf8) ?? "(empty)"
+        }
+        logger.debug("[\(method)] \(url.absoluteString) → \(statusCode)\n\(body)")
+    }
+    #endif
 
     public func request<API: RequestAPI>(_ api: API) async throws -> API.Response {
         guard let url = api.url else {
@@ -70,6 +90,15 @@ public final class URLSessionService: NetworkService, @unchecked Sendable {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw NetworkError.invalidResponse
         }
+
+        #if DEBUG || ADHOC
+        logResponse(
+            method: urlRequest.httpMethod ?? "",
+            url: url,
+            statusCode: httpResponse.statusCode,
+            data: data
+        )
+        #endif
 
         guard (200...299).contains(httpResponse.statusCode) else {
             throw NetworkError.httpError(statusCode: httpResponse.statusCode)

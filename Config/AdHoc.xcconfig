@@ -1,0 +1,4 @@
+#include "Secrets.xcconfig"
+
+API_BASE_URL = $(API_BASE_URL_RELEASE)
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = ADHOC $(inherited)
