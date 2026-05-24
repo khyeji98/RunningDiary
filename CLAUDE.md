@@ -20,8 +20,8 @@
 - `RunDiaryTests/` — 테스트
 
 ## Build & Run
-- **빌드**: `xcodebuild -scheme RunDiary -destination 'platform=iOS Simulator,name=iPhone 16'`
-- **테스트**: `xcodebuild test -scheme RunDiaryTests -destination 'platform=iOS Simulator,name=iPhone 16'`
+- **빌드**: `xcodebuild -scheme RunDiary -destination "platform=iOS Simulator,name=iPhone 16,OS=18.6"`
+- **테스트**: `xcodebuild test -scheme RunDiaryTests -destination "platform=iOS Simulator,name=iPhone 16,OS=18.6"`
 
 ## Testing
 - **Framework**: Swift Testing (`@Test`, `#expect`)
