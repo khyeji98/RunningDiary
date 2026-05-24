@@ -65,7 +65,7 @@ platform :ios do
 
     build_app(
       	project: "RunDiary.xcodeproj",
-        scheme: "RunDiary",
+        scheme: "RunDiary-Release",
 	export_method: "app-store",
 	destination: "generic/platform=iOS",
 	clean: true
@@ -125,7 +125,7 @@ platform :ios do
 
     build_app(
       	project: "RunDiary.xcodeproj",
-        scheme: "RunDiary",
+        scheme: "RunDiary-Release",
 	export_method: "app-store",
 	destination: "generic/platform=iOS",
 	clean: true
