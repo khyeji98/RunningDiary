@@ -19,7 +19,16 @@ platform :ios do
 
   desc "Push a new beta build to TestFlight"
 
+  private_lane :inject_private_configs do
+    token = ENV["PRIVATE_REPO_TOKEN"]
+    sh("git clone https://#{token}@github.com/KimBaebae/rundiary-private.git .private --depth 1 --quiet")
+    sh("cp .private/Secrets.xcconfig ../Config/Secrets.xcconfig")
+    sh("rm -rf .private")
+  end
+
   lane :beta do
+
+    inject_private_configs
 
     # 0️⃣ 기존 Keychain 제거
     sh("security delete-keychain #{ENV['KEYCHAIN_NAME']} || true")
