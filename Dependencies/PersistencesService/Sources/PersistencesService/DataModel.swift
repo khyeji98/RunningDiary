@@ -19,10 +19,11 @@ public final class DataModel {
     private init() {
         do {
             self.container = try ModelContainer(
-                for: RunningRecordPersistenceModel.self
+                for: RunningRecordPersistenceModel.self,
+                migrationPlan: RunningRecordMigrationPlan.self
             )
         } catch {
-            fatalError("Failed to initialize ModelContainer after reset: \(error)")
+            fatalError("Failed to initialize ModelContainer: \(error)")
         }
     }
 }
