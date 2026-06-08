@@ -16,6 +16,7 @@ DerivedData/
 *.xcodeproj/*
 !*.xcodeproj/project.pbxproj
 !*.xcodeproj/project.xcworkspace/
+!*.xcodeproj/xcshareddata/
 /*.gcno
 
 ### Swift Package Manager ###
