@@ -35,6 +35,10 @@ Packages/
 
 fastlane/.env
 
+### Secrets ###
+
+Config/Secrets.xcconfig
+
 ### Claude Code ###
 
 .claude/
