@@ -1,0 +1,10 @@
+# SwiftLint 설정
+
+# 타입 본문 길이: 테스트 등 길어지기 쉬운 타입을 고려해 임계값 상향
+type_body_length:
+  warning: 400
+  error: 500
+
+excluded:
+  - "**/.build"
+  - "**/DerivedData"
