@@ -26,6 +26,10 @@ public final class RunningRecordPersistenceModel {
     public var temperature: Double?                     // 온도 (ºC)
     public var humidity: Int?                           // 습도 (%)
     public var windSpeed: Double?                       // 풍속 (m/s)
+    public var skyConditionRaw: String?                 // 유저 선택 - 하늘 상태 (raw)
+    public var windLevelRaw: String?                    // 유저 선택 - 바람 세기 (raw)
+    public var feelsLikeRaw: String?                    // 유저 선택 - 체감 온도 (raw)
+    public var humidityLevelRaw: String?                // 유저 선택 - 습도 체감 (raw)
     public var difficultyLevelRaw: Int?                 // 달리기 난이도 (raw)
     public var routeData: Data?                         // 달리기 경로 데이터
     public var activeEnergyBurned: Double?              // 활동 에너지 소모량 (kcal)
@@ -54,6 +58,10 @@ public final class RunningRecordPersistenceModel {
         temperature: Double? = nil,
         humidity: Int? = nil,
         windSpeed: Double? = nil,
+        skyConditionRaw: String? = nil,
+        windLevelRaw: String? = nil,
+        feelsLikeRaw: String? = nil,
+        humidityLevelRaw: String? = nil,
         difficultyLevelRaw: Int? = nil,
         routeData: Data? = nil,
         activeEnergyBurned: Double? = nil,
@@ -80,6 +88,10 @@ public final class RunningRecordPersistenceModel {
         self.temperature = temperature
         self.humidity = humidity
         self.windSpeed = windSpeed
+        self.skyConditionRaw = skyConditionRaw
+        self.windLevelRaw = windLevelRaw
+        self.feelsLikeRaw = feelsLikeRaw
+        self.humidityLevelRaw = humidityLevelRaw
         self.difficultyLevelRaw = difficultyLevelRaw
         self.routeData = routeData
         self.activeEnergyBurned = activeEnergyBurned
@@ -100,18 +112,44 @@ public final class RunningRecordPersistenceModel {
 // MARK: - Conversion Methods
 
 public extension RunningRecordPersistenceModel {
-    func toDomain() -> Diary {
-        let weather: WeatherData?
-        if let temp = temperature, let hum = humidity, let wind = windSpeed {
-            weather = WeatherData(
-                temperature: temp,
-                humidity: hum,
-                windSpeed: wind
-            )
-        } else {
-            weather = nil
-        }
+    /// WeatherKit 자동 조회 수치(기온/습도/풍속)를 도메인 모델로 변환
+    private var weatherData: WeatherData? {
+        guard
+            let temperature,
+            let humidity,
+            let windSpeed
+        else { return nil }
 
+        return WeatherData(
+            temperature: temperature,
+            humidity: humidity,
+            windSpeed: windSpeed
+        )
+    }
+
+    /// 유저가 선택한 날씨 (하나라도 존재하면 UserWeather 구성)
+    private var userWeatherData: UserWeather? {
+        let skyCondition = skyConditionRaw.flatMap { SkyCondition(rawValue: $0) }
+        let windLevel = windLevelRaw.flatMap { WindLevel(rawValue: $0) }
+        let feelsLike = feelsLikeRaw.flatMap { FeelsLikeLevel(rawValue: $0) }
+        let humidityLevel = humidityLevelRaw.flatMap { HumidityLevel(rawValue: $0) }
+
+        guard
+            skyCondition != nil
+                || windLevel != nil
+                || feelsLike != nil
+                || humidityLevel != nil
+        else { return nil }
+
+        return UserWeather(
+            skyCondition: skyCondition,
+            windLevel: windLevel,
+            feelsLike: feelsLike,
+            humidityLevel: humidityLevel
+        )
+    }
+
+    func toDomain() -> Diary {
         // Convert raw values to enums
         let painAreas = PainAreasMapper.decode(painAreasRawData)
         let runningStyle = runningStyleRaw.flatMap { RunninStyle(rawValue: $0) }
@@ -141,7 +179,8 @@ public extension RunningRecordPersistenceModel {
             runningStyle: runningStyle,
             memo: memo,
             shoes: shoes,
-            weather: weather,
+            weather: weatherData,
+            userWeather: userWeatherData,
             difficultyLevel: difficultyLevel
         )
     }
@@ -162,6 +201,10 @@ public extension RunningRecordPersistenceModel {
             temperature: record.weather?.temperature,
             humidity: record.weather?.humidity,
             windSpeed: record.weather?.windSpeed,
+            skyConditionRaw: record.userWeather?.skyCondition?.rawValue,
+            windLevelRaw: record.userWeather?.windLevel?.rawValue,
+            feelsLikeRaw: record.userWeather?.feelsLike?.rawValue,
+            humidityLevelRaw: record.userWeather?.humidityLevel?.rawValue,
             difficultyLevelRaw: record.difficultyLevel?.rawValue,
             routeData: record.workout.routeData,
             activeEnergyBurned: record.workout.activeEnergyBurned,
@@ -207,6 +250,10 @@ public extension RunningRecordPersistenceModel {
             temperature: 18.5,
             humidity: 62,
             windSpeed: 3.2,
+            skyConditionRaw: "sunny",
+            windLevelRaw: "moderate",
+            feelsLikeRaw: "neutral",
+            humidityLevelRaw: "humid",
             difficultyLevelRaw: 4,
             routeData: nil,
             activeEnergyBurned: 450.0,
@@ -242,7 +289,8 @@ public extension RunningRecordPersistenceModel {
                 runningGroundContactTime: 235.0,
                 walkingStepLength: 1.0,
                 startTime: date(year: 2025, month: 10, day: 15),
-                endTime: Calendar.current.date(byAdding: .second, value: 1780, to: date(year: 2025, month: 10, day: 15))!
+                endTime: Calendar.current.date(
+                    byAdding: .second, value: 1780, to: date(year: 2025, month: 10, day: 15))!
             ),
             RunningRecordPersistenceModel(
                 id: UUID(),
@@ -266,7 +314,8 @@ public extension RunningRecordPersistenceModel {
                 runningGroundContactTime: 230.0,
                 walkingStepLength: 1.2,
                 startTime: date(year: 2025, month: 10, day: 18),
-                endTime: Calendar.current.date(byAdding: .second, value: 2600, to: date(year: 2025, month: 10, day: 18))!
+                endTime: Calendar.current.date(
+                    byAdding: .second, value: 2600, to: date(year: 2025, month: 10, day: 18))!
             ),
             RunningRecordPersistenceModel(
                 id: UUID(),
