@@ -44,11 +44,37 @@ platform :ios do
     )
   end
 
+  desc "Config/Secrets.xcconfig를 ENV(.env / .env.default / GitHub Secrets)에서 생성"
+
+  lane :gen_secrets do
+
+    # xcconfig에서 `//`는 주석이므로 URL scheme의 `//`를 `/$()/`로 escape 한다.
+    escape = ->(value) { value.to_s.gsub("//", "/$()/") }
+
+    debug_url = ENV.fetch("API_BASE_URL_DEBUG")
+    release_url = ENV.fetch("API_BASE_URL_RELEASE")
+
+    contents = <<~CFG
+      // ⚠️ 이 파일은 `fastlane gen_secrets`로 생성됩니다. 직접 수정하지 마세요.
+      // 값 출처: fastlane/.env.default(비민감 기본값) ← fastlane/.env / GitHub Secrets(오버라이드)
+      API_BASE_URL_DEBUG = #{escape.call(debug_url)}
+      API_BASE_URL_RELEASE = #{escape.call(release_url)}
+    CFG
+
+    output_path = File.expand_path("../Config/Secrets.xcconfig", __dir__)
+    File.write(output_path, contents)
+
+    UI.success("✅ Config/Secrets.xcconfig 생성 완료")
+  end
+
   desc "Push a new beta build to TestFlight"
 
   lane :beta do
 
-    # 0️⃣ 기존 Keychain 제거
+    # 0️⃣ Secrets.xcconfig 생성 (CI 체크아웃엔 없으므로 빌드 전 생성)
+    gen_secrets
+
+    # 1️⃣ 기존 Keychain 제거
     sh("security delete-keychain #{ENV['KEYCHAIN_NAME']} || true")
 
     # 1️⃣ Keychain 생성
@@ -108,7 +134,10 @@ platform :ios do
 
   lane :release do
 
-    # 0️⃣ 기존 Keychain 제거
+    # 0️⃣ Secrets.xcconfig 생성 (CI 체크아웃엔 없으므로 빌드 전 생성)
+    gen_secrets
+
+    # 1️⃣ 기존 Keychain 제거
     sh("security delete-keychain #{ENV['KEYCHAIN_NAME']} || true")
 
     # 1️⃣ Keychain 생성

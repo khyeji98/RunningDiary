@@ -23,6 +23,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 인증서/프로비저닝 프로파일을 API Key로 재발급 (capability 변경 시)
 
+### ios gen_secrets
+
+```sh
+[bundle exec] fastlane ios gen_secrets
+```
+
+Config/Secrets.xcconfig를 ENV(.env / .env.default / GitHub Secrets)에서 생성
+
 ### ios beta
 
 ```sh
