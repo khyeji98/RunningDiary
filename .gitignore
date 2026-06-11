@@ -37,6 +37,10 @@ Packages/
 
 fastlane/.env
 
+### Secrets ###
+
+Config/Secrets.xcconfig
+
 ### Claude Code ###
 
 .claude/settings.local.json
@@ -54,7 +58,3 @@ gha-creds-*.json
 ### Data Analysis ###
 
 .superset/
-
-### Secrets ###
-
-Config/Secrets.xcconfig
