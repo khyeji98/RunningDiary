@@ -10,7 +10,7 @@ import OSLog
 /// Logger wrapper - OSLog import 없이 사용 가능
 struct LoggerWrapper {
     private let logger: Logger
-    
+
     init(subsystem: String, category: String) {
         self.logger = Logger(subsystem: subsystem, category: category)
     }
@@ -24,7 +24,7 @@ struct LoggerWrapper {
         let fileName = (file as NSString).lastPathComponent
         logger.info("[\(fileName):\(line)] \(message)")
     }
-    
+
     func debug(
         _ message: String,
         file: String = #file,
@@ -44,7 +44,7 @@ struct LoggerWrapper {
         let fileName = (file as NSString).lastPathComponent
         logger.error("[\(fileName):\(line)] \(message)")
     }
-    
+
     func warning(
         _ message: String,
         file: String = #file,
@@ -54,7 +54,7 @@ struct LoggerWrapper {
         let fileName = (file as NSString).lastPathComponent
         logger.warning("[\(fileName):\(line)] \(message)")
     }
-    
+
     func notice(
         _ message: String,
         file: String = #file,
@@ -64,7 +64,7 @@ struct LoggerWrapper {
         let fileName = (file as NSString).lastPathComponent
         logger.notice("[\(fileName):\(line)] \(message)")
     }
-    
+
     func critical(
         _ message: String,
         file: String = #file,
@@ -74,7 +74,7 @@ struct LoggerWrapper {
         let fileName = (file as NSString).lastPathComponent
         logger.critical("[\(fileName):\(line)] \(message)")
     }
-    
+
     func fault(
         _ message: String,
         file: String = #file,
@@ -121,19 +121,19 @@ struct LoggerWrapper {
 /// 앱 전역에서 사용하는 Logger 유틸리티
 enum AppLogger {
     private static let subsystem = "com.kimhyeji.RunDiary"
-    
+
     /// DailyDetail 기능 관련 로거
     static let dailyDetail = LoggerWrapper(
         subsystem: subsystem,
         category: "DailyDetail"
     )
-    
-    /// AddRecord 기능 관련 로거
-    static let addRecord = LoggerWrapper(
+
+    /// CreateDiary 기능 관련 로거
+    static let createDiary = LoggerWrapper(
         subsystem: subsystem,
-        category: "AddRecord"
+        category: "CreateDiary"
     )
-    
+
     /// Calendar 기능 관련 로거
     static let calendar = LoggerWrapper(
         subsystem: subsystem,
@@ -151,19 +151,19 @@ enum AppLogger {
         subsystem: subsystem,
         category: "HealthKit"
     )
-    
+
     /// 네트워크 관련 로거
     static let network = LoggerWrapper(
         subsystem: subsystem,
         category: "Network"
     )
-    
+
     /// 데이터베이스 관련 로거
     static let database = LoggerWrapper(
         subsystem: subsystem,
         category: "Database"
     )
-    
+
     /// 기타 로거
     static let general = LoggerWrapper(
         subsystem: subsystem,

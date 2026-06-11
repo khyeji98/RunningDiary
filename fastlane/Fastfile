@@ -19,7 +19,16 @@ platform :ios do
 
   desc "Push a new beta build to TestFlight"
 
+  private_lane :inject_private_configs do
+    token = ENV["SECRETS_REPO_TOKEN"]
+    sh("git clone https://#{token}@github.com/KimBaebae/rundiary-secrets.git .private --depth 1 --quiet")
+    sh("cp .private/Secrets.xcconfig ../Config/Secrets.xcconfig")
+    sh("rm -rf .private")
+  end
+
   lane :beta do
+
+    inject_private_configs
 
     # 0️⃣ 기존 Keychain 제거
     sh("security delete-keychain #{ENV['KEYCHAIN_NAME']} || true")
@@ -65,7 +74,7 @@ platform :ios do
 
     build_app(
       	project: "RunDiary.xcodeproj",
-        scheme: "RunDiary",
+        scheme: "RunDiary-Release",
 	export_method: "app-store",
 	destination: "generic/platform=iOS",
 	clean: true
@@ -125,7 +134,7 @@ platform :ios do
 
     build_app(
       	project: "RunDiary.xcodeproj",
-        scheme: "RunDiary",
+        scheme: "RunDiary-Release",
 	export_method: "app-store",
 	destination: "generic/platform=iOS",
 	clean: true

@@ -363,7 +363,7 @@ public extension RunningRecordPersistenceModel {
                 walkingStepLength: nil,
                 startTime: date(year: 2025, month: 11, day: 1),
                 endTime: Calendar.current.date(byAdding: .second, value: 3600, to: date(year: 2025, month: 11, day: 1))!
-            )
+            ),
         ]
     }
 }

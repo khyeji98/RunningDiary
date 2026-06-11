@@ -61,7 +61,7 @@ struct SettingsFeature {
     // MARK: - Reducer
 
     var body: some Reducer<State, Action> {
-        Reduce { state, action in
+        Reduce { _, action in
             switch action {
             case let .settingsItemTapped(item):
                 AppLogger.settings.debug("settingsItemTapped - item: \(item.displayName)")

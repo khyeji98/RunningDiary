@@ -96,3 +96,52 @@ func makeDiary(
         runningStyle: .midfoot
     )
 }
+
+/// metrics가 모두 0인 Diary 생성 헬퍼 (마이그레이션 테스트용)
+func makeDiaryWithZeroMetrics(
+    yearMonthDay: YearMonthDay,
+    startTime: Date? = nil
+) -> Diary {
+    let start = startTime ?? yearMonthDay.toDate()
+    let workout = HealthKitWorkout(
+        distance: 5.0,
+        duration: 1800,
+        averagePace: "6'00\"",
+        averageHeartRate: 150,
+        averageCadence: 170,
+        activeEnergyBurned: 0,
+        runningVerticalOscillation: 0,
+        runningGroundContactTime: 0,
+        walkingStepLength: 0,
+        restingHeartRate: 0,
+        runningPower: 0,
+        runningStrideLength: 0,
+        heartRateRecoveryOneMinute: 0,
+        routeData: nil,
+        startDate: start,
+        endDate: start.addingTimeInterval(1800)
+    )
+    return Diary(workout: workout, runningStyle: .midfoot)
+}
+
+/// Shoe 생성 헬퍼
+func makeShoe(
+    id: String,
+    brand: String,
+    name: String? = nil
+) -> Shoe {
+    Shoe(
+        id: id,
+        brandName: brand,
+        name: name ?? id,
+        nameKo: name ?? id,
+        category: [:],
+        subcategory: [:],
+        tags: [],
+        imageUrl: nil,
+        reviewSummary: nil,
+        pros: [],
+        cons: [],
+        description: nil
+    )
+}

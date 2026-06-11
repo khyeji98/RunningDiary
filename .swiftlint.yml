@@ -1,10 +1,91 @@
-# SwiftLint 설정
+# SwiftLint Configuration for RunDiary
 
-# 타입 본문 길이: 테스트 등 길어지기 쉬운 타입을 고려해 임계값 상향
-type_body_length:
-  warning: 400
-  error: 500
+# --- Paths ---
+included:
+  - RunDiary/Sources
+  - Dependencies
 
 excluded:
+  - RunDiary/Sources/Generated
+  - Dependencies/*/Tests
+  - RunDiaryTests
   - "**/.build"
-  - "**/DerivedData"
+
+# --- Rule Adjustments ---
+
+# 길이 제한 완화 (TCA Reducer body 등 고려)
+function_body_length:
+  warning: 100
+  error: 200
+
+file_length:
+  warning: 500
+  error: 1000
+
+type_body_length:
+  warning: 300
+  error: 500
+
+line_length:
+  warning: 140
+  error: 200
+  ignores_comments: true
+  ignores_urls: true
+
+# Repository 업데이트(전 컬럼 옵셔널 patch) 패턴 허용
+function_parameter_count:
+  warning: 8
+  error: 30
+
+cyclomatic_complexity:
+  warning: 15
+  error: 30
+
+# Force 규칙
+force_cast: error
+force_unwrapping:
+  severity: warning
+
+# --- Opt-in Rules ---
+opt_in_rules:
+  - trailing_comma
+  - closure_spacing
+  - empty_count
+  - fatal_error_message
+  - first_where
+  - implicitly_unwrapped_optional
+  - multiline_arguments
+  - operator_usage_whitespace
+  - overridden_super_call
+  - private_outlet
+  - sorted_imports
+  - vertical_parameter_alignment_on_call
+  - unneeded_parentheses_in_closure_argument
+  - trailing_closure
+
+# Trailing comma 설정
+trailing_comma:
+  mandatory_comma: true
+
+# --- Disabled Rules ---
+disabled_rules:
+  - todo
+  - nesting
+  - closure_parameter_position
+
+# --- Identifier Name ---
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  excluded:
+    - id
+    - x
+    - y
+    - i
+    - j
+
+# --- Large Tuple ---
+large_tuple:
+  warning: 3
+  error: 4
