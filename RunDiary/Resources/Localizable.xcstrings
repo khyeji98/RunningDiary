@@ -259,52 +259,6 @@
         }
       }
     },
-    "difficulty_level.very_easy" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Very Easy"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "とても簡単"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "매우 쉬움"
-          }
-        }
-      }
-    },
-    "difficulty_level.very_hard" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Very Hard"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "とても難しい"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "매우 어려움"
-          }
-        }
-      }
-    },
     "difficulty_level.short.very_easy" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -347,6 +301,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "매우 힘듦"
+          }
+        }
+      }
+    },
+    "difficulty_level.very_easy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Very Easy"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "とても簡単"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "매우 쉬움"
+          }
+        }
+      }
+    },
+    "difficulty_level.very_hard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Very Hard"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "とても難しい"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "매우 어려움"
           }
         }
       }
