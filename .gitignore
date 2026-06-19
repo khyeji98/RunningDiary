@@ -24,6 +24,9 @@ DerivedData/
 .swiftpm/
 Packages/
 
+# 로컬 패키지의 Package.resolved는 비커밋(앱 레벨 resolved가 버전 고정 담당)
+Dependencies/*/Package.resolved
+
 ### App packaging ###
 
 *.ipa
