@@ -1,5 +1,5 @@
 {
-  "originHash" : "97d7b70151277e544610d8b76734f23b996e47d01dfa311f5632b1de5704e0d4",
+  "originHash" : "a69e50c52e36be5b8e835677a84af1ba18a62858ef123c725c8dbd4b2d22e084",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -17,6 +17,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "470234795d319d0924db5f98ec1f70b03a88f2de"
+      }
+    },
+    {
+      "identity" : "simplenetwork",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/khyeji98/SimpleNetwork.git",
+      "state" : {
+        "revision" : "b6386be22a2a802bd7b41c5a04001a325175e24b",
+        "version" : "1.1.0"
       }
     },
     {
@@ -51,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-composable-architecture",
       "state" : {
-        "revision" : "5b0890fabfd68a2d375d68502bc3f54a8548c494",
-        "version" : "1.23.1"
+        "revision" : "e2fa1df6cd9eec6fa6314aa20513e47da576f24e",
+        "version" : "1.26.0"
       }
     },
     {
@@ -96,8 +105,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-navigation",
       "state" : {
-        "revision" : "bf498690e1f6b4af790260f542e8428a4ba10d78",
-        "version" : "2.6.0"
+        "revision" : "32f35241b8be0719c4c7f00eb27713b1cadb6248",
+        "version" : "2.8.0"
       }
     },
     {
