@@ -9,13 +9,13 @@ public struct AuthUser: Identifiable, Equatable, Sendable, Codable {
     public let id: String
     public let email: String
     public let provider: AuthProvider
-    public let name: String
+    public let name: String?
 
     public init(
         id: String,
         email: String,
         provider: AuthProvider,
-        name: String
+        name: String?
     ) {
         self.id = id
         self.email = email

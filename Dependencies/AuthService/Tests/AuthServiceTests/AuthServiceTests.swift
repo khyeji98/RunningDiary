@@ -147,6 +147,40 @@ struct AuthServiceTests {
         #expect(session == expectedSession)
     }
 
+    @Test("AppleLoginResponse는 user.name이 null이면 nil로 매핑한다")
+    func decodeResponse_nullName_mapsToNilName() throws {
+        // Given
+        let expectedSession = AuthSession(
+            accessToken: "server-access-token",
+            tokenType: "bearer",
+            user: AuthUser(
+                id: "user-1",
+                email: "runner@privaterelay.appleid.com",
+                provider: .apple,
+                name: nil
+            )
+        )
+        let json = """
+        {
+            "access_token": "server-access-token",
+            "token_type": "bearer",
+            "user": {
+                "id": "user-1",
+                "email": "runner@privaterelay.appleid.com",
+                "provider": "apple",
+                "name": null
+            }
+        }
+        """
+
+        // When
+        let response = try makeSnakeCaseDecoder().decode(AppleLoginResponse.self, from: Data(json.utf8))
+        let session = response.toDomain()
+
+        // Then
+        #expect(session == expectedSession)
+    }
+
     @Test("GoogleLoginService는 미구현 상태로 notImplemented 에러를 던진다")
     func googleLiveLogin_throwsNotImplemented() async {
         // Given
