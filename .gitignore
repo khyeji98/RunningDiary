@@ -44,7 +44,8 @@ Config/Secrets.xcconfig
 
 ### Claude Code ###
 
-.claude/
+.claude/settings.local.json
+
 .serena/
 
 .gemini/
