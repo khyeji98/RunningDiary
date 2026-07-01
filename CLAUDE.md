@@ -35,6 +35,7 @@
 - **Testing**: Reducers must use TestStore, Dependencies require mock implementations
 - **Framework**: Swift Testing (`@Test`, `#expect`)
 - **Naming**: `test_trigger_result`
+- **Workflow**: 기능이 이미 구현된 상태이므로 forward TDD가 아니라 **명세-우선 테스트 재작성**(이슈로 명세 → TC 매트릭스 → 기존 테스트 전체 주석화 후 TC 단위 복원)을 따른다. `feature-respec-tc` 스킬과 `.claude/rules/phases/`(phase-a/b/c), `.claude/rules/testing-convention.md` 참고.
 
 ### AI Rules (Strict)
 1. **Korean Descriptions**: `@Test` macro MUST have a descriptive **Korean** name. (e.g., `@Test("버튼 클릭 시 카운트 증가")`).
