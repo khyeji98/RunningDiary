@@ -31,6 +31,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Generate Secrets.xcconfig
+        run: cp Config/Secrets.xcconfig.template Config/Secrets.xcconfig
       
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
