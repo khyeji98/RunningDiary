@@ -32,8 +32,8 @@ struct RefreshTokenRequest: Encodable, Sendable {
 
 /// 토큰 갱신 응답 DTO.
 ///
-/// TODO: 서버 응답 스키마 확정 후 필드 조정(예: refresh_token 회전 여부).
+/// accessToken 갱신 시 refreshToken도 함께 회전(rotation)되어 매번 응답에 포함되므로 옵셔널이 아니다.
 struct RefreshTokenResponse: Decodable, Sendable {
     let accessToken: String
-    let refreshToken: String?
+    let refreshToken: String
 }

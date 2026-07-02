@@ -52,9 +52,9 @@ public actor TokenRefresher: TokenRefreshing {
             //   let api = RefreshTokenAPI(baseURL: baseURL, refreshToken: refreshToken)
             //   let response = try await service.request(api)
             //   try storage.save(response.accessToken, for: .accessToken)
-            //   if let newRefresh = response.refreshToken {
-            //       try storage.save(newRefresh, for: .refreshToken)
-            //   }
+            //   // refreshToken은 갱신마다 회전(rotation)되어 응답에 항상 포함되므로 무조건 저장한다.
+            //   // 조건부로 저장하면 회전 전 refreshToken이 키체인에 남아 다음 갱신에 잘못 사용될 수 있다.
+            //   try storage.save(response.refreshToken, for: .refreshToken)
             //   return response.accessToken
             _ = (baseURL, service, refreshToken)
             throw AuthError.notImplemented
