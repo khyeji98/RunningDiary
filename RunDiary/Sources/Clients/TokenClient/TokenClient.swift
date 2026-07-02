@@ -38,6 +38,8 @@ extension TokenClient: DependencyKey {
 
                 if let refreshToken = session.refreshToken {
                     try storage.save(refreshToken, for: .refreshToken)
+                } else {
+                    try storage.delete(.refreshToken)
                 }
             },
             accessToken: { storage.read(.accessToken) },

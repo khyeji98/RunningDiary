@@ -12,7 +12,8 @@ import Models
 ///
 /// `ASAuthorizationController`로 Apple 자체 로그인을 수행한 뒤,
 /// identity token을 서버 Apple 로그인 API로 전달하여 `AuthSession`을 수신한다.
-public final class AppleLoginService: AppleLoginProviding {
+/// 상태 없는 value type. 내부에 캐시 등 mutable state를 추가하려면 참조 타입으로 되돌리는 것을 검토할 것.
+public struct AppleLoginService: AppleLoginProviding {
     private let baseURL: String
     private let service: NetworkService
 

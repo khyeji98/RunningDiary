@@ -11,6 +11,8 @@ import SwiftUI
 /// HIG를 준수하는 Apple 로그인 버튼.
 /// 실제 인증은 탭 시 전달되는 `onTap` 클로저(→ TCA 액션)에서 수행한다.
 struct AppleSignInButton: UIViewRepresentable {
+    @Environment(\.colorScheme) private var colorScheme
+
     private let onTap: () -> Void
 
     init(onTap: @escaping () -> Void) {
@@ -18,7 +20,8 @@ struct AppleSignInButton: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> ASAuthorizationAppleIDButton {
-        let button = ASAuthorizationAppleIDButton(type: .signIn, style: .black)
+        let style: ASAuthorizationAppleIDButton.Style = colorScheme == .dark ? .white : .black
+        let button = ASAuthorizationAppleIDButton(type: .signIn, style: style)
         button.addTarget(
             context.coordinator,
             action: #selector(Coordinator.didTap),

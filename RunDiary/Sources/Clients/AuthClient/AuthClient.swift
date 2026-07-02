@@ -17,11 +17,13 @@ struct AuthClient {
 }
 
 extension AuthClient: DependencyKey {
-    static let liveValue: AuthClient = {
-        let appleService = AppleLoginService(baseURL: AppConfig.baseURL)
-        let googleService = GoogleLoginService()
+    static let liveValue: AuthClient = .live()
 
-        return AuthClient(
+    static func live(
+        appleService: AppleLoginProviding = AppleLoginService(baseURL: AppConfig.baseURL),
+        googleService: GoogleLoginProviding = GoogleLoginService()
+    ) -> AuthClient {
+        AuthClient(
             signInWithApple: {
                 try await appleService.login()
             },
@@ -29,7 +31,7 @@ extension AuthClient: DependencyKey {
                 try await googleService.login()
             }
         )
-    }()
+    }
 
     static let testValue = AuthClient(
         signInWithApple: unimplemented("\(Self.self).signInWithApple"),

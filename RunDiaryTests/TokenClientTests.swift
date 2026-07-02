@@ -18,8 +18,7 @@ struct TokenClientTests {
     func saveSession_storesAccessToken() throws {
         // Given
         let expectedAccessToken = "access-123"
-        let storage = InMemorySecureStorage()
-        let client = TokenClient.live(storage: storage)
+        let client = makeSUT()
 
         // When
         try client.saveSession(makeSession(accessToken: expectedAccessToken))
@@ -32,8 +31,7 @@ struct TokenClientTests {
     func saveSession_storesRefreshToken() throws {
         // Given
         let expectedRefreshToken = "refresh-456"
-        let storage = InMemorySecureStorage()
-        let client = TokenClient.live(storage: storage)
+        let client = makeSUT()
 
         // When
         try client.saveSession(makeSession(refreshToken: expectedRefreshToken))
@@ -42,11 +40,24 @@ struct TokenClientTests {
         #expect(client.refreshToken() == expectedRefreshToken)
     }
 
+    @Test("refreshToken이 nil인 세션을 저장하면 기존 refreshToken이 삭제된다")
+    func saveSession_withNilRefreshToken_deletesExistingRefreshToken() throws {
+        // Given
+        let storage = InMemorySecureStorage()
+        let client = makeSUT(storage: storage)
+        try client.saveSession(makeSession(refreshToken: "stale-refresh-token"))
+
+        // When
+        try client.saveSession(makeSession(refreshToken: nil))
+
+        // Then
+        #expect(client.refreshToken() == nil)
+    }
+
     @Test("accessToken이 저장되어 있으면 hasValidSession은 true다")
     func hasValidSession_withToken_returnsTrue() throws {
         // Given
-        let storage = InMemorySecureStorage()
-        let client = TokenClient.live(storage: storage)
+        let client = makeSUT()
 
         // When
         try client.saveSession(makeSession())
@@ -58,7 +69,7 @@ struct TokenClientTests {
     @Test("저장된 토큰이 없으면 hasValidSession은 false다")
     func hasValidSession_withoutToken_returnsFalse() {
         // Given
-        let client = TokenClient.live(storage: InMemorySecureStorage())
+        let client = makeSUT()
 
         // When / Then
         #expect(client.hasValidSession() == false)
@@ -67,8 +78,7 @@ struct TokenClientTests {
     @Test("clear 호출 시 저장된 토큰이 모두 삭제된다")
     func clear_removesAllTokens() throws {
         // Given
-        let storage = InMemorySecureStorage()
-        let client = TokenClient.live(storage: storage)
+        let client = makeSUT()
         try client.saveSession(makeSession(refreshToken: "refresh-456"))
 
         // When
@@ -80,7 +90,11 @@ struct TokenClientTests {
         #expect(client.hasValidSession() == false)
     }
 
-    // MARK: - Helper
+    // MARK: - Helpers
+
+    private func makeSUT(storage: SecureStoring = InMemorySecureStorage()) -> TokenClient {
+        .live(storage: storage)
+    }
 
     private func makeSession(
         accessToken: String = "access-123",

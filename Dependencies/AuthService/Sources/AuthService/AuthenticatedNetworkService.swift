@@ -22,7 +22,8 @@
 ///
 /// TODO: 인증 필요한 비즈니스 API가 추가되면 키체인 토큰을 읽어
 ///       `Authorization: Bearer`를 구성하는 공통 헤더 빌더를 도입한다.
-public final class AuthenticatedNetworkService {
+/// 상태 없는 value type. 내부에 캐시 등 mutable state를 추가하려면 참조 타입으로 되돌리는 것을 검토할 것.
+public struct AuthenticatedNetworkService {
     private let service: NetworkService
     private let refresher: TokenRefreshing
 

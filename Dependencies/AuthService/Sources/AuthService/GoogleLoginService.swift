@@ -9,7 +9,9 @@ import Models
 
 /// Google 로그인 구현체.
 /// 실제 Google Sign In 및 서버 API 통신 로직은 추후 구현 예정.
-public final class GoogleLoginService: GoogleLoginProviding {
+///
+/// 상태 없는 value type. 내부에 캐시 등 mutable state를 추가하려면 참조 타입으로 되돌리는 것을 검토할 것.
+public struct GoogleLoginService: GoogleLoginProviding {
     public init() {}
 
     public func login() async throws -> AuthSession {

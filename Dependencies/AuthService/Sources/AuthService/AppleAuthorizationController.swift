@@ -94,7 +94,8 @@ extension AppleAuthorizationController: ASAuthorizationControllerPresentationCon
         let activeWindow = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .first { $0.activationState == .foregroundActive }?
-            .keyWindow
+            .windows
+            .first { $0.isKeyWindow }
 
         return activeWindow ?? ASPresentationAnchor()
     }

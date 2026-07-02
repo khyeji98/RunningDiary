@@ -47,7 +47,9 @@ struct LoginView: View {
         VStack(spacing: 8) {
             Text("로그인 성공")
                 .font(.headline)
-            Text(session.user.name ?? "")
+            if let name = session.user.name, !name.isEmpty {
+                Text(name)
+            }
             Text(session.user.email)
                 .foregroundStyle(.secondary)
         }
