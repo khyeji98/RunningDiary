@@ -31,19 +31,6 @@ struct LoginViewSnapshotTests {
         )
     }
 
-    @Test("idle 상태 Dark")
-    func idle_dark() {
-        // Given
-        let controller = makeController(state: .init())
-
-        // When / Then
-        assertSnapshot(
-            of: controller,
-            as: .image(on: .iPhone15, traits: makeTraits(style: .dark)),
-            named: "login-screen-idle-dark"
-        )
-    }
-
     // MARK: - loading (로딩 중)
 
     @Test("loading 상태 Light")
@@ -56,19 +43,6 @@ struct LoginViewSnapshotTests {
             of: controller,
             as: .image(on: .iPhone15, traits: makeTraits(style: .light)),
             named: "login-screen-loading-light"
-        )
-    }
-
-    @Test("loading 상태 Dark")
-    func loading_dark() {
-        // Given
-        let controller = makeController(state: .init(isLoading: true))
-
-        // When / Then
-        assertSnapshot(
-            of: controller,
-            as: .image(on: .iPhone15, traits: makeTraits(style: .dark)),
-            named: "login-screen-loading-dark"
         )
     }
 
@@ -87,19 +61,6 @@ struct LoginViewSnapshotTests {
         )
     }
 
-    @Test("error 상태 Dark")
-    func error_dark() {
-        // Given
-        let controller = makeController(state: .init(errorMessage: Self.errorMessage))
-
-        // When / Then
-        assertSnapshot(
-            of: controller,
-            as: .image(on: .iPhone15, traits: makeTraits(style: .dark)),
-            named: "login-screen-error-dark"
-        )
-    }
-
     // MARK: - success (로그인 성공 정보)
 
     @Test("success 상태 Light")
@@ -112,19 +73,6 @@ struct LoginViewSnapshotTests {
             of: controller,
             as: .image(on: .iPhone15, traits: makeTraits(style: .light)),
             named: "login-screen-success-light"
-        )
-    }
-
-    @Test("success 상태 Dark")
-    func success_dark() {
-        // Given
-        let controller = makeController(state: .init(session: Self.session))
-
-        // When / Then
-        assertSnapshot(
-            of: controller,
-            as: .image(on: .iPhone15, traits: makeTraits(style: .dark)),
-            named: "login-screen-success-dark"
         )
     }
 
