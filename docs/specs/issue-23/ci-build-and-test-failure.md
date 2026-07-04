@@ -98,6 +98,47 @@ xcodebuild clean test \
   -skipPackagePluginValidation
 ```
 
+## 3차 실패: LoginView 스냅샷 픽셀 불일치
+
+### 실패 로그
+
+```text
+Failing tests:
+	LoginViewSnapshotTests.error_accessibilityExtraLarge()
+	LoginViewSnapshotTests.error_light()
+** TEST FAILED **
+```
+
+`idle_light`, `loading_light`, `success_light`는 통과하고 `error_light`,
+`error_accessibilityExtraLarge`만 실패했다.
+
+### 원인
+
+세 통과 케이스와 두 실패 케이스의 유일한 시각적 차이는 붉은 소형 에러 텍스트
+(`.foregroundStyle(.red)`, `.footnote`)다. 참조 스냅샷은 로컬에서 기록됐지만
+CI는 다른 렌더링 스택(Xcode 26.6 / iOS 26.5 SDK / iPhone 17 Pro clone)에서 실행된다.
+
+`assertSnapshot`의 기본 비교는 픽셀 완전 일치라서, 검은 제목/본문 텍스트는 맞더라도
+안티앨리어싱된 붉은 글리프의 서브픽셀 색 번짐이 렌더러 간에 미세하게 달라 완전 일치에
+실패했다. 즉 앱 로직·레이아웃 문제가 아니라 환경 간 텍스트 렌더링 차이다.
+
+### 해결
+
+`.image` 전략에 허용 오차를 추가했다. 레이아웃/콘텐츠 변경은 여전히 감지하되,
+렌더러 간 안티앨리어싱 노이즈는 흡수한다.
+
+```swift
+.image(
+    on: .iPhone15,
+    precision: 0.99,           // 99% 픽셀 일치 요구
+    perceptualPrecision: 0.98, // 픽셀별 색상 근접 허용
+    traits: makeTraits(style: style, sizeCategory: sizeCategory)
+)
+```
+
+다섯 케이스 모두 동일한 `makeImageStrategy` 헬퍼를 사용하도록 통일해 정밀도 기준을
+한 곳에서 관리한다.
+
 ## 최종 해결 흐름
 
 최종 CI 준비 순서는 다음과 같다.
@@ -119,7 +160,7 @@ xcodebuild clean test \
 - `simctl` 기반 선택식이 로컬 `iPhone 16` UDID를 정상 선택
 - UDID 기반 destination으로 `PainAreasMapperTests` 실행 성공
 
-전체 테스트는 별도 스냅샷 테스트 실패가 있었지만, 이번 CI 실패 원인이었던 base config 누락과 simulator destination 매칭 문제는 해결됐다.
+이후 3차 실패였던 LoginView 스냅샷 픽셀 불일치는 `precision`/`perceptualPrecision` 허용 오차 적용으로 해결했다.
 
 ## 재발 방지 포인트
 
