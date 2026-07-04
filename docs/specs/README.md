@@ -14,6 +14,7 @@
 |---|---|
 | `tc-matrix.md` | Reducer-level TC 매트릭스 (given State + Action → State 변화 + received) |
 | `ui-test-cases.md` | (UI 화면이 있는 경우) 9컬럼 시각 변형 매트릭스 |
+| `ci-build-and-test-failure.md` | (CI 이슈가 있는 경우) Build & Test 실패 원인과 해결 기록 |
 
 ## 권위 출처
 
