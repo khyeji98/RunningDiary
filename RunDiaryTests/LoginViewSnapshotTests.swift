@@ -26,7 +26,7 @@ struct LoginViewSnapshotTests {
         // When / Then
         assertSnapshot(
             of: controller,
-            as: .image(on: .iPhone15, traits: makeTraits(style: .light)),
+            as: makeImageStrategy(style: .light),
             named: "login-screen-idle-light"
         )
     }
@@ -41,7 +41,7 @@ struct LoginViewSnapshotTests {
         // When / Then
         assertSnapshot(
             of: controller,
-            as: .image(on: .iPhone15, traits: makeTraits(style: .light)),
+            as: makeImageStrategy(style: .light),
             named: "login-screen-loading-light"
         )
     }
@@ -56,7 +56,7 @@ struct LoginViewSnapshotTests {
         // When / Then
         assertSnapshot(
             of: controller,
-            as: .image(on: .iPhone15, traits: makeTraits(style: .light)),
+            as: makeImageStrategy(style: .light),
             named: "login-screen-error-light"
         )
     }
@@ -71,7 +71,7 @@ struct LoginViewSnapshotTests {
         // When / Then
         assertSnapshot(
             of: controller,
-            as: .image(on: .iPhone15, traits: makeTraits(style: .light)),
+            as: makeImageStrategy(style: .light),
             named: "login-screen-success-light"
         )
     }
@@ -86,10 +86,7 @@ struct LoginViewSnapshotTests {
         // When / Then
         assertSnapshot(
             of: controller,
-            as: .image(
-                on: .iPhone15,
-                traits: makeTraits(style: .light, sizeCategory: .accessibilityExtraLarge)
-            ),
+            as: makeImageStrategy(style: .light, sizeCategory: .accessibilityExtraLarge),
             named: "login-screen-error-a11yXL"
         )
     }
@@ -98,6 +95,11 @@ struct LoginViewSnapshotTests {
 // MARK: - Helpers
 
 private extension LoginViewSnapshotTests {
+    /// 픽셀이 일치해야 하는 비율. CI/로컬 렌더러 차이(서브픽셀 안티앨리어싱)를 흡수한다.
+    static let precision: Float = 0.99
+    /// 픽셀별 색상 근접 허용치. 붉은 소형 텍스트의 렌더러 간 색 번짐 차이를 흡수한다.
+    static let perceptualPrecision: Float = 0.98
+
     static let errorMessage = "로그인에 실패했어요. 잠시 후 다시 시도해 주세요."
 
     static let session = AuthSession(
@@ -130,6 +132,18 @@ private extension LoginViewSnapshotTests {
             traits.userInterfaceStyle = style
             traits.preferredContentSizeCategory = sizeCategory
         }
+    }
+
+    func makeImageStrategy(
+        style: UIUserInterfaceStyle,
+        sizeCategory: UIContentSizeCategory = .large
+    ) -> Snapshotting<UIViewController, UIImage> {
+        .image(
+            on: .iPhone15,
+            precision: Self.precision,
+            perceptualPrecision: Self.perceptualPrecision,
+            traits: makeTraits(style: style, sizeCategory: sizeCategory)
+        )
     }
 }
 
