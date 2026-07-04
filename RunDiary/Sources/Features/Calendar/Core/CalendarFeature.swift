@@ -38,7 +38,8 @@ struct CalendarFeature {
             self.startDate = selectedDate.add(month: -6) ?? YearMonthDay(date: calendar.date(byAdding: .month, value: -6, to: today)!)
 
             // endDate: selectedDate + 6개월 (단, today까지의 차이가 6개월 미만이면 today)
-            let tentativeEndDate = selectedDate.add(month: 6) ?? YearMonthDay(date: calendar.date(byAdding: .month, value: 6, to: selectedDate.toDate())!)
+            let fallbackEnd = calendar.date(byAdding: .month, value: 6, to: selectedDate.toDate())!
+            let tentativeEndDate = selectedDate.add(month: 6) ?? YearMonthDay(date: fallbackEnd)
 
             // selectedDate month와 today month 간의 개월 수 차이 계산
             let todayYearMonthDay = YearMonthDay(date: today)

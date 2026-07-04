@@ -19,7 +19,7 @@ public final class WeatherKitManager: WeatherManagerProtocol {
         guard let location = location else {
             throw WeatherKitError.missingLocation
         }
-        
+
         let clLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
         let queryStart = date.addingTimeInterval(-1800)
         let queryEnd = date.addingTimeInterval(1800)
@@ -39,7 +39,9 @@ public final class WeatherKitManager: WeatherManagerProtocol {
         return WeatherData(
             temperature: weather.temperature.value,
             humidity: Int(weather.humidity * 100),
-            windSpeed: weather.wind.speed.value
+            windSpeed: weather.wind.speed.value,
+            cloudCover: weather.cloudCover,
+            apparentTemperature: weather.apparentTemperature.value
         )
     }
 

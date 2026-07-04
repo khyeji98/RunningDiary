@@ -12,7 +12,7 @@ public enum PainAreasMapper {
     public static func encode(_ painAreas: [PainArea]) -> String? {
         encodeRaw(painAreas.map { $0.rawValue })
     }
-    
+
     /// [String] raw values를 JSON String으로 인코딩
     public static func encodeRaw(_ rawValues: [String]) -> String? {
         guard let data = try? JSONEncoder().encode(rawValues) else {
@@ -20,7 +20,7 @@ public enum PainAreasMapper {
         }
         return String(data: data, encoding: .utf8)
     }
-    
+
     /// JSON String을 [PainArea]로 디코딩
     public static func decode(_ jsonString: String?) -> [PainArea] {
         guard let jsonString,

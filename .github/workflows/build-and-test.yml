@@ -31,13 +31,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate Secrets.xcconfig
-        run: cp Config/Secrets.xcconfig.template Config/Secrets.xcconfig
-      
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: 'latest-stable'
+
+      - name: Checkout Secrets
+        uses: actions/checkout@v4
+        with:
+          repository: KimBaebae/rundiary-secrets
+          token: ${{ secrets.SECRETS_REPO_TOKEN }}
+          path: .secrets
+
+      - name: Inject Secrets.xcconfig
+        run: |
+          cp .secrets/Secrets.xcconfig Config/Secrets.xcconfig
+          rm -rf .secrets
 
       - name: Select iOS Simulator
         run: |

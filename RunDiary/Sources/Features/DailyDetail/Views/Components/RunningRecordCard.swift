@@ -58,7 +58,6 @@ private struct TopSection: View {
             .fixedSize(horizontal: false, vertical: true)
             .padding(.bottom, 8)
 
-
         }
     }
 }
@@ -68,7 +67,7 @@ private struct ExpandedContentView: View {
 
     private let gridColumns = [
         GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16)
+        GridItem(.flexible(), spacing: 16),
     ]
 
     private var hasEnvironmentData: Bool {
@@ -220,13 +219,10 @@ private struct EnvironmentSentenceView: View {
     let record: Diary
 
     @Environment(\.locale) private var locale
+    @State private var shoesName: String?
 
     private var isEnglish: Bool {
         locale.language.languageCode?.identifier == "en"
-    }
-
-    private var shoesName: String? {
-        record.shoes.flatMap { ShoeStorage.search(id: $0)?.name }
     }
 
     private var styleName: String? {
@@ -252,6 +248,13 @@ private struct EnvironmentSentenceView: View {
             }
         }
         .font(.body)
+        .task(id: record.shoes) {
+            guard let id = record.shoes, !id.isEmpty else {
+                shoesName = nil
+                return
+            }
+            shoesName = await ShoeCache.shared.displayName(for: id)
+        }
     }
 }
 
@@ -382,7 +385,7 @@ struct SectionHeader: View {
         Location(latitude: 37.5218, longitude: 127.1285),
         Location(latitude: 37.5210, longitude: 127.1275),
         Location(latitude: 37.5205, longitude: 127.1260),
-        Location(latitude: 37.5209, longitude: 127.1230)
+        Location(latitude: 37.5209, longitude: 127.1230),
     ]
     let routeData = try? JSONEncoder().encode(sampleLocations)
 
@@ -414,9 +417,8 @@ struct SectionHeader: View {
                     shoes: "nike-alphafly-3",
                     weather: WeatherData(temperature: 18, humidity: 60, windSpeed: 32),
                     difficultyLevel: .hard
-                ),
-                onEdit: {}
-            )
+                )
+            ) {}
             .padding()
         }
     }

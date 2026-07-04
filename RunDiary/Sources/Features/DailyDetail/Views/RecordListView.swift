@@ -52,8 +52,6 @@ struct RecordListView: View {
     }
 }
 
-
-
 // MARK: - Preview
 
 #Preview(traits: .sampleData) {

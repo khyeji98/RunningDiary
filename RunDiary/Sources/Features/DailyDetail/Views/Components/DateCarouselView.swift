@@ -15,11 +15,11 @@ struct DateCarouselView: View {
 
     @State private var dragOffset: CGFloat = 0
     @State private var currentOffset: CGFloat = 0
-    
+
     init(store: StoreOf<DailyDetailFeature>) {
         self.store = store
     }
-    
+
     var body: some View {
         GeometryReader { _ in
             HStack(spacing: 0) {
@@ -35,7 +35,7 @@ struct DateCarouselView: View {
                     )
                 )
                 .frame(width: screenWidth)
-                
+
                 // 현재 주
                 WeekView(
                     store: store,
@@ -46,7 +46,7 @@ struct DateCarouselView: View {
                     )
                 )
                 .frame(width: screenWidth)
-                
+
                 // 다음 주
                 WeekView(
                     store: store,
@@ -116,18 +116,18 @@ private struct WeekView: View {
         self.dates = dates
         self._selectedDate = selectedDate
     }
-    
+
     private let horizontalPadding: CGFloat = 14
     private let itemSpacing: CGFloat = 10
     private let numberOfItems: CGFloat = 7
-    
+
     var body: some View {
         GeometryReader { _ in
             let totalPadding = horizontalPadding * 2
             let totalSpacing = itemSpacing * (numberOfItems - 1)
             let availableWidth = screenWidth - totalPadding - totalSpacing
             let itemWidth = availableWidth / numberOfItems
-            
+
             HStack(spacing: itemSpacing) {
                 ForEach(dates, id: \.self) { date in
                     Button {
@@ -159,7 +159,7 @@ private struct DateItemView: View {
     let isSelected: Bool
     let hasRecord: Bool
     let width: CGFloat
-    
+
     init(
         date: YearMonthDay,
         isSelected: Bool,
@@ -171,14 +171,14 @@ private struct DateItemView: View {
         self.hasRecord = hasRecord
         self.width = width
     }
-    
+
     var body: some View {
         VStack(spacing: 2) {
             Text(date.toDate().formattedString(formatter: .weekday))
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundColor(isSelected ? .white : .gray700)
-            
+
             Text(date.day.toString)
                 .font(.headline)
                 .foregroundColor(isSelected ? .white : .gray700)

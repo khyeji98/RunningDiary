@@ -9,9 +9,9 @@ import Foundation
 
 /// 날짜 관련 유틸리티 함수 모음
 public enum DateHelper {
-    
+
     // MARK: - Day Operations
-    
+
     /// 특정 날짜의 시작 (00:00:00)
     public static func startOfDay(
         for date: Date,
@@ -19,7 +19,7 @@ public enum DateHelper {
     ) -> Date {
         calendar.startOfDay(for: date)
     }
-    
+
     /// 특정 날짜의 끝 (다음날 00:00:00)
     public static func endOfDay(
         for date: Date,
@@ -27,7 +27,7 @@ public enum DateHelper {
     ) -> Date? {
         calendar.endOfDay(for: date)
     }
-    
+
     /// 두 날짜가 같은 날인지 확인
     public static func isSameDay(
         _ date1: Date,
@@ -36,9 +36,9 @@ public enum DateHelper {
     ) -> Bool {
         calendar.isDate(date1, inSameDayAs: date2)
     }
-    
+
     // MARK: - Week Operations
-    
+
     /// 특정 날짜가 속한 주의 월요일 반환
     public static func startOfWeek(
         for date: Date,
@@ -53,7 +53,7 @@ public enum DateHelper {
         )
         return modifiedCalendar.date(from: components) ?? date
     }
-    
+
     /// 특정 날짜가 속한 주의 월~일 7일 반환
     public static func getWeekDates(
         for date: Date,
@@ -64,7 +64,7 @@ public enum DateHelper {
             calendar.date(byAdding: .day, value: offset, to: startOfWeek)
         }
     }
-    
+
     /// 특정 날짜에서 N주 이동
     public static func addWeeks(
         _ weeks: Int,
@@ -73,9 +73,9 @@ public enum DateHelper {
     ) -> Date {
         calendar.date(byAdding: .weekOfYear, value: weeks, to: date) ?? date
     }
-    
+
     // MARK: - Date Arithmetic
-    
+
     /// 날짜에 일 단위 추가
     public static func addDays(
         _ days: Int,
@@ -84,7 +84,7 @@ public enum DateHelper {
     ) -> Date? {
         calendar.date(byAdding: .day, value: days, to: date)
     }
-    
+
     /// 날짜에 초 단위 추가
     public static func addSeconds(
         _ seconds: Int,
@@ -93,9 +93,9 @@ public enum DateHelper {
     ) -> Date? {
         calendar.date(byAdding: .second, value: seconds, to: date)
     }
-    
+
     // MARK: - Formatting
-    
+
     /// 연도와 월을 포맷팅된 문자열로 반환
     @MainActor
     public static func formattedYearMonth(

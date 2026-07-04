@@ -16,6 +16,9 @@ DerivedData/
 *.xcodeproj/*
 !*.xcodeproj/project.pbxproj
 !*.xcodeproj/project.xcworkspace/
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/xcshareddata/xcschemes/
+!*.xcodeproj/xcshareddata/xcschemes/*.xcscheme
 /*.gcno
 
 ### Swift Package Manager ###
@@ -46,6 +49,8 @@ Config/Secrets.xcconfig
 
 .claude/settings.local.json
 
+.DS_Store
+
 .serena/
 
 .gemini/
@@ -53,3 +58,7 @@ gha-creds-*.json
 
 # Agent
 .agent/
+
+### Data Analysis ###
+
+.superset/

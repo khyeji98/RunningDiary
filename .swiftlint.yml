@@ -1,85 +1,91 @@
-# SwiftLint Configuration - RunDiary
-# pre-commit 훅에서 변경된 Swift 파일에 대해 --strict 모드로 실행된다.
+# SwiftLint Configuration for RunDiary
 
-# 검사 대상에서 제외할 경로
+# --- Paths ---
+included:
+  - RunDiary/Sources
+  - Dependencies
+
 excluded:
+  - RunDiary/Sources/Generated
+  - Dependencies/*/Tests
+  - RunDiaryTests
   - "**/.build"
-  - "**/DerivedData"
-  - "Dependencies/**/.build"
-  - "**/*.generated.swift"
-  - "**/Package.swift"
 
-# 기본 비활성화 규칙 (프로젝트 컨벤션과 충돌하거나 과도한 것)
-disabled_rules:
-  - todo                      # TODO/FIXME 주석 허용
-  - trailing_comma            # 멀티라인 컬렉션 trailing comma 허용
-  - multiple_closures_with_trailing_closure
+# --- Rule Adjustments ---
 
-# opt-in 규칙 (컨벤션 강화)
-opt_in_rules:
-  - empty_count
-  - empty_string
-  - first_where
-  - last_where
-  - contains_over_filter_count
-  - contains_over_first_not_nil
-  - sorted_first_last
-  - fatal_error_message
-  - force_unwrapping
-  - implicitly_unwrapped_optional
-  - redundant_nil_coalescing
-  - closure_spacing
-  - operator_usage_whitespace
-  - vertical_parameter_alignment_on_call
+# 길이 제한 완화 (TCA Reducer body 등 고려)
+function_body_length:
+  warning: 100
+  error: 200
 
-# 규칙 세부 설정
+file_length:
+  warning: 500
+  error: 1000
+
+type_body_length:
+  warning: 300
+  error: 500
+
 line_length:
   warning: 140
   error: 200
   ignores_comments: true
   ignores_urls: true
 
+# Repository 업데이트(전 컬럼 옵셔널 patch) 패턴 허용
+function_parameter_count:
+  warning: 8
+  error: 30
+
+cyclomatic_complexity:
+  warning: 15
+  error: 30
+
+# Force 규칙
+force_cast: error
+force_unwrapping:
+  severity: warning
+
+# --- Opt-in Rules ---
+opt_in_rules:
+  - trailing_comma
+  - closure_spacing
+  - empty_count
+  - fatal_error_message
+  - first_where
+  - implicitly_unwrapped_optional
+  - multiline_arguments
+  - operator_usage_whitespace
+  - overridden_super_call
+  - private_outlet
+  - sorted_imports
+  - vertical_parameter_alignment_on_call
+  - unneeded_parentheses_in_closure_argument
+  - trailing_closure
+
+# Trailing comma 설정
+trailing_comma:
+  mandatory_comma: true
+
+# --- Disabled Rules ---
+disabled_rules:
+  - todo
+  - nesting
+  - closure_parameter_position
+
+# --- Identifier Name ---
 identifier_name:
   min_length:
-    warning: 1
-  max_length:
-    warning: 60
-    error: 80
+    warning: 2
+    error: 1
   excluded:
     - id
     - x
     - y
+    - i
+    - j
 
-type_name:
-  max_length:
-    warning: 60
-    error: 80
-
-function_body_length:
-  warning: 80
-  error: 120
-
-type_body_length:
-  warning: 350
-  error: 500
-
-file_length:
-  warning: 600
-  error: 1000
-  ignore_comment_only_lines: true
-
-cyclomatic_complexity:
-  warning: 15
-  error: 25
-
-nesting:
-  type_level:
-    warning: 3
-
-force_unwrapping:
-  severity: warning
-
-implicitly_unwrapped_optional:
-  severity: warning
-
-reporter: "xcode"
+# --- Large Tuple ---
+large_tuple:
+  warning: 3
+  error: 4

@@ -33,43 +33,43 @@ private struct FlowLayout: Layout {
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let rows = arrangeSubviews(proposal: proposal, subviews: subviews)
-        
+
         let width = proposal.width ?? rows.map { $0.width }.max() ?? 0
         var height: CGFloat = 0
-        
+
         for row in rows {
             height += row.height
             if row != rows.last {
                 height += spacing
             }
         }
-        
+
         return CGSize(width: width, height: height)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         let rows = arrangeSubviews(proposal: proposal, subviews: subviews)
-        
+
         var yOffset = bounds.minY
-        
+
         for row in rows {
             var xOffset = bounds.minX
-            
+
             for item in row.items {
                 let itemSize = item.sizeThatFits(.unspecified)
                 item.place(at: CGPoint(x: xOffset, y: yOffset), proposal: .unspecified)
                 xOffset += itemSize.width + spacing
             }
-            
+
             yOffset += row.height + spacing
         }
     }
-    
+
     struct Row: Equatable {
         var items: [LayoutSubview]
         var width: CGFloat
         var height: CGFloat
-        
+
         static func == (lhs: Row, rhs: Row) -> Bool {
             lhs.width == rhs.width && lhs.height == rhs.height && lhs.items.count == rhs.items.count
         }
@@ -78,14 +78,14 @@ private struct FlowLayout: Layout {
     private func arrangeSubviews(proposal: ProposedViewSize, subviews: Subviews) -> [Row] {
         var rows: [Row] = []
         let maxWidth = proposal.width ?? .infinity
-        
+
         var currentRowItems: [LayoutSubview] = []
         var currentRowWidth: CGFloat = 0
         var currentRowHeight: CGFloat = 0
-        
+
         for subview in subviews {
             let subviewSize = subview.sizeThatFits(.unspecified)
-            
+
             if currentRowWidth + subviewSize.width > maxWidth && !currentRowItems.isEmpty {
                 // Move to new row
                 rows.append(Row(items: currentRowItems, width: currentRowWidth, height: currentRowHeight))
@@ -93,20 +93,20 @@ private struct FlowLayout: Layout {
                 currentRowWidth = 0
                 currentRowHeight = 0
             }
-            
+
             if !currentRowItems.isEmpty {
                 currentRowWidth += spacing
             }
-            
+
             currentRowItems.append(subview)
             currentRowWidth += subviewSize.width
             currentRowHeight = max(currentRowHeight, subviewSize.height)
         }
-        
+
         if !currentRowItems.isEmpty {
             rows.append(Row(items: currentRowItems, width: currentRowWidth, height: currentRowHeight))
         }
-        
+
         return rows
     }
 }

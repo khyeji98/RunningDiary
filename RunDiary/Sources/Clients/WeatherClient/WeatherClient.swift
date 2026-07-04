@@ -5,8 +5,9 @@
 //  Created by Claude on 10/19/25.
 //
 
-import ComposableArchitecture
 import CoreLocation
+import Dependencies
+import DependenciesMacros
 import Foundation
 import Models
 import WeatherKitService
