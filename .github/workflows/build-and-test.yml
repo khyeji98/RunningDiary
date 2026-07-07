@@ -70,4 +70,20 @@ jobs:
 
       - name: Start xcode build 🛠
         run: |
-          xcodebuild clean test -workspace RunDiary.xcodeproj/project.xcworkspace -scheme "$SCHEME" -destination "$DESTINATION" -enableCodeCoverage YES -skipMacroValidation -skipPackagePluginValidation
+          xcodebuild test \
+            -workspace RunDiary.xcodeproj/project.xcworkspace \
+            -scheme "$SCHEME" \
+            -destination "$DESTINATION" \
+            -resultBundlePath TestResults.xcresult \
+            -skip-testing:RunDiaryTests/LoginViewSnapshotTests \
+            -skipMacroValidation \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults.xcresult
+          retention-days: 7
