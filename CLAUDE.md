@@ -27,6 +27,7 @@
 - **Framework**: Swift Testing (`@Test`, `#expect`)
 - **TCA**: Reducer 테스트는 반드시 TestStore 사용, Dependency는 mock 구현 필수
 - **Naming**: `test_trigger_result`
+- **Workflow**: 기능이 이미 구현된 상태이므로 forward TDD가 아니라 **명세-우선 테스트 재작성**(이슈로 명세 → TC 매트릭스 → 기존 테스트 전체 주석화 후 TC 단위 복원)을 따른다. `feature-respec-tc` 스킬과 `.claude/rules/phases/`(phase-a/b/c), `.claude/rules/testing-convention.md` 참고.
 
 ## Workflow
 - 코드 수정 완료 후 `xcodebuild` 빌드 실행

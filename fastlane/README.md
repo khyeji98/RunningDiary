@@ -15,21 +15,21 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
-### ios setup_keychain
+### ios sync_certs
 
 ```sh
-[bundle exec] fastlane ios setup_keychain
+[bundle exec] fastlane ios sync_certs
 ```
 
-Push a new beta build to TestFlight
+인증서/프로비저닝 프로파일을 API Key로 재발급 (capability 변경 시)
 
-### ios setup_match
+### ios gen_secrets
 
 ```sh
-[bundle exec] fastlane ios setup_match
+[bundle exec] fastlane ios gen_secrets
 ```
 
-
+Config/Secrets.xcconfig를 ENV(.env / .env.default / GitHub Secrets)에서 생성
 
 ### ios beta
 
@@ -37,7 +37,15 @@ Push a new beta build to TestFlight
 [bundle exec] fastlane ios beta
 ```
 
+Push a new beta build to TestFlight
 
+### ios release
+
+```sh
+[bundle exec] fastlane ios release
+```
+
+Deploy a new version to the App Store
 
 ----
 

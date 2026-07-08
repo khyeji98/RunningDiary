@@ -3200,6 +3200,12 @@
         }
       }
     },
+    "달림일기" : {
+
+    },
+    "로그인 성공" : {
+
+    },
     "weather.sky.cloudy" : {
       "extractionState" : "manual",
       "localizations" : {

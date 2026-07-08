@@ -14,7 +14,10 @@
 		3394D2C32EAC74C700A46A16 /* CommonFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 3394D2C22EAC74C700A46A16 /* CommonFoundation */; };
 		339637502EA4F89B00640DBF /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 33TCA0022EA1600000000002 /* ComposableArchitecture */; };
 		339DA1592EB684610013B0E2 /* HealthKitService in Frameworks */ = {isa = PBXBuildFile; productRef = 339DA1582EB684610013B0E2 /* HealthKitService */; };
+		33A0F11E2F00000000000002 /* AuthService in Frameworks */ = {isa = PBXBuildFile; productRef = 33A0F11E2F00000000000003 /* AuthService */; };
 		33FF0E1D2EBA05AA00BCD17A /* DependencyProxy in Frameworks */ = {isa = PBXBuildFile; productRef = 33FF0E1C2EBA05AA00BCD17A /* DependencyProxy */; };
+		33SEC0RE2F00000000000002 /* SecureStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 33SEC0RE2F00000000000003 /* SecureStorage */; };
+		33SNAP001F00000000000001 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 33SNAP002F00000000000002 /* SnapshotTesting */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,7 +38,10 @@
 		335FDEDA2F18BA4A006B1906 /* PersistencesService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = PersistencesService; path = Dependencies/PersistencesService; sourceTree = "<group>"; };
 		3394D2472EAC74A300A46A16 /* CommonFoundation */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = CommonFoundation; path = Dependencies/CommonFoundation; sourceTree = "<group>"; };
 		339DA1572EB684340013B0E2 /* HealthKitService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = HealthKitService; path = Dependencies/HealthKitService; sourceTree = "<group>"; };
+		33A0F11E2F00000000000001 /* AuthService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = AuthService; path = Dependencies/AuthService; sourceTree = "<group>"; };
 		33B0581A2EB9FF3B00C68BFF /* DependencyProxy */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = DependencyProxy; path = Dependencies/DependencyProxy; sourceTree = "<group>"; };
+		33C0F19E2F00000000000C01 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Secrets.xcconfig; path = Config/Secrets.xcconfig; sourceTree = "<group>"; };
+		33SEC0RE2F00000000000001 /* SecureStorage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = SecureStorage; path = Dependencies/SecureStorage; sourceTree = "<group>"; };
 		33C225802F4AE97D005989BC /* CoreNetwork */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = CoreNetwork; path = Dependencies/CoreNetwork; sourceTree = "<group>"; };
 		33CFG00012F00000000000001 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		33CFG00022F00000000000002 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
@@ -74,6 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				33SNAP001F00000000000001 /* SnapshotTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,6 +88,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				33A0F11E2F00000000000002 /* AuthService in Frameworks */,
+				33SEC0RE2F00000000000002 /* SecureStorage in Frameworks */,
 				331CB0772EBBCAE300BE3F63 /* WeatherKitService in Frameworks */,
 				33FF0E1D2EBA05AA00BCD17A /* DependencyProxy in Frameworks */,
 				334AFAF22EB4AA0000BDBE9F /* Models in Frameworks */,
@@ -98,9 +107,12 @@
 		3344D6002E81CD5B00982E36 = {
 			isa = PBXGroup;
 			children = (
+				33C0F19E2F00000000000C01 /* Secrets.xcconfig */,
 				33CFG00032F00000000000003 /* Config */,
 				33C225802F4AE97D005989BC /* CoreNetwork */,
 				335FDEDA2F18BA4A006B1906 /* PersistencesService */,
+				33A0F11E2F00000000000001 /* AuthService */,
+				33SEC0RE2F00000000000001 /* SecureStorage */,
 				331CB0752EBBC93600BE3F63 /* WeatherKitService */,
 				33B0581A2EB9FF3B00C68BFF /* DependencyProxy */,
 				339DA1572EB684340013B0E2 /* HealthKitService */,
@@ -161,6 +173,7 @@
 			);
 			name = RunDiaryTests;
 			packageProductDependencies = (
+				33SNAP002F00000000000002 /* SnapshotTesting */,
 			);
 			productName = RunDiaryTests;
 			productReference = 3317C6142EA774D900525269 /* RunDiaryTests.xctest */;
@@ -191,6 +204,8 @@
 				33FF0E1C2EBA05AA00BCD17A /* DependencyProxy */,
 				331CB0762EBBCAE300BE3F63 /* WeatherKitService */,
 				335FDEDB2F18BAFF006B1906 /* PersistencesService */,
+				33A0F11E2F00000000000003 /* AuthService */,
+				33SEC0RE2F00000000000003 /* SecureStorage */,
 				33883D742F77058100841BF8 /* CoreNetwork */,
 			);
 			productName = RunDiary;
@@ -229,6 +244,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				33TCA0032EA1600000000003 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+				33SNAP003F00000000000003 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3344D60A2E81CD5B00982E36 /* Products */;
@@ -563,7 +579,9 @@
 		};
 		3344D6152E81CD5C00982E36 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 33C0F19E2F00000000000C01 /* Secrets.xcconfig */;
 			buildSettings = {
+				API_BASE_URL = "$(API_BASE_URL_DEBUG)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = RunDiary/Sources/SupportingFiles/RunDiary.entitlements;
@@ -606,7 +624,9 @@
 		};
 		3344D6162E81CD5C00982E36 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 33C0F19E2F00000000000C01 /* Secrets.xcconfig */;
 			buildSettings = {
+				API_BASE_URL = "$(API_BASE_URL_RELEASE)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = RunDiary/Sources/SupportingFiles/RunDiary.entitlements;
@@ -726,12 +746,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		33SNAP003F00000000000003 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.17.0;
+			};
+		};
 		33TCA0032EA1600000000003 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
+				minimumVersion = 1.26.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -761,9 +789,22 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = HealthKitService;
 		};
+		33A0F11E2F00000000000003 /* AuthService */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AuthService;
+		};
 		33FF0E1C2EBA05AA00BCD17A /* DependencyProxy */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = DependencyProxy;
+		};
+		33SEC0RE2F00000000000003 /* SecureStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SecureStorage;
+		};
+		33SNAP002F00000000000002 /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 33SNAP003F00000000000003 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
 		};
 		33TCA0022EA1600000000002 /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
