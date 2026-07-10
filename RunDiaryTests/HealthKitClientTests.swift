@@ -16,95 +16,6 @@ import Testing
 @Suite("HealthKitClient")
 struct HealthKitClientTests {
 
-  // MARK: - fetchRunningDataOnDate Tests
-
-  @Test("fetchRunningDataOnDate: 러닝 데이터 조회 성공")
-  func fetchRunningDataOnDateReturnsData() async throws {
-    let testDate = Date.now
-    let expectedData = [
-      HealthKitWorkout(
-        distance: 5.2,
-        duration: 1800,
-        averagePace: "5'30\"",
-        averageHeartRate: 155,
-        averageCadence: 180,
-        activeEnergyBurned: 450,
-        runningVerticalOscillation: 8.0,
-        runningGroundContactTime: 240.0,
-        walkingStepLength: 1.1,
-        restingHeartRate: 60.0,
-        runningPower: 300.0,
-        runningStrideLength: 1.1,
-        heartRateRecoveryOneMinute: 20.0,
-        routeData: nil,
-        startDate: testDate,
-        endDate: Calendar.current.date(byAdding: .second, value: 1800, to: testDate)!
-      ),
-      HealthKitWorkout(
-        distance: 3.5,
-        duration: 1200,
-        averagePace: "5'42\"",
-        averageHeartRate: 148,
-        averageCadence: 175,
-        activeEnergyBurned: 300,
-        runningVerticalOscillation: 8.2,
-        runningGroundContactTime: 250.0,
-        walkingStepLength: 1.0,
-        restingHeartRate: 55.0,
-        runningPower: 280.0,
-        runningStrideLength: 1.0,
-        heartRateRecoveryOneMinute: 22.0,
-        routeData: nil,
-        startDate: Calendar.current.date(byAdding: .hour, value: 3, to: testDate)!,
-        endDate: Calendar.current.date(byAdding: .hour, value: 3, to: testDate)!.addingTimeInterval(1200)
-      )
-    ]
-
-    let client = HealthKitClient(
-      fetchRunningDataOnDate: { _ in expectedData },
-      fetchRunningDataBetweenDates: { _, _ in [] }
-    )
-
-    let result = try await client.fetchRunningDataOnDate(testDate)
-
-    #expect(result.count == 2)
-    #expect(result[0].distance == 5.2)
-    #expect(result[0].duration == 1800)
-    #expect(result[0].averagePace == "5'30\"")
-    #expect(result[0].averageHeartRate == 155)
-    #expect(result[0].averageCadence == 180)
-    #expect(result[1].distance == 3.5)
-    #expect(result[1].duration == 1200)
-  }
-
-  @Test("fetchRunningDataOnDate: 데이터가 없을 때 빈 배열 반환")
-  func fetchRunningDataOnDateReturnsEmptyWhenNoData() async throws {
-    let testDate = Date.now
-
-    let client = HealthKitClient(
-      fetchRunningDataOnDate: { _ in [] },
-      fetchRunningDataBetweenDates: { _, _ in [] }
-    )
-
-    let result = try await client.fetchRunningDataOnDate(testDate)
-
-    #expect(result.isEmpty)
-  }
-
-  @Test("fetchRunningDataOnDate: 데이터 조회 중 에러 발생")
-  func fetchRunningDataOnDateThrowsError() async throws {
-    let client = HealthKitClient(
-      fetchRunningDataOnDate: { _ in
-        throw HealthKitError.notAvailable
-      },
-      fetchRunningDataBetweenDates: { _, _ in [] }
-    )
-
-    await #expect(throws: HealthKitError.self) {
-      try await client.fetchRunningDataOnDate(Date.now)
-    }
-  }
-
   // MARK: - fetchRunningDataBetweenDates Tests
 
   @Test("fetchRunningDataBetweenDates: 날짜 범위 러닝 데이터 조회 성공")
@@ -170,8 +81,8 @@ struct HealthKitClientTests {
     ]
 
     let client = HealthKitClient(
-      fetchRunningDataOnDate: { _ in [] },
-      fetchRunningDataBetweenDates: { _, _ in expectedData }
+      fetchRunningDataBetweenDates: { _, _ in expectedData },
+      fetchDetailedRunningData: { _, _ in nil }
     )
 
     let result = try await client.fetchRunningDataBetweenDates(startDate, endDate)
@@ -188,8 +99,8 @@ struct HealthKitClientTests {
     let endDate = Date.now
 
     let client = HealthKitClient(
-      fetchRunningDataOnDate: { _ in [] },
-      fetchRunningDataBetweenDates: { _, _ in [] }
+      fetchRunningDataBetweenDates: { _, _ in [] },
+      fetchDetailedRunningData: { _, _ in nil }
     )
 
     let result = try await client.fetchRunningDataBetweenDates(startDate, endDate)
@@ -203,10 +114,10 @@ struct HealthKitClientTests {
     let endDate = Date.now
 
     let client = HealthKitClient(
-      fetchRunningDataOnDate: { _ in [] },
       fetchRunningDataBetweenDates: { _, _ in
         throw HealthKitError.notAvailable
-      }
+      },
+      fetchDetailedRunningData: { _, _ in nil }
     )
 
     await #expect(throws: HealthKitError.self) {
@@ -220,8 +131,8 @@ struct HealthKitClientTests {
     let endDate = Calendar.current.date(byAdding: .day, value: -7, to: Date.now)!
 
     let client = HealthKitClient(
-      fetchRunningDataOnDate: { _ in [] },
-      fetchRunningDataBetweenDates: { _, _ in [] }
+      fetchRunningDataBetweenDates: { _, _ in [] },
+      fetchDetailedRunningData: { _, _ in nil }
     )
 
     let result = try await client.fetchRunningDataBetweenDates(startDate, endDate)

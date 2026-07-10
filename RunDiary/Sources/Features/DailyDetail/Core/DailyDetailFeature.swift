@@ -154,37 +154,7 @@ struct DailyDetailFeature {
                 state.diaries = Dictionary(grouping: diaries, by: \.workout.yearMonthDay)
                 state.workouts = Dictionary(grouping: workouts, by: \.yearMonthDay)
                 state.isLoading = false
-                return .run { [persistencesClient] _ in
-                    // HealthKit -> SwiftData 데이터 동기화
-                    for diary in diaries {
-                        // 8개 속성 중 하나라도 0이면 마이그레이션 대상 (기존에는 nil 체크였으나 HealthKitWorkout에서는 0으로 처리됨)
-                        guard diary.workout.activeEnergyBurned == 0
-                            || diary.workout.runningVerticalOscillation == 0
-                            || diary.workout.runningGroundContactTime == 0
-                            || diary.workout.walkingStepLength == 0
-                            || diary.workout.restingHeartRate == 0
-                            || diary.workout.runningPower == 0
-                            || diary.workout.runningStrideLength == 0
-                            || diary.workout.heartRateRecoveryOneMinute == 0
-                        else { continue }
-
-                        // startTime이 일치하는 workout 찾기
-                        guard let matchingWorkout = workouts.first(where: { $0.startTime == diary.workout.startTime }) else { continue }
-
-                        // persistencesClient로 업데이트 요청
-                        try? await persistencesClient.updateRecord(
-                            recordId: diary.id,
-                            activeEnergyBurned: matchingWorkout.activeEnergyBurned,
-                            runningVerticalOscillation: matchingWorkout.runningVerticalOscillation,
-                            runningGroundContactTime: matchingWorkout.runningGroundContactTime,
-                            walkingStepLength: matchingWorkout.walkingStepLength,
-                            restingHeartRate: matchingWorkout.restingHeartRate,
-                            runningPower: matchingWorkout.runningPower,
-                            runningStrideLength: matchingWorkout.runningStrideLength,
-                            heartRateRecoveryOneMinute: matchingWorkout.heartRateRecoveryOneMinute
-                        )
-                    }
-                }
+                return .none
 
             case let .weekRecordsFetchFailed(error):
                 state.isLoading = false
