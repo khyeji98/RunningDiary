@@ -17,10 +17,12 @@ struct HealthKitClient {
 }
 
 extension HealthKitClient: DependencyKey {
-    static let liveValue: HealthKitClient = {
-        let manager = HealthKitManager()
+    static let liveValue: HealthKitClient = .live()
 
-        return HealthKitClient(
+    static func live(
+        manager: HealthKitManagerProtocol = HealthKitManager()
+    ) -> HealthKitClient {
+        HealthKitClient(
             fetchRunningDataBetweenDates: { startDate, endDate in
                 try await manager.fetchWeeklyRunningData(from: startDate, to: endDate)
             },
@@ -28,7 +30,7 @@ extension HealthKitClient: DependencyKey {
                 try await manager.fetchDetailedRunningData(from: startDate, to: endDate)
             }
         )
-    }()
+    }
 
     static let testValue = HealthKitClient(
         fetchRunningDataBetweenDates: unimplemented("\(Self.self).fetchRunningDataBetweenDates"),
