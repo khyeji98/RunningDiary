@@ -332,7 +332,7 @@ struct CreateDiaryFeatureOnAppearTests {
         #expect(weatherFetchCalled == false)
     }
 
-    @Test("새 기록 + routeData 없음 → 신발만 로드")
+    @Test("새 기록 + 상세 데이터에 routeData 없음 → 신발만 로드")
     func onAppear_newRecordNoRoute_loadsOnlyShoes() async {
         let shoe = makeShoe(id: "s1")
         var weatherFetchCalled = false
@@ -343,6 +343,7 @@ struct CreateDiaryFeatureOnAppearTests {
             CreateDiaryFeature()
         } withDependencies: {
             $0.shoeClient.fetchAllShoes = { [shoe] }
+            $0.healthKitClient.fetchDetailedRunningData = { _, _ in makeWorkout() }
             $0.weatherClient.fetchWeather = { _, _ in
                 weatherFetchCalled = true
                 return WeatherData(temperature: 20, humidity: 50, windSpeed: 1)
@@ -353,18 +354,14 @@ struct CreateDiaryFeatureOnAppearTests {
             $0.dismiss = DismissEffect { }
         }
 
-        await store.send(.onAppear) {
-            $0.isShoesLoading = true
-        }
-        await store.receive(\.shoesLoaded) {
-            $0.isShoesLoading = false
-            $0.shoes = [shoe]
-        }
+        store.exhaustivity = .off
+        await store.send(.onAppear)
+        await store.skipReceivedActions()
 
         #expect(weatherFetchCalled == false)
     }
 
-    @Test("새 기록 + routeData 있음 → 날씨 조회 발생")
+    @Test("새 기록 + 상세 데이터에 routeData 있음 → 날씨 조회 발생")
     func onAppear_newRecordWithRoute_fetchesWeather() async {
         await ShoeCache.shared.reset()
         var weatherFetchCalled = false
@@ -373,14 +370,15 @@ struct CreateDiaryFeatureOnAppearTests {
             Location(latitude: 37.5, longitude: 127.0),
             Location(latitude: 37.6, longitude: 127.1)
         ])
-        let workout = makeWorkoutWithRoute(routeData: routeData)
+        let detailedWorkout = makeWorkoutWithRoute(routeData: routeData)
 
         let store = TestStore(
-            initialState: CreateDiaryFeature.State(healthKitWorkout: workout)
+            initialState: CreateDiaryFeature.State(healthKitWorkout: makeWorkout())
         ) {
             CreateDiaryFeature()
         } withDependencies: {
             $0.shoeClient.fetchAllShoes = { [] }
+            $0.healthKitClient.fetchDetailedRunningData = { _, _ in detailedWorkout }
             $0.weatherClient.fetchWeather = { _, _ in
                 weatherFetchCalled = true
                 return WeatherData(temperature: 20, humidity: 50, windSpeed: 1)

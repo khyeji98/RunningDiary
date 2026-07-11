@@ -58,7 +58,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         return result
     }
 
-    // 단일 Date에 대한 피트니스 기록을 가져옵니다.
+    // 단일 Date에 대한 피트니스 기록을 가져옵니다. (목록 노출용 경량 데이터)
     public func fetchRunningData(for date: Date) async throws -> [HealthKitWorkout] {
         try await ensureAuthorizationIfNeeded()
 
@@ -68,15 +68,40 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
             return []
         }
 
-        let predicate = HKQuery.predicateForWorkouts(with: .running)
+        let workouts = try await queryWorkouts(start: startOfDay, end: endOfDay)
+
+        var results: [HealthKitWorkout] = []
+        for workout in workouts {
+            if let lightweight = await makeLightweightWorkout(from: workout) {
+                results.append(lightweight)
+            }
+        }
+        return results
+    }
+
+    // 특정 워크아웃(startDate ~ endDate)에 대한 전체 상세 데이터를 추출합니다. (일기 저장용)
+    public func fetchDetailedRunningData(from startDate: Date, to endDate: Date) async throws -> HealthKitWorkout? {
+        try await ensureAuthorizationIfNeeded()
+
+        let workouts = try await queryWorkouts(start: startDate, end: endDate)
+        guard let workout = workouts.first(where: { $0.startDate == startDate }) ?? workouts.first else {
+            return nil
+        }
+
+        return await makeDetailedWorkout(from: workout)
+    }
+
+    /// 러닝 워크아웃을 날짜 범위로 조회하는 공통 쿼리
+    private func queryWorkouts(start: Date, end: Date) async throws -> [HKWorkout] {
+        let runningPredicate = HKQuery.predicateForWorkouts(with: .running)
         let datePredicate = HKQuery.predicateForSamples(
-            withStart: startOfDay,
-            end: endOfDay,
+            withStart: start,
+            end: end,
             options: .strictStartDate
         )
-        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, datePredicate])
+        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [runningPredicate, datePredicate])
 
-        let workouts = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[HKWorkout], Error>) in
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[HKWorkout], Error>) in
             let query = HKSampleQuery(
                 sampleType: .workoutType(),
                 predicate: compoundPredicate,
@@ -96,47 +121,72 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
             }
             healthStore.execute(query)
         }
+    }
 
-        var results: [HealthKitWorkout] = []
-        for workout in workouts {
-            guard let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo)),
-                  let averagePace = calculateAveragePace(from: workout),
-                  let averageHeartRate = await fetchAverageHeartRate(for: workout),
-                  let averageCadence = await fetchAverageCadence(for: workout)
-            else { continue }
+    /// 목록 노출에 필요한 최소 데이터(거리·시간·페이스·케이던스)만 추출한다.
+    private func makeLightweightWorkout(from workout: HKWorkout) async -> HealthKitWorkout? {
+        guard let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo)),
+              let averagePace = calculateAveragePace(from: workout)
+        else { return nil }
 
-            let activeEnergyBurned = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
-            let runningVerticalOscillation = await fetchAverageVerticalOscillation(for: workout) ?? 0
-            let runningGroundContactTime = await fetchAverageGroundContactTime(for: workout) ?? 0
-            let walkingStepLength = await fetchAverageStepLength(for: workout) ?? 0
-            let restingHeartRate = await fetchAverageRestingHeartRate(for: workout) ?? 0
-            let runningPower = await fetchAverageRunningPower(for: workout) ?? 0
-            let runningStrideLength = await fetchAverageRunningStrideLength(for: workout) ?? 0
-            let heartRateRecoveryOneMinute = await fetchHeartRateRecoveryOneMinute(for: workout) ?? 0
+        let averageCadence = await fetchAverageCadence(for: workout) ?? 0
 
-            let routeData = try? await fetchRouteData(for: workout)
+        return HealthKitWorkout(
+            distance: distance,
+            duration: workout.duration,
+            averagePace: averagePace,
+            averageHeartRate: 0,
+            averageCadence: averageCadence,
+            activeEnergyBurned: 0,
+            runningVerticalOscillation: 0,
+            runningGroundContactTime: 0,
+            walkingStepLength: 0,
+            restingHeartRate: 0,
+            runningPower: 0,
+            runningStrideLength: 0,
+            heartRateRecoveryOneMinute: 0,
+            routeData: nil,
+            startDate: workout.startDate,
+            endDate: workout.endDate
+        )
+    }
 
-            let healthKitWorkout = HealthKitWorkout(
-                distance: distance,
-                duration: workout.duration,
-                averagePace: averagePace,
-                averageHeartRate: averageHeartRate,
-                averageCadence: averageCadence,
-                activeEnergyBurned: activeEnergyBurned,
-                runningVerticalOscillation: runningVerticalOscillation,
-                runningGroundContactTime: runningGroundContactTime,
-                walkingStepLength: walkingStepLength,
-                restingHeartRate: restingHeartRate,
-                runningPower: runningPower,
-                runningStrideLength: runningStrideLength,
-                heartRateRecoveryOneMinute: heartRateRecoveryOneMinute,
-                routeData: routeData,
-                startDate: workout.startDate,
-                endDate: workout.endDate
-            )
-            results.append(healthKitWorkout)
-        }
-        return results
+    /// 일기 저장 시 필요한 전체 상세 데이터를 추출한다.
+    private func makeDetailedWorkout(from workout: HKWorkout) async -> HealthKitWorkout? {
+        guard let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo)),
+              let averagePace = calculateAveragePace(from: workout)
+        else { return nil }
+
+        let averageCadence = await fetchAverageCadence(for: workout) ?? 0
+        let averageHeartRate = await fetchAverageHeartRate(for: workout) ?? 0
+        let activeEnergyBurned = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
+        let runningVerticalOscillation = await fetchAverageVerticalOscillation(for: workout) ?? 0
+        let runningGroundContactTime = await fetchAverageGroundContactTime(for: workout) ?? 0
+        let walkingStepLength = await fetchAverageStepLength(for: workout) ?? 0
+        let restingHeartRate = await fetchAverageRestingHeartRate(for: workout) ?? 0
+        let runningPower = await fetchAverageRunningPower(for: workout) ?? 0
+        let runningStrideLength = await fetchAverageRunningStrideLength(for: workout) ?? 0
+        let heartRateRecoveryOneMinute = await fetchHeartRateRecoveryOneMinute(for: workout) ?? 0
+        let routeData = try? await fetchRouteData(for: workout)
+
+        return HealthKitWorkout(
+            distance: distance,
+            duration: workout.duration,
+            averagePace: averagePace,
+            averageHeartRate: averageHeartRate,
+            averageCadence: averageCadence,
+            activeEnergyBurned: activeEnergyBurned,
+            runningVerticalOscillation: runningVerticalOscillation,
+            runningGroundContactTime: runningGroundContactTime,
+            walkingStepLength: walkingStepLength,
+            restingHeartRate: restingHeartRate,
+            runningPower: runningPower,
+            runningStrideLength: runningStrideLength,
+            heartRateRecoveryOneMinute: heartRateRecoveryOneMinute,
+            routeData: routeData,
+            startDate: workout.startDate,
+            endDate: workout.endDate
+        )
     }
 
     private func calculateAveragePace(from workout: HKWorkout) -> String? {
@@ -267,7 +317,46 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         }
     }
 
-    private func fetchRouteData(for workout: HKWorkout) async throws -> Data? {
+    // startDate ~ endDate 기간에 대한 피트니스 기록을 가져옵니다.
+    public func fetchWeeklyRunningData(from startDate: Date, to endDate: Date) async throws -> [HealthKitWorkout] {
+        try await ensureAuthorizationIfNeeded()
+
+        let calendar = Calendar.current
+
+        // 시작일부터 종료일까지의 날짜 배열 생성
+        var dates: [Date] = []
+        var currentDate = calendar.startOfDay(for: startDate)
+        let normalizedEndDate = calendar.startOfDay(for: endDate)
+
+        while currentDate <= normalizedEndDate {
+            dates.append(currentDate)
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
+                break
+            }
+            currentDate = nextDate
+        }
+
+        // 각 날짜에 대해 병렬로 데이터 조회
+        return await withTaskGroup(of: [HealthKitWorkout].self) { group in
+            for date in dates {
+                group.addTask { [self] in
+                    return (try? await self.fetchRunningData(for: date)) ?? []
+                }
+            }
+
+            // 결과를 하나의 배열로 합침
+            var results: [HealthKitWorkout] = []
+            for await result in group {
+                results.append(contentsOf: result)
+            }
+
+            return results
+        }
+    }
+}
+
+private extension HealthKitManager {
+    func fetchRouteData(for workout: HKWorkout) async throws -> Data? {
         let routeType = HKSeriesType.workoutRoute()
         let predicate = HKQuery.predicateForObjects(from: workout)
 
@@ -322,42 +411,5 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
 
         // [Location]을 JSON Data로 인코딩
         return try? JSONEncoder().encode(locations)
-    }
-
-    // startDate ~ endDate 기간에 대한 피트니스 기록을 가져옵니다.
-    public func fetchWeeklyRunningData(from startDate: Date, to endDate: Date) async throws -> [HealthKitWorkout] {
-        try await ensureAuthorizationIfNeeded()
-
-        let calendar = Calendar.current
-
-        // 시작일부터 종료일까지의 날짜 배열 생성
-        var dates: [Date] = []
-        var currentDate = calendar.startOfDay(for: startDate)
-        let normalizedEndDate = calendar.startOfDay(for: endDate)
-
-        while currentDate <= normalizedEndDate {
-            dates.append(currentDate)
-            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
-                break
-            }
-            currentDate = nextDate
-        }
-
-        // 각 날짜에 대해 병렬로 데이터 조회
-        return await withTaskGroup(of: [HealthKitWorkout].self) { group in
-            for date in dates {
-                group.addTask { [self] in
-                    return (try? await self.fetchRunningData(for: date)) ?? []
-                }
-            }
-
-            // 결과를 하나의 배열로 합침
-            var results: [HealthKitWorkout] = []
-            for await result in group {
-                results.append(contentsOf: result)
-            }
-
-            return results
-        }
     }
 }

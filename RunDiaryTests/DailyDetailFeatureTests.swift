@@ -684,54 +684,9 @@ struct DailyDetailFeatureTests {
         #expect(state.filteredWorkoutsOnSelectedDate == [w3])
     }
 
-    // MARK: - Migration Side-Effect Tests
+    // MARK: - Fetch Side-Effect Tests
 
-    @Test("weekRecordsFetched: metrics=0인 diary → HealthKit 데이터로 마이그레이션 호출")
-    func weekRecordsFetched_zeroMetricsDiary_triggersMigration() async {
-        // Given
-        let testDate = makeTodayYearMonthDay()
-        let weekDates = makeWeekDates(containing: testDate)
-        let startTime = testDate.toDate()
-
-        let diaryWithZeroMetrics = makeDiaryWithZeroMetrics(
-            yearMonthDay: testDate,
-            startTime: startTime
-        )
-        let matchingWorkout = makeHealthKitWorkout(
-            yearMonthDay: testDate,
-            startOffset: 0
-        )
-
-        var migratedRecordId: UUID?
-        var migratedActiveEnergy: Double?
-
-        var initialState = DailyDetailFeature.State(selectedDate: testDate)
-        initialState.dates = weekDates
-
-        let sut = TestStore(initialState: initialState) {
-            DailyDetailFeature()
-        } withDependencies: {
-            $0.persistencesClient.fetchRecords = { _, _ in [diaryWithZeroMetrics] }
-            $0.healthKitClient.fetchRunningDataBetweenDates = { _, _ in [matchingWorkout] }
-            $0.persistencesClient.update = { id, _, _, _, _, _, _, _, _, _, _, _, _, _, activeEnergy, _, _, _, _, _, _, _, _, _ in
-                migratedRecordId = id
-                migratedActiveEnergy = activeEnergy
-            }
-            $0.shoeClient.fetchAllShoes = { [] }
-        }
-
-        sut.exhaustivity = .off
-
-        // When
-        await sut.send(.fetchWeekRecords)
-        await sut.skipReceivedActions()
-
-        // Then
-        #expect(migratedRecordId == diaryWithZeroMetrics.id)
-        #expect(migratedActiveEnergy == matchingWorkout.activeEnergyBurned)
-    }
-
-    @Test("weekRecordsFetched: metrics 모두 0 초과인 diary → 마이그레이션 생략")
+    @Test("weekRecordsFetched: 조회 시 persistence 쓰기(update) 부작용 없음")
     func weekRecordsFetched_nonZeroMetrics_skipsMigration() async {
         // Given
         let testDate = makeTodayYearMonthDay()

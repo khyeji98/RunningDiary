@@ -55,10 +55,6 @@ struct HealthKitWorkoutCard: View {
                     value: workout.averagePace
                 )
                 RecordVerticalRow(
-                    title: L10n.recordFieldHeartRate.value,
-                    value: "\(workout.averageHeartRate) \(L10n.unitBpm.value)"
-                )
-                RecordVerticalRow(
                     title: L10n.recordFieldCadence.value,
                     value: "\(workout.averageCadence) \(L10n.unitSpm.value)"
                 )
@@ -139,9 +135,8 @@ private struct PlaceholderItem: View {
                 routeData: nil,
                 startDate: Date(),
                 endDate: Date().addingTimeInterval(1935)
-            ),
-            onCreate: {}
-        )
+            )
+        ) {}
         .padding()
         Spacer()
     }

@@ -12,53 +12,32 @@ import Models
 
 @DependencyClient
 struct HealthKitClient {
-    var fetchRunningDataOnDate: @MainActor @Sendable (Date) async throws -> [HealthKitWorkout]
     var fetchRunningDataBetweenDates: @MainActor @Sendable (Date, Date) async throws -> [HealthKitWorkout]
+    var fetchDetailedRunningData: @MainActor @Sendable (Date, Date) async throws -> HealthKitWorkout?
 }
 
 extension HealthKitClient: DependencyKey {
-    static let liveValue: HealthKitClient = {
-        let manager = HealthKitManager()
+    static let liveValue: HealthKitClient = .live()
 
-        return HealthKitClient(
-            fetchRunningDataOnDate: { date in
-                try await manager.fetchRunningData(for: date)
-            },
+    static func live(
+        manager: HealthKitManagerProtocol = HealthKitManager()
+    ) -> HealthKitClient {
+        HealthKitClient(
             fetchRunningDataBetweenDates: { startDate, endDate in
                 try await manager.fetchWeeklyRunningData(from: startDate, to: endDate)
+            },
+            fetchDetailedRunningData: { startDate, endDate in
+                try await manager.fetchDetailedRunningData(from: startDate, to: endDate)
             }
         )
-    }()
+    }
 
     static let testValue = HealthKitClient(
-        fetchRunningDataOnDate: unimplemented("\(Self.self).fetchRunningData"),
-        fetchRunningDataBetweenDates: unimplemented("\(Self.self).fetchWeeklyRunningData")
+        fetchRunningDataBetweenDates: unimplemented("\(Self.self).fetchRunningDataBetweenDates"),
+        fetchDetailedRunningData: unimplemented("\(Self.self).fetchDetailedRunningData")
     )
 
     static let previewValue = HealthKitClient(
-        fetchRunningDataOnDate: { _ in
-            // Mock 데이터 반환
-            [
-                HealthKitWorkout(
-                    distance: 5.2,
-                    duration: 3665,  // 1시간 1분 5초
-                    averagePace: "5'30\"",
-                    averageHeartRate: 155,
-                    averageCadence: 180,
-                    activeEnergyBurned: 450.0,
-                    runningVerticalOscillation: 8.2,
-                    runningGroundContactTime: 240.0,
-                    walkingStepLength: 1.1,
-                    restingHeartRate: 60.0,
-                    runningPower: 300.0,
-                    runningStrideLength: 1.1,
-                    heartRateRecoveryOneMinute: 20.0,
-                    routeData: nil,
-                    startDate: Calendar.current.date(byAdding: .second, value: -3665, to: .now)!,
-                    endDate: .now
-                ),
-            ]
-        },
         fetchRunningDataBetweenDates: { _, _ in
             // Mock 주간 데이터 반환 (7일)
             (0..<7).map { index in
@@ -83,6 +62,26 @@ extension HealthKitClient: DependencyKey {
                     endDate: .now
                 )
             }.compactMap { $0 }
+        },
+        fetchDetailedRunningData: { startDate, endDate in
+            HealthKitWorkout(
+                distance: 5.2,
+                duration: endDate.timeIntervalSince(startDate),
+                averagePace: "5'30\"",
+                averageHeartRate: 155,
+                averageCadence: 180,
+                activeEnergyBurned: 450.0,
+                runningVerticalOscillation: 8.2,
+                runningGroundContactTime: 240.0,
+                walkingStepLength: 1.1,
+                restingHeartRate: 60.0,
+                runningPower: 300.0,
+                runningStrideLength: 1.1,
+                heartRateRecoveryOneMinute: 20.0,
+                routeData: nil,
+                startDate: startDate,
+                endDate: endDate
+            )
         }
     )
 }
