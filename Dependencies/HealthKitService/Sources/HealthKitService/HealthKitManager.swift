@@ -126,9 +126,10 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
     /// 목록 노출에 필요한 최소 데이터(거리·시간·페이스·케이던스)만 추출한다.
     private func makeLightweightWorkout(from workout: HKWorkout) async -> HealthKitWorkout? {
         guard let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo)),
-              let averagePace = calculateAveragePace(from: workout),
-              let averageCadence = await fetchAverageCadence(for: workout)
+              let averagePace = calculateAveragePace(from: workout)
         else { return nil }
+
+        let averageCadence = await fetchAverageCadence(for: workout) ?? 0
 
         return HealthKitWorkout(
             distance: distance,
@@ -153,10 +154,10 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
     /// 일기 저장 시 필요한 전체 상세 데이터를 추출한다.
     private func makeDetailedWorkout(from workout: HKWorkout) async -> HealthKitWorkout? {
         guard let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo)),
-              let averagePace = calculateAveragePace(from: workout),
-              let averageCadence = await fetchAverageCadence(for: workout)
+              let averagePace = calculateAveragePace(from: workout)
         else { return nil }
 
+        let averageCadence = await fetchAverageCadence(for: workout) ?? 0
         let averageHeartRate = await fetchAverageHeartRate(for: workout) ?? 0
         let activeEnergyBurned = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
         let runningVerticalOscillation = await fetchAverageVerticalOscillation(for: workout) ?? 0
