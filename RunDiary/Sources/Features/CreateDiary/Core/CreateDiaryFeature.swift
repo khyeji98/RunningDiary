@@ -135,11 +135,16 @@ struct CreateDiaryFeature {
                 // 신규 기록은 목록에서 경량 데이터만 넘어오므로, 저장에 필요한 전체 상세를 여기서 추출한다.
                 let workout = state.healthKitWorkout
                 let detailEffect: Effect<Action> = .run { send in
-                    let detailed = try? await healthKitClient.fetchDetailedRunningData(
-                        workout.startTime,
-                        workout.endTime
-                    )
-                    await send(.workoutDetailFetched(detailed))
+                    do {
+                        let detailed = try await healthKitClient.fetchDetailedRunningData(
+                            workout.startTime,
+                            workout.endTime
+                        )
+                        await send(.workoutDetailFetched(detailed))
+                    } catch {
+                        AppLogger.createDiary.error("상세 운동 데이터 조회 실패: \(error.localizedDescription)")
+                        await send(.workoutDetailFetched(nil))
+                    }
                 }
 
                 return .merge(shoesEffect, detailEffect)
