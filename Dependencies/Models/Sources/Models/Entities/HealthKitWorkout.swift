@@ -27,6 +27,8 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
     public let routeData: Data?                         // 달리기 경로 데이터
     public let startTime: Date                          // 달리기 시작 시간
     public let endTime: Date                            // 달리기 종료 시간
+    public let splits: [WorkoutSplit]                   // 구간별 요약
+    public let series: WorkoutSeries?                   // 시계열 데이터
 
     public var formattedDuration: String {
         let hours = Int(duration) / 3600
@@ -84,7 +86,9 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
         heartRateRecoveryOneMinute: Double,
         routeData: Data?,
         startDate: Date,
-        endDate: Date
+        endDate: Date,
+        splits: [WorkoutSplit] = [],
+        series: WorkoutSeries? = nil
     ) {
         self.distance = distance
         self.yearMonthDay = YearMonthDay(date: startDate)
@@ -103,6 +107,8 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
         self.routeData = routeData
         self.startTime = startDate
         self.endTime = endDate
+        self.splits = splits
+        self.series = series
     }
 
     /// routeData를 [Location] 배열로 디코딩합니다.
