@@ -12,7 +12,8 @@ import HealthKit
 import Models
 
 public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendable {
-    private let healthStore = HKHealthStore()
+    // 시계열/구간 추출 확장(HealthKitManager+SeriesExtraction)에서 접근하므로 internal
+    let healthStore = HKHealthStore()
 
     private let typesToRead: Set<HKObjectType> = [
         HKObjectType.workoutType(),                                                               // workout 타입
@@ -167,7 +168,28 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         let runningPower = await fetchAverageRunningPower(for: workout) ?? 0
         let runningStrideLength = await fetchAverageRunningStrideLength(for: workout) ?? 0
         let heartRateRecoveryOneMinute = await fetchHeartRateRecoveryOneMinute(for: workout) ?? 0
-        let routeData = try? await fetchRouteData(for: workout)
+        let routeExtraction = try? await fetchRouteData(for: workout)
+        let routeSamples = routeExtraction?.samples ?? []
+
+        let heartRateSeries = await fetchQuantitySeries(
+            for: workout,
+            identifier: .heartRate,
+            unit: HKUnit.count().unitDivided(by: .minute())
+        )
+        let cadenceSeries = await fetchCadenceSeries(for: workout)
+        let paceSeries = await fetchPaceSeries(for: workout)
+
+        let splits = WorkoutSplitCalculator.makeSplits(
+            route: routeSamples,
+            heartRate: heartRateSeries,
+            cadence: cadenceSeries
+        )
+        let series = makeWorkoutSeries(
+            heartRate: heartRateSeries,
+            pace: paceSeries,
+            cadence: cadenceSeries,
+            route: routeSamples
+        )
 
         return HealthKitWorkout(
             distance: distance,
@@ -183,9 +205,11 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
             runningPower: runningPower,
             runningStrideLength: runningStrideLength,
             heartRateRecoveryOneMinute: heartRateRecoveryOneMinute,
-            routeData: routeData,
+            routeData: routeExtraction?.routeData,
             startDate: workout.startDate,
-            endDate: workout.endDate
+            endDate: workout.endDate,
+            splits: splits,
+            series: series
         )
     }
 
@@ -352,64 +376,5 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
 
             return results
         }
-    }
-}
-
-private extension HealthKitManager {
-    func fetchRouteData(for workout: HKWorkout) async throws -> Data? {
-        let routeType = HKSeriesType.workoutRoute()
-        let predicate = HKQuery.predicateForObjects(from: workout)
-
-        let routes = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[HKWorkoutRoute], Error>) in
-            let query = HKSampleQuery(
-                sampleType: routeType,
-                predicate: predicate,
-                limit: HKObjectQueryNoLimit,
-                sortDescriptors: nil
-            ) { _, samples, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume(
-                        returning: samples as? [HKWorkoutRoute] ?? []
-                    )
-                }
-            }
-            healthStore.execute(query)
-        }
-
-        guard let route = routes.first else {
-            return nil
-        }
-
-        var coordinates: [CLLocationCoordinate2D] = []
-
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            let query = HKWorkoutRouteQuery(route: route) { _, locations, done, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                    return
-                }
-
-                if let locations = locations {
-                    coordinates.append(contentsOf: locations.map { $0.coordinate })
-                }
-
-                if done {
-                    continuation.resume()
-                }
-            }
-            healthStore.execute(query)
-        }
-
-        let locations = coordinates.map {
-            Location(
-                latitude: $0.latitude,
-                longitude: $0.longitude
-            )
-        }
-
-        // [Location]을 JSON Data로 인코딩
-        return try? JSONEncoder().encode(locations)
     }
 }
