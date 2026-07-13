@@ -1,5 +1,8 @@
 ### Xcode ###
 
+## 오케스트레이션 스펙 (휘발성 조율 산출물)
+.claude/specs/
+
 ## Xcode project user settings
 xcuserdata/
 *.xcuserstate
