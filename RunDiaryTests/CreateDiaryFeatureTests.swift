@@ -343,7 +343,7 @@ struct CreateDiaryFeatureOnAppearTests {
             CreateDiaryFeature()
         } withDependencies: {
             $0.shoeClient.fetchAllShoes = { [shoe] }
-            $0.healthKitClient.fetchDetailedRunningData = { _, _ in makeWorkout() }
+            $0.healthKitClient.fetchDetailedRunningData = { _, _ in makeDetailedWorkout() }
             $0.weatherClient.fetchWeather = { _, _ in
                 weatherFetchCalled = true
                 return WeatherData(temperature: 20, humidity: 50, windSpeed: 1)
@@ -370,7 +370,7 @@ struct CreateDiaryFeatureOnAppearTests {
             Location(latitude: 37.5, longitude: 127.0),
             Location(latitude: 37.6, longitude: 127.1)
         ])
-        let detailedWorkout = makeWorkoutWithRoute(routeData: routeData)
+        let detailedWorkout = makeDetailedWorkoutWithRoute(routeData: routeData)
 
         let store = TestStore(
             initialState: CreateDiaryFeature.State(healthKitWorkout: makeWorkout())
@@ -659,4 +659,24 @@ private func makeWorkoutWithRoute(routeData: Data) -> HealthKitWorkout {
         startDate: Date(timeIntervalSince1970: 0),
         endDate: Date(timeIntervalSince1970: 1800)
     )
+}
+
+private func makeDetailedWorkout(routeData: Data? = nil) -> DetailedWorkout {
+    DetailedWorkout(
+        distance: 5.0,
+        duration: 1800,
+        averagePace: "6'00\"",
+        heartRateSamples: [MetricSample(offsetSec: 0, value: 150)],
+        cadenceSamples: [MetricSample(offsetSec: 0, value: 170)],
+        activeEnergyBurned: 350,
+        restingHeartRate: 60,
+        heartRateRecoveryOneMinute: 20,
+        routeData: routeData,
+        startDate: Date(timeIntervalSince1970: 0),
+        endDate: Date(timeIntervalSince1970: 1800)
+    )
+}
+
+private func makeDetailedWorkoutWithRoute(routeData: Data) -> DetailedWorkout {
+    makeDetailedWorkout(routeData: routeData)
 }

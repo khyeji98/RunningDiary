@@ -95,7 +95,7 @@ struct CreateDiaryFeature {
 
     enum Action {
         case onAppear
-        case workoutDetailFetched(HealthKitWorkout?)
+        case workoutDetailFetched(DetailedWorkout?)
         case nextStepTapped
         case previousStepTapped
         case updateSelectedPainAreas(Set<PainArea>)
@@ -152,13 +152,14 @@ struct CreateDiaryFeature {
             case let .workoutDetailFetched(detailed):
                 guard let detailed else { return .none }
 
-                state.healthKitWorkout = detailed
+                let workout = detailed.toHealthKitWorkout()
+                state.healthKitWorkout = workout
 
-                let location = extractLocationFromRoute(detailed.routeData)
+                let location = extractLocationFromRoute(workout.routeData)
 
                 guard let location else { return .none }
 
-                let middleTime = workoutMiddleTime(detailed)
+                let middleTime = workoutMiddleTime(workout)
 
                 return .run { send in
                     do {

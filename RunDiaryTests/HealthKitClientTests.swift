@@ -88,7 +88,7 @@ struct HealthKitClientTests {
         // Given
         let manager = StubHealthKitManager(
             weeklyResult: .success([makeHealthKitWorkout(distance: 5.0)]),
-            detailedResult: .success(makeHealthKitWorkout(distance: 10.0))
+            detailedResult: .success(makeDetailedWorkout(distance: 10.0))
         )
         let client = makeSUT(manager: manager)
 
@@ -106,7 +106,7 @@ struct HealthKitClientTests {
     // TC: hkclient-detailed-returnsData
     func fetchDetailed_returnsManagerData() async throws {
         // Given
-        let expectedWorkout = makeHealthKitWorkout(distance: 7.5)
+        let expectedWorkout = makeDetailedWorkout(distance: 7.5)
         let manager = StubHealthKitManager(detailedResult: .success(expectedWorkout))
         let client = makeSUT(manager: manager)
 
@@ -168,7 +168,7 @@ struct HealthKitClientTests {
         // Given
         let manager = StubHealthKitManager(
             weeklyResult: .success([makeHealthKitWorkout(distance: 5.0)]),
-            detailedResult: .success(makeHealthKitWorkout(distance: 10.0))
+            detailedResult: .success(makeDetailedWorkout(distance: 10.0))
         )
         let client = makeSUT(manager: manager)
 
@@ -215,6 +215,25 @@ private extension HealthKitClientTests {
             endDate: startDate.addingTimeInterval(1800)
         )
     }
+
+    /// DetailedWorkout 생성 헬퍼 (fetchDetailedRunningData 반환용)
+    func makeDetailedWorkout(
+        distance: Double = 5.0,
+        startDate: Date = .now
+    ) -> DetailedWorkout {
+        DetailedWorkout(
+            distance: distance,
+            duration: 1800,
+            averagePace: "6'00\"",
+            heartRateSamples: [MetricSample(offsetSec: 0, value: 150)],
+            cadenceSamples: [MetricSample(offsetSec: 0, value: 178)],
+            activeEnergyBurned: 400,
+            restingHeartRate: 58.0,
+            heartRateRecoveryOneMinute: 21.0,
+            startDate: startDate,
+            endDate: startDate.addingTimeInterval(1800)
+        )
+    }
 }
 
 // MARK: - Stubs
@@ -223,7 +242,7 @@ private extension HealthKitClientTests {
 /// 위임하는지 검증하기 위한 테스트 전용 fake.
 private final class StubHealthKitManager: HealthKitManagerProtocol, @unchecked Sendable {
     private let weeklyResult: Result<[HealthKitWorkout], Error>
-    private let detailedResult: Result<HealthKitWorkout?, Error>
+    private let detailedResult: Result<DetailedWorkout?, Error>
 
     var capturedWeeklyDates: (Date, Date)?
     var capturedDetailedDates: (Date, Date)?
@@ -232,7 +251,7 @@ private final class StubHealthKitManager: HealthKitManagerProtocol, @unchecked S
 
     init(
         weeklyResult: Result<[HealthKitWorkout], Error> = .success([]),
-        detailedResult: Result<HealthKitWorkout?, Error> = .success(nil)
+        detailedResult: Result<DetailedWorkout?, Error> = .success(nil)
     ) {
         self.weeklyResult = weeklyResult
         self.detailedResult = detailedResult
@@ -253,7 +272,7 @@ private final class StubHealthKitManager: HealthKitManagerProtocol, @unchecked S
         return try weeklyResult.get()
     }
 
-    func fetchDetailedRunningData(from startDate: Date, to endDate: Date) async throws -> HealthKitWorkout? {
+    func fetchDetailedRunningData(from startDate: Date, to endDate: Date) async throws -> DetailedWorkout? {
         didCallDetailed = true
         capturedDetailedDates = (startDate, endDate)
         return try detailedResult.get()

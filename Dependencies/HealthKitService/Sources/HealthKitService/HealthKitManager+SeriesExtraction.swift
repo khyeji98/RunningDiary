@@ -172,6 +172,20 @@ extension HealthKitManager {
         }
     }
 
+    /// (경과초, 값) 튜플 시계열을 Models의 `MetricSample`로 변환한다. 순서와 값을 그대로 보존한다.
+    func makeMetricSamples(_ series: [(offset: TimeInterval, value: Double)]) -> [MetricSample] {
+        series.map { MetricSample(offsetSec: $0.offset, value: $0.value) }
+    }
+
+    /// 워크아웃 구간의 `identifier` 샘플을 `unit`으로 변환해 `MetricSample` 배열로 조회한다. (쿼리 1회)
+    func fetchMetricSamples(
+        for workout: HKWorkout,
+        identifier: HKQuantityTypeIdentifier,
+        unit: HKUnit
+    ) async -> [MetricSample] {
+        makeMetricSamples(await fetchQuantitySeries(for: workout, identifier: identifier, unit: unit))
+    }
+
     /// runningSpeed(m/s) 시계열을 `paceSecondsPerKm = 1000 / speed`로 변환한다. speed가 0 이하이면 제외한다.
     func fetchPaceSeries(for workout: HKWorkout) async -> [(offset: TimeInterval, value: Double)] {
         let speedSeries = await fetchQuantitySeries(

@@ -81,7 +81,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
     }
 
     // 특정 워크아웃(startDate ~ endDate)에 대한 전체 상세 데이터를 추출합니다. (일기 저장용)
-    public func fetchDetailedRunningData(from startDate: Date, to endDate: Date) async throws -> HealthKitWorkout? {
+    public func fetchDetailedRunningData(from startDate: Date, to endDate: Date) async throws -> DetailedWorkout? {
         try await ensureAuthorizationIfNeeded()
 
         let workouts = try await queryWorkouts(start: startDate, end: endDate)
@@ -130,9 +130,11 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
               let averagePace = calculateAveragePace(from: workout)
         else { return nil }
 
-        let averageCadence = await fetchAverageCadence(for: workout) ?? 0
+        let cadenceSamples = makeMetricSamples(await fetchCadenceSeries(for: workout))
+        let averageCadence = MetricSample.average(of: cadenceSamples).map(Int.init) ?? 0
 
         return HealthKitWorkout(
+            id: workout.uuid,
             distance: distance,
             duration: workout.duration,
             averagePace: averagePace,
@@ -153,24 +155,12 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
     }
 
     /// 일기 저장 시 필요한 전체 상세 데이터를 추출한다.
-    private func makeDetailedWorkout(from workout: HKWorkout) async -> HealthKitWorkout? {
+    private func makeDetailedWorkout(from workout: HKWorkout) async -> DetailedWorkout? {
         guard let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo)),
               let averagePace = calculateAveragePace(from: workout)
         else { return nil }
 
-        let averageCadence = await fetchAverageCadence(for: workout) ?? 0
-        let averageHeartRate = await fetchAverageHeartRate(for: workout) ?? 0
-        let activeEnergyBurned = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
-        let runningVerticalOscillation = await fetchAverageVerticalOscillation(for: workout) ?? 0
-        let runningGroundContactTime = await fetchAverageGroundContactTime(for: workout) ?? 0
-        let walkingStepLength = await fetchAverageStepLength(for: workout) ?? 0
-        let restingHeartRate = await fetchAverageRestingHeartRate(for: workout) ?? 0
-        let runningPower = await fetchAverageRunningPower(for: workout) ?? 0
-        let runningStrideLength = await fetchAverageRunningStrideLength(for: workout) ?? 0
-        let heartRateRecoveryOneMinute = await fetchHeartRateRecoveryOneMinute(for: workout) ?? 0
-        let routeExtraction = try? await fetchRouteData(for: workout)
-        let routeSamples = routeExtraction?.samples ?? []
-
+        // HR/cadence/pace는 splits·series 빌더가 튜플 시계열을 요구하므로 튜플로 조회한 뒤 MetricSample로 변환한다.
         let heartRateSeries = await fetchQuantitySeries(
             for: workout,
             identifier: .heartRate,
@@ -178,6 +168,30 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         )
         let cadenceSeries = await fetchCadenceSeries(for: workout)
         let paceSeries = await fetchPaceSeries(for: workout)
+
+        // 나머지 5종은 평균만 쓰던 것을 시계열 그대로 보유한다. (쿼리 수는 기존 fetchAverageFromSamples와 동일하게 각 1회)
+        let verticalOscillationSamples = await fetchMetricSamples(
+            for: workout, identifier: .runningVerticalOscillation, unit: .meterUnit(with: .centi)
+        )
+        let groundContactTimeSamples = await fetchMetricSamples(
+            for: workout, identifier: .runningGroundContactTime, unit: .secondUnit(with: .milli)
+        )
+        let walkingStepLengthSamples = await fetchMetricSamples(
+            for: workout, identifier: .walkingStepLength, unit: .meter()
+        )
+        let runningPowerSamples = await fetchMetricSamples(
+            for: workout, identifier: .runningPower, unit: .watt()
+        )
+        let runningStrideLengthSamples = await fetchMetricSamples(
+            for: workout, identifier: .runningStrideLength, unit: .meter()
+        )
+
+        // restingHeartRate / heartRateRecoveryOneMinute는 워크아웃 구간 밖을 집계하므로 시계열이 아닌 스칼라로 유지한다.
+        let activeEnergyBurned = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
+        let restingHeartRate = await fetchAverageRestingHeartRate(for: workout) ?? 0
+        let heartRateRecoveryOneMinute = await fetchHeartRateRecoveryOneMinute(for: workout) ?? 0
+        let routeExtraction = try? await fetchRouteData(for: workout)
+        let routeSamples = routeExtraction?.samples ?? []
 
         let splits = WorkoutSplitCalculator.makeSplits(
             route: routeSamples,
@@ -191,19 +205,20 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
             route: routeSamples
         )
 
-        return HealthKitWorkout(
+        return DetailedWorkout(
+            id: workout.uuid,
             distance: distance,
             duration: workout.duration,
             averagePace: averagePace,
-            averageHeartRate: averageHeartRate,
-            averageCadence: averageCadence,
+            heartRateSamples: makeMetricSamples(heartRateSeries),
+            cadenceSamples: makeMetricSamples(cadenceSeries),
+            runningVerticalOscillationSamples: verticalOscillationSamples,
+            runningGroundContactTimeSamples: groundContactTimeSamples,
+            walkingStepLengthSamples: walkingStepLengthSamples,
+            runningPowerSamples: runningPowerSamples,
+            runningStrideLengthSamples: runningStrideLengthSamples,
             activeEnergyBurned: activeEnergyBurned,
-            runningVerticalOscillation: runningVerticalOscillation,
-            runningGroundContactTime: runningGroundContactTime,
-            walkingStepLength: walkingStepLength,
             restingHeartRate: restingHeartRate,
-            runningPower: runningPower,
-            runningStrideLength: runningStrideLength,
             heartRateRecoveryOneMinute: heartRateRecoveryOneMinute,
             routeData: routeExtraction?.routeData,
             startDate: workout.startDate,
@@ -229,58 +244,6 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         return String(format: "%d'%02d\"", minutes, seconds)
     }
 
-    private func fetchAverageHeartRate(for workout: HKWorkout) async -> Int? {
-        guard let type = HKQuantityType.quantityType(forIdentifier: .heartRate) else { return nil }
-        let unit = HKUnit.count().unitDivided(by: .minute())
-        guard let average = await fetchAverageQuantity(for: workout, type: type, unit: unit) else { return nil }
-        return Int(average)
-    }
-
-    private func fetchAverageCadence(for workout: HKWorkout) async -> Int? {
-        guard let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else { return nil }
-
-        let predicate = HKQuery.predicateForSamples(withStart: workout.startDate, end: workout.endDate, options: .strictStartDate)
-
-        let totalSteps = await withCheckedContinuation { (continuation: CheckedContinuation<Double, Never>) in
-            let query = HKStatisticsQuery(
-                quantityType: stepType,
-                quantitySamplePredicate: predicate,
-                options: .cumulativeSum
-            ) { _, statistics, error in
-                if error != nil {
-                    continuation.resume(returning: 0)
-                    return
-                }
-                let sum = statistics?.sumQuantity()?.doubleValue(for: .count()) ?? 0
-                continuation.resume(returning: sum)
-            }
-            healthStore.execute(query)
-        }
-
-        let durationInMinutes = workout.duration / 60.0
-
-        guard durationInMinutes > 0 && totalSteps > 0 else {
-            return nil
-        }
-
-        return Int(totalSteps / durationInMinutes)
-    }
-
-    private func fetchAverageVerticalOscillation(for workout: HKWorkout) async -> Double? {
-        guard let type = HKQuantityType.quantityType(forIdentifier: .runningVerticalOscillation) else { return nil }
-        return await fetchAverageQuantity(for: workout, type: type, unit: .meterUnit(with: .centi))
-    }
-
-    private func fetchAverageGroundContactTime(for workout: HKWorkout) async -> Double? {
-        guard let type = HKQuantityType.quantityType(forIdentifier: .runningGroundContactTime) else { return nil }
-        return await fetchAverageQuantity(for: workout, type: type, unit: .secondUnit(with: .milli))
-    }
-
-    private func fetchAverageStepLength(for workout: HKWorkout) async -> Double? {
-        guard let type = HKQuantityType.quantityType(forIdentifier: .walkingStepLength) else { return nil }
-        return await fetchAverageQuantity(for: workout, type: type, unit: .meter())
-    }
-
     /// 휴식 심박수는 하루 단위로 기록되므로 workout 날짜의 전체 하루를 조회
     private func fetchAverageRestingHeartRate(for workout: HKWorkout) async -> Double? {
         guard let type = HKQuantityType.quantityType(forIdentifier: .restingHeartRate) else { return nil }
@@ -293,16 +256,6 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         return await fetchAverageQuantityForDateRange(from: startOfDay, to: endOfDay, type: type, unit: unit)
     }
 
-    private func fetchAverageRunningPower(for workout: HKWorkout) async -> Double? {
-        guard let type = HKQuantityType.quantityType(forIdentifier: .runningPower) else { return nil }
-        return await fetchAverageQuantity(for: workout, type: type, unit: .watt())
-    }
-
-    private func fetchAverageRunningStrideLength(for workout: HKWorkout) async -> Double? {
-        guard let type = HKQuantityType.quantityType(forIdentifier: .runningStrideLength) else { return nil }
-        return await fetchAverageQuantity(for: workout, type: type, unit: .meter())
-    }
-
     /// 1분 심박수 회복은 운동 종료 후 측정되므로 종료 시간부터 5분까지 확장 조회
     private func fetchHeartRateRecoveryOneMinute(for workout: HKWorkout) async -> Double? {
         guard let type = HKQuantityType.quantityType(forIdentifier: .heartRateRecoveryOneMinute) else { return nil }
@@ -310,10 +263,6 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         let extendedEnd = workout.endDate.addingTimeInterval(5 * 60) // 운동 종료 후 5분
         let unit = HKUnit.count().unitDivided(by: .minute())
         return await fetchAverageQuantityForDateRange(from: workout.endDate, to: extendedEnd, type: type, unit: unit)
-    }
-
-    private func fetchAverageQuantity(for workout: HKWorkout, type: HKQuantityType, unit: HKUnit) async -> Double? {
-        return await fetchAverageQuantityForDateRange(from: workout.startDate, to: workout.endDate, type: type, unit: unit)
     }
 
     /// 특정 날짜 범위에 대해 평균값을 조회하는 공통 헬퍼
