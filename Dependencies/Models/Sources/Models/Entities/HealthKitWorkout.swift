@@ -9,7 +9,7 @@ import CommonFoundation
 import Foundation
 
 public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
-    public let id = UUID()
+    public let id: UUID                                 // 고유 식별자 (HealthKit 유래 시 HKWorkout.uuid)
     public let yearMonthDay: YearMonthDay               // 달리기 날짜
     public let distance: Double                         // 달리기 거리 (km)
     public let duration: TimeInterval                   // 달리기 시간 (sec)
@@ -71,6 +71,7 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
     }
 
     public init(
+        id: UUID = UUID(),
         distance: Double,
         duration: TimeInterval,
         averagePace: String,
@@ -90,6 +91,7 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
         splits: [WorkoutSplit] = [],
         series: WorkoutSeries? = nil
     ) {
+        self.id = id
         self.distance = distance
         self.yearMonthDay = YearMonthDay(date: startDate)
         self.duration = duration
