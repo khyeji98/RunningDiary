@@ -61,6 +61,7 @@ gha-creds-*.json
 
 # Agent
 .agent/
+.handoff/
 
 ### Data Analysis ###
 
