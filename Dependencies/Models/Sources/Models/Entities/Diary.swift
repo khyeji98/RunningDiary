@@ -1,6 +1,6 @@
 //
-//  RunningRecord.swift
-//  RunDiary
+//  Diary.swift
+//  Models
 //
 //  Created by 김혜지 on 9/23/25.
 //

@@ -59,7 +59,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         return result
     }
 
-    // 단일 Date에 대한 피트니스 기록을 가져옵니다. (목록 노출용 경량 데이터)
+    // 단일 Date에 대한 피트니스 기록을 전체 상세 데이터로 가져옵니다.
     public func fetchRunningData(for date: Date) async throws -> [HealthKitWorkout] {
         try await ensureAuthorizationIfNeeded()
 
@@ -73,23 +73,11 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
 
         var results: [HealthKitWorkout] = []
         for workout in workouts {
-            if let lightweight = await makeLightweightWorkout(from: workout) {
-                results.append(lightweight)
+            if let result = await makeWorkout(from: workout) {
+                results.append(result)
             }
         }
         return results
-    }
-
-    // 특정 워크아웃(startDate ~ endDate)에 대한 전체 상세 데이터를 추출합니다. (일기 저장용)
-    public func fetchDetailedRunningData(from startDate: Date, to endDate: Date) async throws -> DetailedWorkout? {
-        try await ensureAuthorizationIfNeeded()
-
-        let workouts = try await queryWorkouts(start: startDate, end: endDate)
-        guard let workout = workouts.first(where: { $0.startDate == startDate }) ?? workouts.first else {
-            return nil
-        }
-
-        return await makeDetailedWorkout(from: workout)
     }
 
     /// 러닝 워크아웃을 날짜 범위로 조회하는 공통 쿼리
@@ -124,38 +112,9 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         }
     }
 
-    /// 목록 노출에 필요한 최소 데이터(거리·시간·페이스·케이던스)만 추출한다.
-    private func makeLightweightWorkout(from workout: HKWorkout) async -> HealthKitWorkout? {
-        guard let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo)),
-              let averagePace = calculateAveragePace(from: workout)
-        else { return nil }
-
-        let cadenceSamples = makeMetricSamples(await fetchCadenceSeries(for: workout))
-        let averageCadence = MetricSample.average(of: cadenceSamples).map(Int.init) ?? 0
-
-        return HealthKitWorkout(
-            id: workout.uuid,
-            distance: distance,
-            duration: workout.duration,
-            averagePace: averagePace,
-            averageHeartRate: 0,
-            averageCadence: averageCadence,
-            activeEnergyBurned: 0,
-            runningVerticalOscillation: 0,
-            runningGroundContactTime: 0,
-            walkingStepLength: 0,
-            restingHeartRate: 0,
-            runningPower: 0,
-            runningStrideLength: 0,
-            heartRateRecoveryOneMinute: 0,
-            routeData: nil,
-            startDate: workout.startDate,
-            endDate: workout.endDate
-        )
-    }
-
-    /// 일기 저장 시 필요한 전체 상세 데이터를 추출한다.
-    private func makeDetailedWorkout(from workout: HKWorkout) async -> DetailedWorkout? {
+    /// 워크아웃 하나에 대한 전체 상세 데이터를 추출해 `HealthKitWorkout`으로 구성한다.
+    /// 평균 스칼라는 원시 시계열에서 파생해 함께 채운다. (경량/상세 조회 구분 없이 단일 경로)
+    private func makeWorkout(from workout: HKWorkout) async -> HealthKitWorkout? {
         guard let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo)),
               let averagePace = calculateAveragePace(from: workout)
         else { return nil }
@@ -169,7 +128,10 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
         let cadenceSeries = await fetchCadenceSeries(for: workout)
         let paceSeries = await fetchPaceSeries(for: workout)
 
-        // 나머지 5종은 평균만 쓰던 것을 시계열 그대로 보유한다. (쿼리 수는 기존 fetchAverageFromSamples와 동일하게 각 1회)
+        let heartRateSamples = makeMetricSamples(heartRateSeries)
+        let cadenceSamples = makeMetricSamples(cadenceSeries)
+
+        // 나머지 5종은 각 1회 쿼리로 시계열을 그대로 보유한다.
         let verticalOscillationSamples = await fetchMetricSamples(
             for: workout, identifier: .runningVerticalOscillation, unit: .meterUnit(with: .centi)
         )
@@ -186,7 +148,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
             for: workout, identifier: .runningStrideLength, unit: .meter()
         )
 
-        // restingHeartRate / heartRateRecoveryOneMinute는 워크아웃 구간 밖을 집계하므로 시계열이 아닌 스칼라로 유지한다.
+        // restingHeartRate / heartRateRecoveryOneMinute는 워크아웃 구간 밖을 집계하므로 스칼라로 조회한다.
         let activeEnergyBurned = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
         let restingHeartRate = await fetchAverageRestingHeartRate(for: workout) ?? 0
         let heartRateRecoveryOneMinute = await fetchHeartRateRecoveryOneMinute(for: workout) ?? 0
@@ -205,26 +167,42 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
             route: routeSamples
         )
 
-        return DetailedWorkout(
+        // 평균 스칼라는 원시 시계열에서 파생한다. (Int.init은 소수부 버림)
+        let averageHeartRate = MetricSample.average(of: heartRateSamples).map(Int.init) ?? 0
+        let averageCadence = MetricSample.average(of: cadenceSamples).map(Int.init) ?? 0
+        let runningVerticalOscillation = MetricSample.average(of: verticalOscillationSamples) ?? 0
+        let runningGroundContactTime = MetricSample.average(of: groundContactTimeSamples) ?? 0
+        let walkingStepLength = MetricSample.average(of: walkingStepLengthSamples) ?? 0
+        let runningPower = MetricSample.average(of: runningPowerSamples) ?? 0
+        let runningStrideLength = MetricSample.average(of: runningStrideLengthSamples) ?? 0
+
+        return HealthKitWorkout(
             id: workout.uuid,
             distance: distance,
             duration: workout.duration,
             averagePace: averagePace,
-            heartRateSamples: makeMetricSamples(heartRateSeries),
-            cadenceSamples: makeMetricSamples(cadenceSeries),
-            runningVerticalOscillationSamples: verticalOscillationSamples,
-            runningGroundContactTimeSamples: groundContactTimeSamples,
-            walkingStepLengthSamples: walkingStepLengthSamples,
-            runningPowerSamples: runningPowerSamples,
-            runningStrideLengthSamples: runningStrideLengthSamples,
+            averageHeartRate: averageHeartRate,
+            averageCadence: averageCadence,
             activeEnergyBurned: activeEnergyBurned,
+            runningVerticalOscillation: runningVerticalOscillation,
+            runningGroundContactTime: runningGroundContactTime,
+            walkingStepLength: walkingStepLength,
             restingHeartRate: restingHeartRate,
+            runningPower: runningPower,
+            runningStrideLength: runningStrideLength,
             heartRateRecoveryOneMinute: heartRateRecoveryOneMinute,
             routeData: routeExtraction?.routeData,
             startDate: workout.startDate,
             endDate: workout.endDate,
             splits: splits,
-            series: series
+            series: series,
+            heartRateSamples: heartRateSamples,
+            cadenceSamples: cadenceSamples,
+            runningVerticalOscillationSamples: verticalOscillationSamples,
+            runningGroundContactTimeSamples: groundContactTimeSamples,
+            walkingStepLengthSamples: walkingStepLengthSamples,
+            runningPowerSamples: runningPowerSamples,
+            runningStrideLengthSamples: runningStrideLengthSamples
         )
     }
 

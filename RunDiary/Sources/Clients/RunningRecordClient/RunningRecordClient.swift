@@ -24,7 +24,7 @@ extension RunningRecordClient: DependencyKey {
             @Dependency(\.persistencesClient) var persistencesClient
 
             // 1. Fetch (캐싱은 Repository가 담당, 권한은 Manager가 내부 처리)
-            //    목록 노출용 경량 데이터만 조회한다. 상세 지표는 일기 저장 시점에 추출된다.
+            //    조회 시점에 전체 상세 데이터를 싣는다. (경량/상세 구분 없음)
             let healthKitWorkouts = try await healthKitClient.fetchRunningDataBetweenDates(
                 from.toDate(),
                 to.toDate()

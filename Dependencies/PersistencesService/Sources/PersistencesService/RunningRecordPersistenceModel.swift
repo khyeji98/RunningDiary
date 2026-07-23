@@ -9,6 +9,8 @@ import Foundation
 import Models
 import SwiftData
 
+/// SwiftData 영속 전용 스키마 모델. 도메인 계층에는 직접 노출하지 않고
+/// `toDomain()` / `fromDomain(_:)`을 통해서만 도메인 타입 `Diary`와 왕복한다.
 @Model
 public final class RunningRecordPersistenceModel {
     @Attribute(.unique)

@@ -332,7 +332,7 @@ struct CreateDiaryFeatureOnAppearTests {
         #expect(weatherFetchCalled == false)
     }
 
-    @Test("새 기록 + 상세 데이터에 routeData 없음 → 신발만 로드")
+    @Test("새 기록 + workout에 routeData 없음 → 신발만 로드")
     func onAppear_newRecordNoRoute_loadsOnlyShoes() async {
         let shoe = makeShoe(id: "s1")
         var weatherFetchCalled = false
@@ -343,7 +343,6 @@ struct CreateDiaryFeatureOnAppearTests {
             CreateDiaryFeature()
         } withDependencies: {
             $0.shoeClient.fetchAllShoes = { [shoe] }
-            $0.healthKitClient.fetchDetailedRunningData = { _, _ in makeDetailedWorkout() }
             $0.weatherClient.fetchWeather = { _, _ in
                 weatherFetchCalled = true
                 return WeatherData(temperature: 20, humidity: 50, windSpeed: 1)
@@ -361,7 +360,7 @@ struct CreateDiaryFeatureOnAppearTests {
         #expect(weatherFetchCalled == false)
     }
 
-    @Test("새 기록 + 상세 데이터에 routeData 있음 → 날씨 조회 발생")
+    @Test("새 기록 + workout에 routeData 있음 → 날씨 조회 발생")
     func onAppear_newRecordWithRoute_fetchesWeather() async {
         await ShoeCache.shared.reset()
         var weatherFetchCalled = false
@@ -370,15 +369,15 @@ struct CreateDiaryFeatureOnAppearTests {
             Location(latitude: 37.5, longitude: 127.0),
             Location(latitude: 37.6, longitude: 127.1)
         ])
-        let detailedWorkout = makeDetailedWorkoutWithRoute(routeData: routeData)
 
         let store = TestStore(
-            initialState: CreateDiaryFeature.State(healthKitWorkout: makeWorkout())
+            initialState: CreateDiaryFeature.State(
+                healthKitWorkout: makeWorkoutWithRoute(routeData: routeData)
+            )
         ) {
             CreateDiaryFeature()
         } withDependencies: {
             $0.shoeClient.fetchAllShoes = { [] }
-            $0.healthKitClient.fetchDetailedRunningData = { _, _ in detailedWorkout }
             $0.weatherClient.fetchWeather = { _, _ in
                 weatherFetchCalled = true
                 return WeatherData(temperature: 20, humidity: 50, windSpeed: 1)
@@ -661,22 +660,3 @@ private func makeWorkoutWithRoute(routeData: Data) -> HealthKitWorkout {
     )
 }
 
-private func makeDetailedWorkout(routeData: Data? = nil) -> DetailedWorkout {
-    DetailedWorkout(
-        distance: 5.0,
-        duration: 1800,
-        averagePace: "6'00\"",
-        heartRateSamples: [MetricSample(offsetSec: 0, value: 150)],
-        cadenceSamples: [MetricSample(offsetSec: 0, value: 170)],
-        activeEnergyBurned: 350,
-        restingHeartRate: 60,
-        heartRateRecoveryOneMinute: 20,
-        routeData: routeData,
-        startDate: Date(timeIntervalSince1970: 0),
-        endDate: Date(timeIntervalSince1970: 1800)
-    )
-}
-
-private func makeDetailedWorkoutWithRoute(routeData: Data) -> DetailedWorkout {
-    makeDetailedWorkout(routeData: routeData)
-}

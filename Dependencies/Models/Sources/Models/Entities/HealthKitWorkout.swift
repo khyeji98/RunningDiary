@@ -30,6 +30,15 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
     public let splits: [WorkoutSplit]                   // 구간별 요약
     public let series: WorkoutSeries?                   // 시계열 데이터
 
+    // MARK: 원시 시계열 (HealthKit 조회 시에만 채워지고 영속 왕복 시 유실됨. 평균은 위 stored 스칼라가 보존한다.)
+    public let heartRateSamples: [MetricSample]                     // bpm
+    public let cadenceSamples: [MetricSample]                       // spm
+    public let runningVerticalOscillationSamples: [MetricSample]    // cm
+    public let runningGroundContactTimeSamples: [MetricSample]      // ms
+    public let walkingStepLengthSamples: [MetricSample]             // m
+    public let runningPowerSamples: [MetricSample]                  // watts
+    public let runningStrideLengthSamples: [MetricSample]           // m
+
     public var formattedDuration: String {
         let hours = Int(duration) / 3600
         let minutes = (Int(duration) % 3600) / 60
@@ -89,7 +98,14 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
         startDate: Date,
         endDate: Date,
         splits: [WorkoutSplit] = [],
-        series: WorkoutSeries? = nil
+        series: WorkoutSeries? = nil,
+        heartRateSamples: [MetricSample] = [],
+        cadenceSamples: [MetricSample] = [],
+        runningVerticalOscillationSamples: [MetricSample] = [],
+        runningGroundContactTimeSamples: [MetricSample] = [],
+        walkingStepLengthSamples: [MetricSample] = [],
+        runningPowerSamples: [MetricSample] = [],
+        runningStrideLengthSamples: [MetricSample] = []
     ) {
         self.id = id
         self.distance = distance
@@ -111,6 +127,13 @@ public struct HealthKitWorkout: Equatable, Identifiable, Sendable {
         self.endTime = endDate
         self.splits = splits
         self.series = series
+        self.heartRateSamples = heartRateSamples
+        self.cadenceSamples = cadenceSamples
+        self.runningVerticalOscillationSamples = runningVerticalOscillationSamples
+        self.runningGroundContactTimeSamples = runningGroundContactTimeSamples
+        self.walkingStepLengthSamples = walkingStepLengthSamples
+        self.runningPowerSamples = runningPowerSamples
+        self.runningStrideLengthSamples = runningStrideLengthSamples
     }
 
     /// routeData를 [Location] 배열로 디코딩합니다.

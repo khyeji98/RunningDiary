@@ -95,7 +95,6 @@ struct CreateDiaryFeature {
 
     enum Action {
         case onAppear
-        case workoutDetailFetched(DetailedWorkout?)
         case nextStepTapped
         case previousStepTapped
         case updateSelectedPainAreas(Set<PainArea>)
@@ -116,7 +115,6 @@ struct CreateDiaryFeature {
     }
 
     @Dependency(\.runningRecordClient) var runningRecordClient
-    @Dependency(\.healthKitClient) var healthKitClient
     @Dependency(\.weatherClient) var weatherClient
     @Dependency(\.shoeClient) var shoeClient
     @Dependency(\.dismiss) var dismiss
@@ -127,41 +125,19 @@ struct CreateDiaryFeature {
             case .onAppear:
                 let shoesEffect = loadShoesEffect(state: &state)
 
-                // 기존 기록 수정은 이미 전체 데이터를 보유하므로 상세 조회가 불필요하다.
+                // 기존 기록 수정은 이미 전체 데이터를 보유하므로 날씨 재조회가 불필요하다.
                 if state.existingRecord != nil {
                     return shoesEffect
                 }
 
-                // 신규 기록은 목록에서 경량 데이터만 넘어오므로, 저장에 필요한 전체 상세를 여기서 추출한다.
+                // 신규 기록은 목록에서 전체 데이터를 그대로 받으므로, 경로에서 위치를 추출해 날씨만 조회한다.
                 let workout = state.healthKitWorkout
-                let detailEffect: Effect<Action> = .run { send in
-                    do {
-                        let detailed = try await healthKitClient.fetchDetailedRunningData(
-                            workout.startTime,
-                            workout.endTime
-                        )
-                        await send(.workoutDetailFetched(detailed))
-                    } catch {
-                        AppLogger.createDiary.error("상세 운동 데이터 조회 실패: \(error.localizedDescription)")
-                        await send(.workoutDetailFetched(nil))
-                    }
-                }
-
-                return .merge(shoesEffect, detailEffect)
-
-            case let .workoutDetailFetched(detailed):
-                guard let detailed else { return .none }
-
-                let workout = detailed.toHealthKitWorkout()
-                state.healthKitWorkout = workout
-
                 let location = extractLocationFromRoute(workout.routeData)
 
-                guard let location else { return .none }
+                guard let location else { return shoesEffect }
 
                 let middleTime = workoutMiddleTime(workout)
-
-                return .run { send in
+                let weatherEffect: Effect<Action> = .run { send in
                     do {
                         let weather = try await weatherClient.fetchWeather(middleTime, location)
                         await send(.weatherFetched(weather))
@@ -170,6 +146,8 @@ struct CreateDiaryFeature {
                         await send(.weatherFetched(nil))
                     }
                 }
+
+                return .merge(shoesEffect, weatherEffect)
 
             case .nextStepTapped:
                 if let next = state.currentStep.next {

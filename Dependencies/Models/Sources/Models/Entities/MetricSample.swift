@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// 워크아웃 구간 내 단일 지표 샘플. 값의 단위는 이 샘플을 보유한 `DetailedWorkout`의 각 프로퍼티 주석이 정의한다.
+/// 워크아웃 구간 내 단일 지표 샘플. 값의 단위는 이 샘플을 보유한 `HealthKitWorkout`의 각 프로퍼티 주석이 정의한다.
 /// 서버 전송용 `SeriesPoint`(Int, 다운샘플 결과)와 달리 원본 Double 정밀도를 보존한다.
 public struct MetricSample: Equatable, Sendable {
     public let offsetSec: TimeInterval    // 워크아웃 시작 후 경과 초
