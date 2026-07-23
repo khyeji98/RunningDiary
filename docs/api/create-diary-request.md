@@ -1,33 +1,55 @@
-# 다이어리 생성 서버 저장 API — 요청 데이터 명세
+# 다이어리 생성 API 요청 스키마 협의안
 
-> 백엔드 API 명세 작성을 위한 **클라이언트 요청 바디 명세서**. RunDiary 앱의 실제 도메인 모델
-> (`Diary` / `HealthKitWorkout` / `WeatherData` + 유저 입력)을 근거로 작성됨.
+> 대상: 백엔드 개발자
+> 목적: HealthKit 데이터 확장에 맞춰 다이어리 생성 API의 요청 계약을 확정한다.
+> 상태: 클라이언트 결정사항 반영 완료, 일부 서버 확인 필요
 
-## 개요
+이 문서는 앱 내부 `Diary`나 화면 표시용 엔티티를 그대로 직렬화하는 명세가 아니다. HealthKit에서 조회한 원본 값과 통계값을 JSON 기본 타입 및 합의된 단위로 변환한 API 요청 DTO를 정의한다.
 
-다이어리(러닝 일지) 생성 시 서버 저장 API로 전송하는 데이터는 3개 출처로 구성된다.
+클라이언트 구현 범위와 수용 기준은 [다이어리 생성 API 클라이언트 구현 명세](./create-diary-client-implementation-spec.md)를 참고한다.
 
-- **HealthKit**: 러닝 상세 측정 지표 (거리/시간/심박/케이던스/러닝 다이나믹스/경로)
-- **WeatherKit**: 날씨 원시 수치 + 자동 분류 카테고리(유저 재조정 가능)
-- **User 입력**: 통증 부위, 주법, 난이도, 메모, 신발
+## 클라이언트 결정사항
 
-### 설계 결정
-1. **route** → `[{lat, lng}]` 좌표 배열(JSON)로 전송 (base64 blob 아님).
-2. **shoe** → `shoeId`(String) 기본 전송, `shoeName`은 optional로 함께 전송.
-3. **weather** → 원시 수치(temperature/humidity/windSpeed) + 최종 카테고리 4종(유저 재조정 반영) 모두 전송.
+| 항목 | 결정 |
+|---|---|
+| 신발 | 신발 API에서 받은 Mongo ObjectId를 `shoeId`로 전송한다. 현재 UX에서 신발 선택은 필수다. |
+| 운동 식별자 | HealthKit DB의 `HKWorkout.uuid`를 `workoutId`로 전송한다. 동일 운동은 항상 같은 값을 사용한다. |
+| 시간 | `startTime`, `endTime`은 UTC ISO 8601 `Z` 형식으로 보내고, 기기의 IANA timezone identifier를 `timeZone`으로 함께 보낸다. |
+| 운동 시간 | `HKWorkout.duration`을 반올림한 정수 초로 보낸다. 이 값은 HealthKit의 일시정지 구간을 제외한 기록 시간이다. |
+| 미측정 지표 | 클라이언트는 미측정 HealthKit 스칼라 지표에 `0`을 기본값으로 사용한다. 서버는 해당 필드의 `0`을 미측정으로 해석해야 한다. |
+| 페이스 | 화면 표시용 `averagePace` 문자열을 요청 데이터의 기준으로 사용하지 않는다. 숫자형 페이스는 HealthKit 원본 거리와 운동시간 또는 `runningSpeed` 샘플로 계산한다. |
+| route | 경로가 없으면 `null`로 보낸다. 50,000점을 초과하면 클라이언트 다운샘플링을 적용한다. |
+| splits | 데이터가 없으면 `[]`로 보내고, `index`는 1부터 순차 증가한다. |
+| series | 수집할 수 없으면 `null`로 보낸다. 수집 시 지표당 최대 2,000점을 넘지 않는다. |
+| 사용자 입력 | 통증이 없으면 `painAreas: []`, 메모가 없으면 `memo: null`로 보낸다. |
+| 날씨 | 원시 수치와 사용자가 최종 확정한 카테고리를 모두 보내고, 수정 여부를 `categoryAdjusted`로 보낸다. |
 
----
+## 요청 헤더
 
-## 요청 바디 JSON (예시)
+| 헤더 | 필수 | 설명 |
+|---|---|---|
+| `Authorization` | ✅ | Bearer access token |
+| `Content-Type` | ✅ | `application/json` |
+| `Idempotency-Key` | ✅ | 다이어리 생성 시 발급한 UUID. 동일 요청의 재시도에서는 같은 값을 유지한다. |
+
+`Idempotency-Key`는 논리적인 생성 요청 단위로 관리한다.
+
+- 네트워크 오류나 401 갱신 후 같은 body를 재전송하면 기존 키를 유지한다.
+- 사용자가 입력값을 변경해 새로운 생성 요청을 시작하면 새 키를 발급한다.
+- 같은 키에 다른 body가 전달되는 경우의 오류 코드는 서버 정책 확인이 필요하다.
+
+## 요청 바디 예시
 
 ```json
 {
   "workout": {
+    "workoutId": "9f29b8d7-6a63-4f24-a1ac-62257c519f94",
     "startTime": "2026-07-12T06:30:00Z",
     "endTime": "2026-07-12T07:12:30Z",
+    "timeZone": "Asia/Seoul",
     "distance": 7.42,
     "duration": 2550,
-    "averagePace": "5'44\"",
+    "paceSecondsPerKm": 344,
     "averageHeartRate": 152,
     "averageCadence": 174,
     "activeEnergyBurned": 512.3,
@@ -42,6 +64,8 @@
       { "lat": 37.5665, "lng": 126.9780 },
       { "lat": 37.5668, "lng": 126.9783 }
     ],
+    "routeOriginalPointCount": 4520,
+    "routeSamplingMethod": "none",
     "splits": [
       {
         "index": 1,
@@ -51,19 +75,22 @@
         "avgHeartRate": 148,
         "avgCadence": 172,
         "elevationGainM": 4.2
-      },
-      {
-        "index": 2,
-        "distanceKm": 1.0,
-        "durationSec": 342,
-        "paceSecondsPerKm": 342,
-        "avgHeartRate": 152,
-        "avgCadence": 170,
-        "elevationGainM": 1.8
       }
     ],
     "series": {
       "sampleIntervalSec": 5,
+      "originalSampleCount": {
+        "heartRate": 1800,
+        "paceSecondsPerKm": 1720,
+        "cadence": 1760,
+        "elevation": 4520
+      },
+      "samplingMethod": {
+        "heartRate": "fixedIntervalAverage",
+        "paceSecondsPerKm": "fixedIntervalAverage",
+        "cadence": "fixedIntervalAverage",
+        "elevation": "uniform"
+      },
       "heartRate": [
         { "t": 0, "v": 132 },
         { "t": 5, "v": 138 }
@@ -82,7 +109,6 @@
       ]
     }
   },
-
   "weather": {
     "temperature": 24.6,
     "humidity": 68,
@@ -90,113 +116,159 @@
     "skyCondition": "sunny",
     "windLevel": "moderate",
     "feelsLike": "hot",
-    "humidityLevel": "dry"
+    "humidityLevel": "dry",
+    "categoryAdjusted": false
   },
-
   "diary": {
     "painAreas": ["knee", "achilles"],
     "runningStyle": "midfoot",
     "difficultyLevel": 3,
     "memo": "컨디션 좋았음",
-    "shoeId": "nike-pegasus-41",
-    "shoeName": "Nike Pegasus 41"
+    "shoeId": "66a1b2c3d4e5f67890123456"
   }
 }
 ```
 
----
+## `workout` 필드
 
-## 필드 명세
-
-### 최상위
-| 필드 | 타입 | 필수 | 설명 |
+| 필드 | 타입 | 단위/형식 | 규칙 |
 |---|---|---|---|
-| `workout` | Object | ✅ | HealthKit 측정 데이터 |
-| `weather` | Object \| null | ❌ | 날씨 데이터. 위치/조회 실패 시 `null` |
-| `diary` | Object | ✅ | 유저 입력 데이터 |
+| `workoutId` | String | UUID | `HKWorkout.uuid`. 동일 운동에서 불변 |
+| `startTime` | String | ISO 8601 UTC | timezone을 포함한 `Z` 형식 |
+| `endTime` | String | ISO 8601 UTC | timezone을 포함한 `Z` 형식 |
+| `timeZone` | String | IANA identifier | 요청 생성 당시 기기 timezone. 예: `Asia/Seoul` |
+| `distance` | Number | km | HealthKit `totalDistance`를 km로 변환 |
+| `duration` | Integer | sec | `HKWorkout.duration`을 반올림 |
+| `paceSecondsPerKm` | Integer | sec/km | 거리와 운동시간으로 계산. 계산 불가 시 서버 계산 정책 확인 필요 |
+| `averageHeartRate` | Integer | bpm | 미측정 시 `0` |
+| `averageCadence` | Integer | spm | 미측정 시 `0` |
+| `activeEnergyBurned` | Number | kcal | 미측정 시 `0` |
+| `runningVerticalOscillation` | Number | cm | 미측정 시 `0` |
+| `runningGroundContactTime` | Number | ms | 미측정 시 `0` |
+| `walkingStepLength` | Number | m | 미측정 시 `0` |
+| `restingHeartRate` | Number | bpm | 미측정 시 `0` |
+| `runningPower` | Number | watts | 미측정 시 `0` |
+| `runningStrideLength` | Number | m | 미측정 시 `0` |
+| `heartRateRecoveryOneMinute` | Number | bpm | 미측정 시 `0` |
+| `route` | Array\<{lat, lng}\> \| null | 위경도 | 경로가 없으면 명시적 `null` |
+| `routeOriginalPointCount` | Integer \| null | count | 경로 조회 전 원본 좌표 개수. 경로가 없으면 `null` |
+| `routeSamplingMethod` | String \| null | enum | `none` 또는 합의된 다운샘플링 알고리즘명 |
+| `splits` | Array | - | 데이터가 없으면 `[]` |
+| `series` | Object \| null | - | 지원하지 않거나 데이터가 없으면 명시적 `null` |
 
-### `workout` (출처: HealthKit) — 모두 평균/스칼라 값
-| 필드 | 타입 | 단위 | 비고 |
+HealthKit 객체 자체는 JSON으로 직렬화하지 않는다. 위 필드는 HealthKit 값의 의미를 유지하면서 네트워크 전송이 가능한 기본 타입으로 변환한 결과다. 화면 표시용 문자열인 `averagePace`는 요청 계약에 포함하지 않는다.
+
+## `workout.route`
+
+`route` 원소는 위도와 경도만 포함한다.
+
+```json
+{ "lat": 37.5665, "lng": 126.9780 }
+```
+
+- 경로가 없으면 `route: null`이다.
+- 경로가 있으면 빈 배열이 아닌 좌표 배열이다.
+- 원본 좌표가 50,000개 이하이면 `routeSamplingMethod: "none"`이다.
+- 50,000개를 초과하면 첫 지점과 마지막 지점을 보존하는 다운샘플링을 적용한다.
+- `routeOriginalPointCount`는 HealthKit route count 또는 실제 조회한 원본 좌표 배열의 개수로 계산한다.
+- 다운샘플링 알고리즘명은 HealthKit이 제공하는 메타데이터가 아니라 클라이언트가 적용한 방식을 기록한다.
+
+## `workout.splits`
+
+| 필드 | 타입 | 단위 | 규칙 |
 |---|---|---|---|
-| `startTime` | String (ISO 8601) | — | 러닝 시작 시각. 다이어리 날짜는 이 값에서 파생 |
-| `endTime` | String (ISO 8601) | — | 러닝 종료 시각 |
-| `distance` | Number | **km** | 미터 아님 |
-| `duration` | Number | **초(sec)** | |
-| `averagePace` | String | min/km | `"5'44\""` (분'초") 포맷 문자열. ※ 아래 주의 참고 |
-| `averageHeartRate` | Integer | bpm | 평균만 (최대/시계열 없음) |
-| `averageCadence` | Integer | spm (steps/min) | |
-| `activeEnergyBurned` | Number | **kcal** | |
-| `runningVerticalOscillation` | Number | cm | 수직 진폭 |
-| `runningGroundContactTime` | Number | ms | 지면 접촉 시간 |
-| `walkingStepLength` | Number | m | 보폭 |
-| `restingHeartRate` | Number | bpm | 휴식 심박수 |
-| `runningPower` | Number | watts | 러닝 파워 |
-| `runningStrideLength` | Number | m | 러닝 보폭 |
-| `heartRateRecoveryOneMinute` | Number | bpm | 1분 심박 회복 |
-| `route` | Array\<{lat, lng}\> \| null | 위경도(도) | GPS 경로 폴리라인. 없으면 `null` 또는 `[]` |
+| `index` | Integer | - | 1부터 순차 증가 |
+| `distanceKm` | Number | km | 마지막 구간은 1km 미만 가능 |
+| `durationSec` | Number | sec | 구간 운동시간 |
+| `paceSecondsPerKm` | Integer | sec/km | 구간 페이스 |
+| `avgHeartRate` | Integer \| null | bpm | 구간 샘플이 없으면 `null` |
+| `avgCadence` | Integer \| null | spm | 구간 샘플이 없으면 `null` |
+| `elevationGainM` | Number \| null | m | 고도 샘플이 없으면 `null` |
 
-`route[]` 원소: `{ "lat": Number, "lng": Number }` — **altitude/timestamp/speed 없음** (앱이 위경도만 저장).
+구간 데이터가 없으면 `splits: []`로 보낸다.
 
-> **주의 — 값이 없는 지표**: 상세(detailed) 데이터에서도 HealthKit 권한/기기(예: Apple Watch 미착용)에 따라 러닝 다이나믹스 필드(`runningVerticalOscillation`, `runningGroundContactTime`, `runningPower`, `runningStrideLength`, `heartRateRecoveryOneMinute`, `restingHeartRate` 등)가 **0.0**으로 들어올 수 있다. 서버는 "0 = 측정 없음"으로 해석하거나, 클라이언트에서 0을 null로 치환할지 백엔드와 합의 필요.
-
-> **주의 — pace 포맷**: `averagePace`는 앱이 `"5'44\""` 형태의 **표시용 문자열**로 보관한다. 서버에서 정렬·집계가 필요하면 `paceSecondsPerKm`(Integer, 초/km) 같은 수치 필드 추가를 백엔드와 협의 권장(현재 앱은 문자열만 보유). ※ 아래 `splits`/`series`는 수치 페이스(`paceSecondsPerKm`)를 사용한다.
-
-### `workout.splits` (구간 요약 테이블) — 러닝 앱 랩 기록
-거리를 1km(마지막 구간은 1.0 미만 가능)씩 잘라 구간별 대표값 한 줄. 러닝당 수~수십 행. 데이터 없으면 생략 또는 `[]`.
-
-| 필드 | 타입 | 단위 | 설명 |
-|---|---|---|---|
-| `index` | Integer | — | 구간 순번(1부터) |
-| `distanceKm` | Number | km | 구간 거리. 마지막 구간은 1.0 미만 가능 |
-| `durationSec` | Number | 초 | 구간 소요 시간 |
-| `paceSecondsPerKm` | Integer | 초/km | 구간 페이스(수치) |
-| `avgHeartRate` | Integer \| null | bpm | 구간 평균 심박 |
-| `avgCadence` | Integer \| null | spm | 구간 평균 케이던스 |
-| `elevationGainM` | Number \| null | m | 구간 누적 상승(선택) |
-
-### `workout.series` (시계열 곡선) — 그래프용
-지표별 `{t, v}` 포인트 배열. `t` = 워크아웃 시작 후 경과 **초**(Integer). `elevation`만 거리축(`distanceM`). 원본 샘플이 수백~수천 개일 수 있어 **다운샘플링**(고정 간격 리샘플 또는 지표당 상한)된 값을 보낸다. `series` 자체가 없으면 `null`, 개별 지표 배열이 없으면 생략 또는 `[]`.
+## `workout.series`
 
 | 필드 | 타입 | 설명 |
 |---|---|---|
-| `sampleIntervalSec` | Integer | 리샘플 간격(초). 불규칙 간격이면 생략 |
-| `heartRate[]` | `{ "t": Int(초), "v": Int(bpm) }` | 심박 곡선 |
-| `paceSecondsPerKm[]` | `{ "t": Int(초), "v": Int(초/km) }` | 페이스 곡선 |
-| `cadence[]` | `{ "t": Int(초), "v": Int(spm) }` | 케이던스 곡선 |
-| `elevation[]` | `{ "distanceM": Number, "altitude": Number(m) }` | 고도 프로파일(거리축) |
+| `sampleIntervalSec` | Integer \| null | 고정 간격 리샘플링의 기준 간격 |
+| `originalSampleCount` | Object | 지표별 다운샘플링 전 개수 |
+| `samplingMethod` | Object | 지표별 샘플링 방식 |
+| `heartRate` | Array\<{t, v}\> | `t`: 시작 후 초, `v`: bpm |
+| `paceSecondsPerKm` | Array\<{t, v}\> | `t`: 시작 후 초, `v`: sec/km |
+| `cadence` | Array\<{t, v}\> | `t`: 시작 후 초, `v`: spm |
+| `elevation` | Array\<{distanceM, altitude}\> | 거리축 고도 프로파일 |
 
-> **⚠ 구현 상태**: `splits`/`series`는 **현재 앱이 아직 추출하지 않는다.** 앱은 HealthKit 지표를 평균값으로만 뽑고, 경로의 timestamp·고도도 버린다. 이 두 필드를 실제로 채워 보내려면 `HealthKitManager`에 시계열 샘플 쿼리·구간 버킷팅·경로 고도 보존 추출을 추가하는 작업(별도 진행)이 필요하다. 이 명세는 그 **목표 스키마**다.
+- 수집할 수 있는 시계열이 하나도 없으면 `series: null`이다.
+- 개별 지표를 수집하지 못하면 해당 배열은 `[]`로 보낸다.
+- 각 지표는 최대 2,000점을 넘지 않는다.
+- `originalSampleCount`와 `samplingMethod`는 지표별 원본 개수와 처리 방식이 다르므로 객체 형태를 제안한다.
 
-### `weather` (출처: WeatherKit 수치 + 유저 재조정 카테고리)
-| 필드 | 타입 | 단위 | 값/설명 |
+## `weather` 필드
+
+| 필드 | 타입 | 단위/값 | 규칙 |
 |---|---|---|---|
-| `temperature` | Number | **°C** | WeatherKit 원시 |
-| `humidity` | Integer | **%** | 0~100 (WeatherKit 0~1 → %) |
-| `windSpeed` | Number | **m/s** | WeatherKit 원시 |
-| `skyCondition` | String enum | — | `sunny` \| `cloudy` |
-| `windLevel` | String enum | — | `weak` \| `moderate` \| `strong` |
-| `feelsLike` | String enum | — | `cold` \| `neutral` \| `hot` |
-| `humidityLevel` | String enum | — | `dry` \| `humid` |
+| `temperature` | Number | °C | WeatherKit 원시 수치 |
+| `humidity` | Integer | % | 0~100 |
+| `windSpeed` | Number | m/s | WeatherKit 원시 수치 |
+| `skyCondition` | String | `sunny`, `cloudy` | 사용자 최종 확정값 |
+| `windLevel` | String | `weak`, `moderate`, `strong` | 사용자 최종 확정값 |
+| `feelsLike` | String | `cold`, `neutral`, `hot` | 사용자 최종 확정값 |
+| `humidityLevel` | String | `dry`, `humid` | 사용자 최종 확정값 |
+| `categoryAdjusted` | Boolean | - | 자동 분류값과 최종값 중 하나라도 다르면 `true` |
 
-카테고리 4종은 WeatherKit 수치로 자동 분류된 뒤 유저가 재조정할 수 있으므로, 전송 값은 **유저 최종 확정값**이다(수치와 불일치할 수 있음 — 정상).
+- 날씨 조회에 실패하면 `weather: null`이다.
+- 사용자가 값을 변경한 뒤 자동 분류값으로 되돌렸다면 `categoryAdjusted: false`다.
 
-### `diary` (출처: User 입력)
-| 필드 | 타입 | 필수 | 값/설명 |
+## `diary` 필드
+
+| 필드 | 타입 | 필수 | 규칙 |
 |---|---|---|---|
-| `painAreas` | Array\<String enum\> | ✅ (빈 배열 허용) | 다중 선택. `knee, sole, shin, achilles, hip, shoulder, neck, waist, chest, calf, ankle, side` |
-| `runningStyle` | String enum \| null | ❌ | `forefoot` \| `midfoot` \| `heelfoot` |
-| `difficultyLevel` | Integer \| null | ❌ | 난이도 1~5 (`1=veryEasy, 2=easy, 3=medium, 4=hard, 5=veryHard`) |
-| `memo` | String \| null | ❌ | 빈 문자열이면 `null`로 전송 |
-| `shoeId` | String \| null | ❌ | `Shoe.id` |
-| `shoeName` | String \| null | ❌ (optional) | 표시용 신발 이름 (서버 신발 DB 없거나 스냅샷 용도) |
+| `painAreas` | Array\<String\> | ✅ | 통증이 없으면 `[]` |
+| `runningStyle` | String \| null | ❌ | `forefoot`, `midfoot`, `heelfoot` |
+| `difficultyLevel` | Integer \| null | ❌ | 1~5 |
+| `memo` | String \| null | ❌ | 비어 있으면 `null`, 최대 2,000자 |
+| `shoeId` | String | ✅ | 신발 API의 Mongo ObjectId |
 
----
+`painAreas` enum은 다음 값을 사용한다.
 
-## 백엔드와 사전 합의가 필요한 열린 항목
-- 측정 없음 지표의 표현: `0.0` vs `null`
-- `averagePace` 문자열 외 수치 pace 필드 추가 여부
-- `route`가 비었을 때 `null` vs `[]`
-- 날짜/시각 타임존: ISO 8601 UTC(`Z`) 고정 vs 로컬 오프셋 포함
-- `series` 다운샘플 간격/상한 (예: 5초 / 지표당 500점) — 저장·전송 비용
-- `splits` 구간 단위: km 고정 vs 유저 설정(마일 등)
-- `splits`/`series` 서버 저장 방식: 별도 테이블 vs blob(JSON)
+```text
+knee, sole, shin, achilles, hip, shoulder, neck, waist, chest, calf, ankle, side
+```
+
+`shoeName`은 보내지 않는다. 서버 DB의 이름을 기준으로 저장한다.
+
+## null 및 빈 컬렉션 규칙
+
+| 상황 | 전송값 |
+|---|---|
+| 미측정 HealthKit 스칼라 지표 | `0` |
+| 경로 없음 | `route: null` |
+| splits 없음 | `splits: []` |
+| series 전체 없음 | `series: null` |
+| series의 개별 지표 없음 | 해당 배열 `[]` |
+| 통증 없음 | `painAreas: []` |
+| 메모 없음 | `memo: null` |
+| 날씨 없음 | `weather: null` |
+| 신발 없음 | 현재 UX에서는 발생하지 않음 |
+
+## 서버 확인 요청사항
+
+다음 항목은 최종 API 계약 전에 확인이 필요하다.
+
+1. 미측정 스칼라 값을 `null` 대신 `0`으로 보내고 서버가 `0 = 미측정`으로 해석하는 정책을 수용할 수 있는가?
+2. `paceSecondsPerKm`을 클라이언트가 계산하지 못한 경우 필드 생략 또는 `null`을 허용하고 서버가 `duration / distance`로 계산하는가?
+3. `series.originalSampleCount`와 `series.samplingMethod`를 지표별 객체 형태로 받을 수 있는가?
+4. 같은 `Idempotency-Key`와 같은 body의 재시도는 기존 성공 응답을 반환하고, 새로운 키로 기존 `workoutId`를 전송한 경우에만 409를 반환하는가?
+5. 같은 `Idempotency-Key`에 다른 body가 전달되면 어떤 상태 코드와 오류 코드를 반환하는가?
+6. 현재 클라이언트 정책상 `shoeId`가 항상 존재하는 것을 전제로 필수 필드로 확정해도 되는가?
+
+## 예상 오류 처리
+
+| 상태 코드 | 클라이언트 해석 |
+|---|---|
+| `2xx` | 생성 성공 |
+| `400` | 요청 스키마 또는 값 검증 실패 |
+| `401` | access token 갱신 후 동일한 `Idempotency-Key`로 1회 재시도 |
+| `409` | 이미 저장된 `workoutId` 또는 멱등성 충돌. 서버 오류 코드로 세부 원인 구분 필요 |
+| `5xx` | 동일한 body와 `Idempotency-Key`를 유지하여 재시도 가능 |
