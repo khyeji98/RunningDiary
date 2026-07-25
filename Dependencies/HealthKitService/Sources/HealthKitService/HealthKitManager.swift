@@ -113,7 +113,7 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
     }
 
     /// 워크아웃 하나에 대한 전체 상세 데이터를 추출해 `HealthKitWorkout`으로 구성한다.
-    /// 평균 스칼라는 원시 시계열에서 파생해 함께 채운다. (경량/상세 조회 구분 없이 단일 경로)
+    /// 평균 스칼라는 워크아웃 통계 쿼리를 우선 사용하고 통계가 없으면 시계열 산술평균으로 폴백한다. (경량/상세 조회 구분 없이 단일 경로)
     private func makeWorkout(from workout: HKWorkout) async -> HealthKitWorkout? {
         guard let distance = workout.totalDistance?.doubleValue(for: .meterUnit(with: .kilo)),
               let averagePace = calculateAveragePace(from: workout)
@@ -167,14 +167,34 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
             route: routeSamples
         )
 
-        // 평균 스칼라는 원시 시계열에서 파생한다. (Int.init은 소수부 버림)
-        let averageHeartRate = MetricSample.average(of: heartRateSamples).map(Int.init) ?? 0
+        // 평균 스칼라는 워크아웃 통계 쿼리(.discreteAverage)를 우선 사용하고, 통계가 없으면 시계열 산술평균으로 폴백한다.
+        // (Int.init은 소수부 버림) cadence는 stepCount(cumulative) 기반이라 통계 평균이 없어 시계열 산술평균을 유지한다.
+        let heartRateUnit = HKUnit.count().unitDivided(by: .minute())
+        let averageHeartRate = averageQuantity(
+            from: workout, identifier: .heartRate, unit: heartRateUnit, fallbackSamples: heartRateSamples
+        ).map(Int.init) ?? 0
         let averageCadence = MetricSample.average(of: cadenceSamples).map(Int.init) ?? 0
-        let runningVerticalOscillation = MetricSample.average(of: verticalOscillationSamples) ?? 0
-        let runningGroundContactTime = MetricSample.average(of: groundContactTimeSamples) ?? 0
-        let walkingStepLength = MetricSample.average(of: walkingStepLengthSamples) ?? 0
-        let runningPower = MetricSample.average(of: runningPowerSamples) ?? 0
-        let runningStrideLength = MetricSample.average(of: runningStrideLengthSamples) ?? 0
+        let runningVerticalOscillation = averageQuantity(
+            from: workout,
+            identifier: .runningVerticalOscillation,
+            unit: .meterUnit(with: .centi),
+            fallbackSamples: verticalOscillationSamples
+        ) ?? 0
+        let runningGroundContactTime = averageQuantity(
+            from: workout,
+            identifier: .runningGroundContactTime,
+            unit: .secondUnit(with: .milli),
+            fallbackSamples: groundContactTimeSamples
+        ) ?? 0
+        let walkingStepLength = averageQuantity(
+            from: workout, identifier: .walkingStepLength, unit: .meter(), fallbackSamples: walkingStepLengthSamples
+        ) ?? 0
+        let runningPower = averageQuantity(
+            from: workout, identifier: .runningPower, unit: .watt(), fallbackSamples: runningPowerSamples
+        ) ?? 0
+        let runningStrideLength = averageQuantity(
+            from: workout, identifier: .runningStrideLength, unit: .meter(), fallbackSamples: runningStrideLengthSamples
+        ) ?? 0
 
         return HealthKitWorkout(
             id: workout.uuid,
@@ -204,6 +224,22 @@ public final class HealthKitManager: HealthKitManagerProtocol, @unchecked Sendab
             runningPowerSamples: runningPowerSamples,
             runningStrideLengthSamples: runningStrideLengthSamples
         )
+    }
+
+    /// 워크아웃에 연관된 discrete 지표의 평균을 HealthKit이 저장 시 산출한 통계에서 조회한다.
+    /// 통계가 없으면(일부 서드파티 소스) 이미 조회한 시계열의 산술평균으로 폴백한다.
+    private func averageQuantity(
+        from workout: HKWorkout,
+        identifier: HKQuantityTypeIdentifier,
+        unit: HKUnit,
+        fallbackSamples: [MetricSample]
+    ) -> Double? {
+        if let type = HKQuantityType.quantityType(forIdentifier: identifier),
+           let average = workout.statistics(for: type)?.averageQuantity()?.doubleValue(for: unit) {
+            return average
+        }
+
+        return MetricSample.average(of: fallbackSamples)
     }
 
     private func calculateAveragePace(from workout: HKWorkout) -> String? {
